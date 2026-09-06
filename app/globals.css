@@ -1,0 +1,751 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * Type
+ *
+ * Two families, which is what the reference sites run on:
+ *   sans  PP Neue Montreal — the face noth.in and hobro.digital both use.
+ *   mono  Geist Mono — the face loop-agency uses for every small label.
+ *
+ * Only one weight of PP Neue Montreal is licensed into this repo, so the whole
+ * site is set at that weight and hierarchy is carried by size, tracking and
+ * opacity instead. That is close to how noth.in works anyway. Never apply
+ * `font-bold` to it — the browser would synthesise a fake bold.
+ * ------------------------------------------------------------------------- */
+@theme inline {
+  --font-sans: var(--font-neue-montreal);
+  --font-mono: var(--font-geist-mono);
+
+  --color-ink: #141414;
+  --color-paper: #f2efe9;
+  --color-ash: #7a7a7a;
+  --color-accent: #ffc72c;
+}
+
+@theme {
+  /* Webflow's breakpoints, so `max-tablet:` / `max-mobile:` mean 991 / 767. */
+  --breakpoint-tablet: 992px;
+  --breakpoint-mobile: 768px;
+}
+
+/*
+ * Scaling System by Osmo [https://osmo.supply/]
+ *
+ * Root font size derived from viewport width, so every `em` scales
+ * proportionally instead of stepping at breakpoints.
+ */
+:root {
+  --size-unit: 16;
+  --size-container-ideal: 1440;
+  --size-container-min: 1200px;
+  --size-container-max: 1920px;
+  --size-container: clamp(var(--size-container-min), 100vw, var(--size-container-max));
+  --size-font: calc(var(--size-container) / (var(--size-container-ideal) / var(--size-unit)));
+
+  /*
+   * The page is paper: a warm off-white under film grain, the way Osmo's
+   * grain demo sets its stock. Ink is loop-agency's #141414, not black, and
+   * takes the sections that need weight. Everything muted is the foreground
+   * at reduced opacity, so it reads on both surfaces without a second grey.
+   */
+  --ink: #141414;
+  --paper: #f2efe9;
+  --ash: #7a7a7a;
+  --accent: #ffc72c;
+
+  /*
+   * The fixed chrome — mark, MENU, side column — is ink over paper and paper
+   * over ink. Ink sections flag themselves with `data-surface="ink"`, the
+   * header watches them, and these two flip. A blend mode would do the swap
+   * for free but inverts anything coloured too, which is what killed the
+   * yellow in the mark.
+   */
+  --chrome-fg: var(--ink);
+  --chrome-bg: var(--paper);
+
+  /* Osmo's house ease, as a CSS timing function. */
+  --ease-osmo: cubic-bezier(0.625, 0.05, 0, 1);
+
+  /* Clears the fixed mark (44px corner + 41px logo) at every width. */
+  --nav-height: calc(var(--corner) + 60px);
+
+  /*
+   * Page gutter. noth.in runs an 18-20px gutter at every width and loop-agency
+   * pins its corner furniture at 44px; a fixed 20px is what keeps the corners
+   * feeling pinned rather than floating as the viewport grows.
+   */
+  --gutter: 20px;
+  --corner: 44px;
+}
+
+@media screen and (max-width: 991px) {
+  :root {
+    --size-container-ideal: 900;
+    --size-container-min: 768px;
+    --size-container-max: 991px;
+    --gutter: 18px;
+    --corner: 28px;
+  }
+}
+
+@media screen and (max-width: 767px) {
+  :root {
+    --size-container-ideal: 640;
+    --size-container-min: 480px;
+    --size-container-max: 767px;
+    --gutter: 16px;
+    --corner: 20px;
+  }
+}
+
+@media screen and (max-width: 479px) {
+  :root {
+    --size-container-ideal: 420;
+    --size-container-min: 320px;
+    --size-container-max: 479px;
+  }
+}
+
+html[data-chrome="light"],
+html[data-transitioning],
+html[data-menu-open] {
+  --chrome-fg: var(--paper);
+  --chrome-bg: var(--ink);
+}
+
+@layer base {
+
+  /* Osmo browser reset — hide scrollbars. */
+  html {
+    scrollbar-width: none;
+    background-color: var(--paper);
+  }
+
+  body {
+    -ms-overflow-style: none;
+    overflow-x: clip;
+  }
+
+  body::-webkit-scrollbar,
+  body ::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* `clip`, not `hidden`: Lenis scrolls programmatically, which `hidden` allows. */
+  html[data-loading],
+  html[data-loading] body {
+    overflow: clip;
+  }
+
+  /* The header mark is invisible until the loader hands it over via Flip. */
+  [data-header-logo] {
+    visibility: hidden;
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
+
+  img,
+  svg {
+    display: block;
+    max-width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Type utilities
+ *
+ * `.label` is the small tracked mono caption the reference sites hang
+ * everything off — section markers, nav, meta, indices. `.display` is the
+ * opposite end: very large, negative tracking, tight leading.
+ * ------------------------------------------------------------------------- */
+/*
+ * These live in `@layer components` so Tailwind utilities still beat them.
+ * Unlayered rules outrank every layered utility regardless of specificity, so
+ * an unlayered `.display` would make `whitespace-nowrap`, `leading-*` and
+ * `tracking-*` silently do nothing on any element carrying it.
+ */
+@layer components {
+
+  /* loop-agency's UI text: 14px Geist Mono, -0.03em, uppercase, 22px leading. */
+  .label {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: -0.03em;
+    text-transform: uppercase;
+    line-height: 1.6;
+  }
+
+  /* The same voice one size down, for captions and markers. */
+  .label-xs {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    line-height: 1;
+  }
+
+  .display {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.035em;
+    line-height: 0.9;
+    text-wrap: balance;
+  }
+
+  .statement {
+    font-family: var(--font-sans);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-wrap: pretty;
+  }
+
+  /* A hairline that matches the current surface, used to rule off sections. */
+  .rule {
+    border-color: color-mix(in srgb, currentColor 16%, transparent);
+  }
+
+  /*
+   * noth.in's outlined pill: 50px tall, 1px hairline at 30%, mono label,
+   * an icon on the right. The primary CTA on the site is still the Osmo
+   * bubble button; this is the secondary.
+   */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 1.25em;
+    height: 50px;
+    padding: 0 22px;
+    border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+    border-radius: 999px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    transition:
+      background-color 0.4s var(--ease-osmo),
+      color 0.4s var(--ease-osmo),
+      border-color 0.4s var(--ease-osmo);
+  }
+
+  .pill:hover {
+    background-color: var(--accent);
+    border-color: var(--accent);
+    color: var(--ink);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * The side column is shown only while the home spiral is pinned.
+ * ------------------------------------------------------------------------- */
+.side-nav {
+  transition: opacity 0.4s var(--ease-osmo);
+}
+
+html:not([data-spiral-active]) .side-nav {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Fixed chrome takes the surface-aware colour with a short transition. */
+.chrome {
+  color: var(--chrome-fg);
+  transition: color 0.35s var(--ease-osmo);
+}
+
+/* ---------------------------------------------------------------------------
+ * Progressive Blur by Osmo
+ * [https://www.osmo.supply/resource/progressive-blur]
+ *
+ * Five `backdrop-filter` layers, each masked to a different band, so content
+ * scrolling underneath dissolves rather than hitting a hard blur edge. Blur
+ * radii and gradient stops are the resource's, unchanged. The one adaptation
+ * is `position: absolute` — the resource pins it to the viewport, here it is
+ * scoped to whichever section owns it.
+ * ------------------------------------------------------------------------- */
+.progressive-blur {
+  z-index: 40;
+  pointer-events: none;
+  isolation: isolate;
+  contain: paint;
+  width: 100%;
+  height: 15em;
+  transform-style: preserve-3d;
+  position: absolute;
+  left: 0;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+
+.progressive-blur[data-edge="bottom"] {
+  bottom: 0;
+}
+
+.progressive-blur[data-edge="top"] {
+  top: 0;
+  transform: translateZ(0) scaleY(-1);
+}
+
+.progressive-blur__layer {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+}
+
+.progressive-blur__layer.is--1 {
+  -webkit-backdrop-filter: blur(0.09375em);
+  backdrop-filter: blur(0.09375em);
+  -webkit-mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
+  mask: linear-gradient(#0000 50%, #000 62.5% 75%, #0000 87.5%);
+}
+
+.progressive-blur__layer.is--2 {
+  -webkit-backdrop-filter: blur(0.1875em);
+  backdrop-filter: blur(0.1875em);
+  -webkit-mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
+  mask: linear-gradient(#0000 62.5%, #000 75% 87.5%, #0000 100%);
+}
+
+.progressive-blur__layer.is--3 {
+  -webkit-backdrop-filter: blur(0.375em);
+  backdrop-filter: blur(0.375em);
+  -webkit-mask: linear-gradient(#0000 75%, #000 87.5% 100%);
+  mask: linear-gradient(#0000 75%, #000 87.5% 100%);
+}
+
+.progressive-blur__layer.is--4 {
+  -webkit-backdrop-filter: blur(0.75em);
+  backdrop-filter: blur(0.75em);
+  -webkit-mask: linear-gradient(#0000 82%, #000 92% 100%);
+  mask: linear-gradient(#0000 82%, #000 92% 100%);
+}
+
+.progressive-blur__layer.is--5 {
+  -webkit-backdrop-filter: blur(1.5em);
+  backdrop-filter: blur(1.5em);
+  -webkit-mask: linear-gradient(#0000 88%, #000 100%);
+  mask: linear-gradient(#0000 88%, #000 100%);
+}
+
+/* ---------------------------------------------------------------------------
+ * Sticky Section Tabs by Osmo
+ * [https://www.osmo.supply/resource/sticky-section-tabs-css]
+ *
+ * No JavaScript. A sticky spacer holds the top `--nav-height`; each tab header
+ * sticks one pixel under it, so successive headers stack while their bodies
+ * scroll past. The `-1px` pair closes the hairline two stuck headers leave.
+ * ------------------------------------------------------------------------- */
+.sticky-tab-group {
+  overflow: clip;
+}
+
+.sticky-tab-group__nav-bg {
+  position: sticky;
+  top: -1px;
+  left: 0;
+  z-index: 2;
+  height: calc(var(--nav-height) + 1px);
+  width: 100%;
+}
+
+.sticky-tab {
+  position: relative;
+  overflow: clip;
+}
+
+.sticky-tab__sticky {
+  z-index: 1;
+  top: calc(var(--nav-height) - 1px);
+  flex-flow: column;
+  margin-top: -1px;
+  display: flex;
+  position: sticky;
+}
+
+/* ---------------------------------------------------------------------------
+ * Button with Bubble Arrow by Osmo
+ * [https://www.osmo.supply/resource/button-with-bubble-arrow]
+ *
+ * A bubble on the left that starts collapsed, the label, and a duplicate
+ * bubble on the right that starts open. Hovering trades the two and swings the
+ * elbow arrow out to a straight diagonal. Every value — the 3.75em bubble, the
+ * -3.75em content offset, the 0.735s `osmo` easing, the -45deg — is the
+ * resource's. Only the palette is this site's: black and white, no orange.
+ * ------------------------------------------------------------------------- */
+.btn-bubble-arrow {
+  position: relative;
+  display: flex;
+  width: max-content;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10em;
+  font-size: 1em;
+  text-decoration: none;
+  color: var(--ink);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.btn-bubble-arrow__arrow {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.75em;
+  height: 3.75em;
+  flex: none;
+  border-radius: 10em;
+  background-color: var(--accent);
+  color: var(--ink);
+  transform: scale(0) rotate(0.001deg);
+  transform-origin: left;
+  transition: transform 0.735s var(--ease-osmo);
+}
+
+.btn-bubble-arrow__arrow.is--duplicate {
+  z-index: 2;
+  position: absolute;
+  right: 0;
+  transform: scale(1) rotate(0.001deg);
+  transform-origin: right;
+}
+
+.btn-bubble-arrow__arrow-svg {
+  width: 40%;
+  transition: transform 0.735s var(--ease-osmo);
+}
+
+.btn-bubble-arrow__content {
+  display: flex;
+  align-items: center;
+  height: 3.75em;
+  padding-left: 2em;
+  padding-right: 2em;
+  border-radius: 10em;
+  background-color: var(--paper);
+  color: var(--ink);
+  transform: translateX(-3.75em) rotate(0.001deg);
+  transition: transform 0.735s var(--ease-osmo);
+}
+
+.btn-bubble-arrow:hover .btn-bubble-arrow__arrow {
+  transform: scale(1) rotate(0.001deg);
+}
+
+.btn-bubble-arrow:hover .btn-bubble-arrow__arrow.is--duplicate {
+  transform: scale(0) rotate(0.001deg);
+}
+
+.btn-bubble-arrow:hover .btn-bubble-arrow__content {
+  transform: translateX(0em) rotate(0.001deg);
+}
+
+.btn-bubble-arrow:hover .btn-bubble-arrow__arrow-svg {
+  transform: rotate(-45deg);
+}
+
+/* On paper sections the label inverts to ink; the bubble stays yellow. */
+.btn-bubble-arrow.is--invert .btn-bubble-arrow__content {
+  background-color: var(--ink);
+  color: var(--paper);
+}
+
+/* ---------------------------------------------------------------------------
+ * Film Grain Effect by Osmo
+ * [https://www.osmo.supply/resource/film-grain-effect]
+ *
+ * The resource's texture, opacity, filter, tile size and five-step crawl,
+ * unchanged — but placed *under* the content rather than over it. The page
+ * itself gets one fixed layer behind everything (paper sections paint no
+ * background, so it shows through them), and each opaque surface — ink
+ * sections, the gradients, the sticky tab headers, the loader panel — carries
+ * its own copy as a pseudo-element pinned beneath its content with z-index -1
+ * inside an isolated stacking context. Type and photography stay clean.
+ * ------------------------------------------------------------------------- */
+.grain,
+.surface-paper::before,
+.surface-ink::before,
+.gradient-paper::before,
+.gradient-ink::before {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: contrast(125%) brightness(60%);
+  background-color: #0000;
+  background-image: url("/img/noise.avif");
+  background-position: 50%;
+  background-size: 7.8125em;
+  animation: grain 0.8s steps(1, end) infinite;
+}
+
+/* The page's own layer: fixed, and behind the page wrap. */
+.grain {
+  position: fixed;
+  inset: 0%;
+  z-index: 0;
+}
+
+/*
+ * Layered, so a positioning utility on the same element still wins: the menu
+ * overlay is `fixed` and carries a gradient, and an unlayered `relative` here
+ * would drop it into the document flow.
+ */
+@layer components {
+
+  .surface-paper,
+  .surface-ink,
+  .gradient-paper,
+  .gradient-ink {
+    position: relative;
+    isolation: isolate;
+  }
+}
+
+.surface-paper::before,
+.surface-ink::before,
+.gradient-paper::before,
+.gradient-ink::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+}
+
+.surface-paper {
+  background-color: var(--paper);
+}
+
+.surface-ink {
+  background-color: var(--ink);
+}
+
+@keyframes grain {
+  0% {
+    background-position: 0em 0em;
+  }
+
+  20% {
+    background-position: -0.5em 0.3em;
+  }
+
+  40% {
+    background-position: 0.4em -0.2em;
+  }
+
+  60% {
+    background-position: -0.3em -0.4em;
+  }
+
+  80% {
+    background-position: 0.2em 0.5em;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Grainy gradients. Each carries the grain beneath its content, which is what
+ * turns a flat fill into stock: a warm bloom of the brand yellow low on the
+ * paper, a cooler one on ink. Both stay inside the surface's own colour.
+ * ------------------------------------------------------------------------- */
+.gradient-paper {
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(70% 55% at 12% 100%,
+      color-mix(in srgb, var(--accent) 34%, var(--paper)) 0%,
+      transparent 70%),
+    radial-gradient(55% 50% at 92% 0%,
+      color-mix(in srgb, var(--ink) 7%, var(--paper)) 0%,
+      transparent 70%);
+}
+
+.gradient-ink {
+  background-color: var(--ink);
+  background-image:
+    radial-gradient(70% 55% at 88% 100%,
+      color-mix(in srgb, var(--accent) 16%, var(--ink)) 0%,
+      transparent 70%),
+    radial-gradient(55% 50% at 8% 0%,
+      color-mix(in srgb, var(--paper) 6%, var(--ink)) 0%,
+      transparent 70%);
+}
+
+/* Fields keep the native caret even with the custom cursor on. */
+html.has-cursor input,
+html.has-cursor textarea {
+  cursor: text !important;
+}
+
+/* ---------------------------------------------------------------------------
+ * Reveal primitives. `[data-reveal]` is hidden until GSAP has set its "from"
+ * state, so copy never flashes in its finished position first.
+ * ------------------------------------------------------------------------- */
+[data-reveal]:not(.is--ready) {
+  visibility: hidden;
+}
+
+/* ---------------------------------------------------------------------------
+ * Marquee
+ * ------------------------------------------------------------------------- */
+.marquee-track {
+  display: flex;
+  width: max-content;
+  will-change: transform;
+}
+
+/* ---------------------------------------------------------------------------
+ * Page transitions. Both overlays sit above everything and never take pointer
+ * events; only their painted children do the covering.
+ * ------------------------------------------------------------------------- */
+.transition-overlay {
+  z-index: 300;
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  overflow: clip;
+}
+
+/*
+ * Draw SVG Page Transition by Osmo
+ * [https://www.osmo.supply/resource/draw-svg-page-transition]
+ */
+.transition__shape {
+  width: 100%;
+  height: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.transition__svg {
+  /*
+   * `max-width: none` is load-bearing. The base reset sets `svg { max-width:
+   * 100% }`, which beats `width` and would clamp this back to the viewport —
+   * leaving the overscan on one side only, so the cover never reaches the
+   * right-hand 15% of the screen and the page swap shows through.
+   */
+  max-width: none;
+  width: 130%;
+  height: 130%;
+  position: absolute;
+  top: -15%;
+  left: -15%;
+}
+
+/* The paper plane that flies the head of the drawn path. Positioned by GSAP. */
+.transition__plane {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 301;
+  width: 4.5em;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+
+/*
+ * Shutter Page Transition by Osmo
+ * [https://www.osmo.supply/resource/shutter-page-transition]
+ */
+.transition__panel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.transition__shutter {
+  position: relative;
+  flex: 1 1 0%;
+  height: 100%;
+  opacity: 0;
+  background-color: var(--ink);
+  will-change: transform, clip-path;
+}
+
+/* ---------------------------------------------------------------------------
+ * Custom cursor.
+ * ------------------------------------------------------------------------- */
+html.has-cursor,
+html.has-cursor * {
+  cursor: none !important;
+}
+
+.cursor-dot {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 0 var(--accent);
+  z-index: 999;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.3s var(--ease-osmo),
+    height 0.3s var(--ease-osmo),
+    background-color 0.3s var(--ease-osmo),
+    box-shadow 0.3s var(--ease-osmo);
+}
+
+/* Over a link or button it opens into a ring: "this can be acted on". */
+/* Nothing shows until the pointer has actually moved inside the window. */
+.cursor-dot:not(.is--on) {
+  opacity: 0;
+}
+
+.cursor-dot.is--big {
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
+
+@media (pointer: coarse) {
+  .cursor-dot {
+    display: none;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Reduced motion. Everything animated has a resting state that is also its
+ * finished state, so switching the animations off leaves the page complete.
+ * ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+
+  [data-reveal]:not(.is--ready) {
+    visibility: visible;
+  }
+
+  .grain,
+  .surface-paper::before,
+  .surface-ink::before,
+  .gradient-paper::before,
+  .gradient-ink::before {
+    animation: none;
+  }
+}
