@@ -1,0 +1,64 @@
+"use client";
+
+import Image from "next/image";
+
+import { RIDES, SERVICES, SERVICES_INTRO } from "@/lib/content";
+import SectionHead from "@/components/ui/section-head";
+import TransitionLink from "@/components/transition/transition-link";
+
+/**
+ * Services as a ruled index.
+ *
+ * Set on ink, the one dark section in the home sequence — the alternation
+ * noth.in runs, inverted. Each row is a full-width rule with the name at
+ * display size; hovering pushes the row in and brings its line forward.
+ */
+export default function ServicesList({ withHead = true }: { withHead?: boolean }) {
+  return (
+    <section data-surface="ink" className="surface-ink text-paper px-[var(--gutter)] py-[7em]">
+      {withHead ? (
+        <SectionHead
+          marker={SERVICES_INTRO.sign}
+          title={SERVICES_INTRO.question}
+          sub={SERVICES_INTRO.sub}
+          className="mb-[4em]"
+        />
+      ) : null}
+
+      <div className="rule border-t">
+        {SERVICES.map((service, index) => (
+          <TransitionLink
+            key={service.no}
+            href="/services"
+            className="rule group relative grid grid-cols-[4em_1fr_10em] items-baseline gap-[1.5em] border-b py-[1.1em] transition-[padding] duration-500 hover:pl-[1em] max-tablet:grid-cols-[3em_1fr]"
+            style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+          >
+            <span className="label opacity-60 transition-[color,opacity] duration-300 group-hover:text-accent group-hover:opacity-100">({service.no})</span>
+
+            <span className="display text-[clamp(28px,4vw,60px)]">
+              {service.name}
+            </span>
+
+            <span className="label justify-self-end opacity-60 max-tablet:hidden">
+              {service.tag}
+            </span>
+
+            {/* A still surfaces on hover, as the rows on noth.in do. */}
+            <span
+              aria-hidden
+              className="pointer-events-none absolute top-1/2 right-[11em] aspect-[4/3] w-[12vw] -translate-y-1/2 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-tablet:hidden"
+            >
+              <Image
+                src={RIDES[(index * 2) % RIDES.length].frame}
+                alt=""
+                fill
+                sizes="12vw"
+                className="object-cover"
+              />
+            </span>
+          </TransitionLink>
+        ))}
+      </div>
+    </section>
+  );
+}
