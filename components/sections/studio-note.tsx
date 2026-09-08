@@ -20,11 +20,11 @@ function Waypoint({ className, children }: { className?: string; children?: Reac
 }
 
 /**
- * The studio, after noth.in's "( The Studio )".
+ * The studio.
  *
  * A marker on the left with a small still and the claim under it, the
  * paragraph on the right at reading size, then one large frame in a row of
- * its own. The frame is the target of Osmo's GSAP Flip scene: it grows to the
+ * its own. The frame is the target of the GSAP Flip scene: it grows to the
  * full viewport in the next section and lands as a column-width still beside
  * the closing claim.
  *

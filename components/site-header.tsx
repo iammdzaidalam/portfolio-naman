@@ -10,14 +10,14 @@ import SocialYatriLogo from "@/components/logo/social-yatri-logo";
 import TransitionLink from "@/components/transition/transition-link";
 
 /**
- * The site's chrome, laid out the way loop-agency lays out its viewport:
- * the mark top-left, MENU top-right, and the primary navigation as a mono
+ * The site's chrome: the mark top-left, MENU top-right, and the primary
+ * navigation as a mono
  * column pinned to the left edge at mid-height, with a small square marking
  * the active route. All of it is fixed and takes the surface-aware chrome
  * colour, so one set of furniture reads over both paper and ink.
  *
  * MENU opens an overlay of the same routes set very large, right-aligned,
- * which is loop-agency's menu; the hover roll on each link is theirs too.
+ * with a rolling hover on each link.
  *
  * The mark is hidden until the loader hands it over with `Flip.fit`.
  */
@@ -128,9 +128,9 @@ export default function SiteHeader() {
           {open ? "Close" : "Menu ::"}
         </button>
 
-        {/* loop-agency's left column: the routes, mid-height, one square. */}
+        {/* The left column: the routes, mid-height, one square. */}
         {/*
-          loop-agency's side column. It only exists while the home spiral is
+          The side column. It only exists while the home spiral is
           pinned on screen — `html[data-spiral-active]`, set by the spiral —
           because every other section is editorial and uses the left edge.
           MENU carries the navigation everywhere else.
@@ -185,12 +185,12 @@ export default function SiteHeader() {
               >
                 {/* Two copies, so the label rolls on hover. */}
                 <span className="relative block overflow-hidden">
-                  <span className="block transition-transform duration-500 [transition-timing-function:var(--ease-osmo)] group-hover:-translate-y-full">
+                  <span className="block transition-transform duration-500 [transition-timing-function:var(--ease-brand)] group-hover:-translate-y-full">
                     {item.label}
                   </span>
                   <span
                     aria-hidden
-                    className="text-accent absolute inset-0 block translate-y-full transition-transform duration-500 [transition-timing-function:var(--ease-osmo)] group-hover:translate-y-0"
+                    className="text-accent absolute inset-0 block translate-y-full transition-transform duration-500 [transition-timing-function:var(--ease-brand)] group-hover:translate-y-0"
                   >
                     {item.label}
                   </span>

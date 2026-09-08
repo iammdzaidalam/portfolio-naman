@@ -90,8 +90,7 @@ export default function TransitionProvider({
   }, []);
 
   /* ---------------------------------------------------------------------
-   * Draw SVG Page Transition by Osmo
-   * [https://www.osmo.supply/resource/draw-svg-page-transition]
+   * The drawn page transition.
    *
    * Every value below is the resource's own, from its published demo.
    *
@@ -103,11 +102,9 @@ export default function TransitionProvider({
    * "100% 100%" — the line is erased from its own start, so the cover retreats
    * along the path it arrived on instead of simply fading.
    *
-   * The one deviation from the original is structural, not visual. Barba runs
-   * leave and enter concurrently against two containers, so the resource offsets
-   * its enter timeline by 1s to wait for the leave. Here the router has a single
-   * container and enter cannot start until the new route has committed, so the
-   * two run in sequence and that 1s offset would be dead time.
+   * Leave and enter run in sequence rather than concurrently: the router has a
+   * single container and enter cannot start until the new route has committed,
+   * so an offset between the two would be dead time.
    *
    * This site's addition: a paper plane flies the head of the line as it is
    * drawn — the yatri on the road. It is an HTML element rather than a child
@@ -188,8 +185,8 @@ export default function TransitionProvider({
     const tl = gsap.timeline();
     if (!path) return tl;
 
-    // Stands in for Barba's `set(next, {autoAlpha: 1})` at "startEnter". Done
-    // synchronously rather than as a timeline step: if the ticker is asleep —
+    // Reveal the incoming page. Done synchronously rather than as a timeline
+    // step: if the ticker is asleep —
     // a backgrounded tab throttles rAF to nothing — a queued `set` would leave
     // the page invisible until the reader came back.
     if (wrap) gsap.set(wrap, { autoAlpha: 1 });
@@ -223,8 +220,7 @@ export default function TransitionProvider({
   }, []);
 
   /* ---------------------------------------------------------------------
-   * Shutter Page Transition by Osmo
-   * [https://www.osmo.supply/resource/shutter-page-transition]
+   * The shutter page transition.
    *
    * Ten shutters, 0.5s each, staggered across 0.3s from the end, with the
    * outgoing page sliding 15vh up under them and the incoming page arriving
@@ -335,8 +331,7 @@ export default function TransitionProvider({
       // fires, whichever comes first. Without the guard a timeline that never
       // completes (a tab backgrounded mid-transition suspends rAF, so GSAP
       // stops advancing) would leave `pendingRef` set forever and every later
-      // link click would be swallowed. Barba guards its own transitions the
-      // same way.
+      // link click would be swallowed.
       let committed = false;
       const commit = () => {
         if (committed) return;

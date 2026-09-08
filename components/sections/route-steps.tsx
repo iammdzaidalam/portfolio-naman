@@ -12,7 +12,7 @@ import SectionHead from "@/components/ui/section-head";
 /**
  * The eight stages, drawn as a flight over the Howrah Bridge.
  *
- * This is Osmo's Draw Path on Scroll: the stroke is revealed in lockstep with
+ * The stroke is revealed in lockstep with
  * the scrollbar, so the line is always exactly as far along as the reader is.
  * Here the line is the bridge's own profile and a paper plane rides its head,
  * with the structure assembling near to far behind it.

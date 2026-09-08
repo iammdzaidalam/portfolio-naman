@@ -8,7 +8,7 @@ import { gsap, ScrollTrigger } from "@/lib/gsap";
 /**
  * Lenis, driven off GSAP's ticker rather than its own rAF loop.
  *
- * Two things matter here and both are why the Osmo resources ask for it:
+ * Two things matter here:
  * ScrollTrigger has to be told to `update` on every Lenis frame or scrubbed
  * timelines lag a frame behind the content, and Lenis must not run a second
  * requestAnimationFrame loop alongside GSAP's or the two fight over the same

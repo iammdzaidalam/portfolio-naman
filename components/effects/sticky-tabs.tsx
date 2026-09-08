@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 
 /**
- * Sticky Section Tabs by Osmo
- * [https://www.osmo.supply/resource/sticky-section-tabs-css]
+ * Sticky section tabs.
  *
  * No JavaScript at all. A sticky spacer reserves the top `--nav-height`, and
  * each tab's header sticks one pixel below it. Because every header shares the

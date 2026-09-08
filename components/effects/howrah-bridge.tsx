@@ -7,9 +7,7 @@ import { ScrollTrigger } from "@/lib/gsap";
 import { BANDS, BRIDGE_VIEWBOX, CAMERA, FLIGHT } from "./howrah-bridge-geometry";
 
 /**
- * Draw Path on Scroll by Osmo
- * [https://www.osmo.supply/resource/draw-path-on-scroll]
- * — the resource's behaviour, applied to a bridge that is also moving.
+ * Drawing a path on scroll, applied to a bridge that is also moving.
  *
  * The line is revealed in lockstep with the scrollbar, on the resource's own
  * trigger: `clamp()` on both ends so a section near the top of the document

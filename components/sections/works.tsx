@@ -8,7 +8,7 @@ import SpreadLabel from "@/components/effects/spread-label";
 import TransitionLink from "@/components/transition/transition-link";
 
 /**
- * The work, laid out the way noth.in lays out its WORKS.
+ * The work.
  *
  * The section label sticks to the top and spreads its letters across the page
  * as you scroll, then gathers in the right corner. Below it the pieces run in
@@ -58,7 +58,7 @@ function WorkItem({
           fill
           sizes="(max-width: 992px) 100vw, 44vw"
           className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-          style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+          style={{ transitionTimingFunction: "var(--ease-brand)" }}
         />
       </div>
     </TransitionLink>
@@ -84,7 +84,7 @@ export default function Works() {
         </div>
 
         <div className="grid content-start max-tablet:contents">
-          {/* The one large statement on the page, in noth.in's position. */}
+          {/* The one large statement on the page. */}
           <Reveal as="p" className="display mt-[4vh] max-w-[9em] text-[clamp(34px,3.4vw,52px)]" style={{ order: 1 }}>
             {HERO.headline[0]} {HERO.headline[1]}
           </Reveal>
@@ -95,7 +95,7 @@ export default function Works() {
         </div>
       </div>
 
-      {/* noth.in's closing row: link, count, mark. */}
+      {/* The closing row: link, count, mark. */}
       <div className="mt-[16vh] grid grid-cols-2 items-baseline gap-x-[4vw] max-tablet:grid-cols-1 max-tablet:gap-y-[1em]">
         <TransitionLink
           href="/work"

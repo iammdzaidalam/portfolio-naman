@@ -196,7 +196,7 @@ function Loader({ onDone }: { onDone: () => void }) {
 
         Flip.fit(source, target, {
           duration: 1.15,
-          ease: "osmo",
+          ease: "brand",
           scale: true,
           absolute: true,
           onComplete: () => {
@@ -295,7 +295,7 @@ function Loader({ onDone }: { onDone: () => void }) {
             Plotting the route
           </span>
 
-          {/* The count sits on the baseline of the page, as on noth.in. */}
+          {/* The count sits on the baseline of the page. */}
           <div className="overflow-hidden">
             <span data-loader-meta className="label block text-[1em]">
               <span ref={countRef}>000</span>

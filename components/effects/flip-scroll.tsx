@@ -6,8 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { Flip, gsap } from "@/lib/gsap";
 
 /**
- * Scaling Element on Scroll (GSAP Flip) by Osmo
- * [https://www.osmo.supply/resource/scaling-element-on-scroll-gsap-flip]
+ * Scaling an element on scroll with GSAP Flip.
  *
  * `[data-flip-element="wrapper"]` elements are waypoints. A single
  * `[data-flip-element="target"]` lives inside the first of them and, as you

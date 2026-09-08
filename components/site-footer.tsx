@@ -9,7 +9,7 @@ import TransitionLink from "@/components/transition/transition-link";
 import Reveal from "@/components/effects/reveal";
 
 /**
- * The footer, after noth.in's.
+ * The footer.
  *
  * One viewport tall. The closing line and two outlined pills sit top-left, the
  * social links form a column at four-fifths of the width, a mono row runs along

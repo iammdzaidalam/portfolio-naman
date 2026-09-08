@@ -1,6 +1,5 @@
 /**
- * Progressive Blur by Osmo
- * [https://www.osmo.supply/resource/progressive-blur]
+ * Progressive blur.
  *
  * Five `backdrop-filter` layers, each masked to a different band, so content
  * scrolling underneath dissolves rather than hitting a hard blur edge. All the

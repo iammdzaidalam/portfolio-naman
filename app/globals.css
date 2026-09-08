@@ -4,12 +4,12 @@
  * Type
  *
  * Two families, which is what the reference sites run on:
- *   sans  PP Neue Montreal — the face noth.in and hobro.digital both use.
- *   mono  Geist Mono — the face loop-agency uses for every small label.
+ *   sans  PP Neue Montreal, for text and display.
+ *   mono  Geist Mono, for every small tracked label.
  *
  * Only one weight of PP Neue Montreal is licensed into this repo, so the whole
  * site is set at that weight and hierarchy is carried by size, tracking and
- * opacity instead. That is close to how noth.in works anyway. Never apply
+ * opacity instead. Never apply
  * `font-bold` to it — the browser would synthesise a fake bold.
  * ------------------------------------------------------------------------- */
 @theme inline {
@@ -23,13 +23,13 @@
 }
 
 @theme {
-  /* Webflow's breakpoints, so `max-tablet:` / `max-mobile:` mean 991 / 767. */
+  /* `max-tablet:` / `max-mobile:` mean 991 / 767. */
   --breakpoint-tablet: 992px;
   --breakpoint-mobile: 768px;
 }
 
 /*
- * Scaling System by Osmo [https://osmo.supply/]
+ * Scaling system.
  *
  * Root font size derived from viewport width, so every `em` scales
  * proportionally instead of stepping at breakpoints.
@@ -43,10 +43,10 @@
   --size-font: calc(var(--size-container) / (var(--size-container-ideal) / var(--size-unit)));
 
   /*
-   * The page is paper: a warm off-white under film grain, the way Osmo's
-   * grain demo sets its stock. Ink is loop-agency's #141414, not black, and
-   * takes the sections that need weight. Everything muted is the foreground
-   * at reduced opacity, so it reads on both surfaces without a second grey.
+   * The page is paper: a warm off-white under film grain, the way stock is
+   * set. Ink is #141414, not black, and takes the sections that need weight.
+   * Everything muted is the foreground at reduced opacity, so it reads on both
+   * surfaces without a second grey.
    */
   --ink: #141414;
   --paper: #f2efe9;
@@ -63,16 +63,15 @@
   --chrome-fg: var(--ink);
   --chrome-bg: var(--paper);
 
-  /* Osmo's house ease, as a CSS timing function. */
-  --ease-osmo: cubic-bezier(0.625, 0.05, 0, 1);
+  /* The house ease, as a CSS timing function. */
+  --ease-brand: cubic-bezier(0.625, 0.05, 0, 1);
 
   /* Clears the fixed mark (44px corner + 41px logo) at every width. */
   --nav-height: calc(var(--corner) + 60px);
 
   /*
-   * Page gutter. noth.in runs an 18-20px gutter at every width and loop-agency
-   * pins its corner furniture at 44px; a fixed 20px is what keeps the corners
-   * feeling pinned rather than floating as the viewport grows.
+   * Page gutter, fixed at 20px, with the corner furniture pinned at 44px: a
+   * gutter that scales with the viewport stops the corners feeling pinned.
    */
   --gutter: 20px;
   --corner: 44px;
@@ -115,7 +114,7 @@ html[data-menu-open] {
 
 @layer base {
 
-  /* Osmo browser reset — hide scrollbars. */
+  /* Hide the scrollbars. */
   html {
     scrollbar-width: none;
     background-color: var(--paper);
@@ -174,7 +173,7 @@ html[data-menu-open] {
  */
 @layer components {
 
-  /* loop-agency's UI text: 14px Geist Mono, -0.03em, uppercase, 22px leading. */
+  /* UI text: Geist Mono, -0.03em, uppercase. */
   .label {
     font-family: var(--font-mono);
     font-size: 13px;
@@ -216,9 +215,9 @@ html[data-menu-open] {
   }
 
   /*
-   * noth.in's outlined pill: 50px tall, 1px hairline at 30%, mono label,
-   * an icon on the right. The primary CTA on the site is still the Osmo
-   * bubble button; this is the secondary.
+   * The outlined pill: 50px tall, 1px hairline at 30%, mono label, an icon on
+   * the right. The primary call to action is the bubble button; this is the
+   * secondary.
    */
   .pill {
     display: inline-flex;
@@ -235,9 +234,9 @@ html[data-menu-open] {
     text-transform: uppercase;
     white-space: nowrap;
     transition:
-      background-color 0.4s var(--ease-osmo),
-      color 0.4s var(--ease-osmo),
-      border-color 0.4s var(--ease-osmo);
+      background-color 0.4s var(--ease-brand),
+      color 0.4s var(--ease-brand),
+      border-color 0.4s var(--ease-brand);
   }
 
   .pill:hover {
@@ -251,7 +250,7 @@ html[data-menu-open] {
  * The side column is shown only while the home spiral is pinned.
  * ------------------------------------------------------------------------- */
 .side-nav {
-  transition: opacity 0.4s var(--ease-osmo);
+  transition: opacity 0.4s var(--ease-brand);
 }
 
 html:not([data-spiral-active]) .side-nav {
@@ -262,12 +261,11 @@ html:not([data-spiral-active]) .side-nav {
 /* Fixed chrome takes the surface-aware colour with a short transition. */
 .chrome {
   color: var(--chrome-fg);
-  transition: color 0.35s var(--ease-osmo);
+  transition: color 0.35s var(--ease-brand);
 }
 
 /* ---------------------------------------------------------------------------
- * Progressive Blur by Osmo
- * [https://www.osmo.supply/resource/progressive-blur]
+ * Progressive blur.
  *
  * Five `backdrop-filter` layers, each masked to a different band, so content
  * scrolling underneath dissolves rather than hitting a hard blur edge. Blur
@@ -340,8 +338,7 @@ html:not([data-spiral-active]) .side-nav {
 }
 
 /* ---------------------------------------------------------------------------
- * Sticky Section Tabs by Osmo
- * [https://www.osmo.supply/resource/sticky-section-tabs-css]
+ * Sticky section tabs.
  *
  * No JavaScript. A sticky spacer holds the top `--nav-height`; each tab header
  * sticks one pixel under it, so successive headers stack while their bodies
@@ -375,14 +372,12 @@ html:not([data-spiral-active]) .side-nav {
 }
 
 /* ---------------------------------------------------------------------------
- * Button with Bubble Arrow by Osmo
- * [https://www.osmo.supply/resource/button-with-bubble-arrow]
+ * Button with a bubble arrow.
  *
  * A bubble on the left that starts collapsed, the label, and a duplicate
  * bubble on the right that starts open. Hovering trades the two and swings the
  * elbow arrow out to a straight diagonal. Every value — the 3.75em bubble, the
- * -3.75em content offset, the 0.735s `osmo` easing, the -45deg — is the
- * resource's. Only the palette is this site's: black and white, no orange.
+ * -3.75em content offset, the 0.735s easing, the -45deg — is deliberate.
  * ------------------------------------------------------------------------- */
 .btn-bubble-arrow {
   position: relative;
@@ -412,7 +407,7 @@ html:not([data-spiral-active]) .side-nav {
   color: var(--ink);
   transform: scale(0) rotate(0.001deg);
   transform-origin: left;
-  transition: transform 0.735s var(--ease-osmo);
+  transition: transform 0.735s var(--ease-brand);
 }
 
 .btn-bubble-arrow__arrow.is--duplicate {
@@ -425,7 +420,7 @@ html:not([data-spiral-active]) .side-nav {
 
 .btn-bubble-arrow__arrow-svg {
   width: 40%;
-  transition: transform 0.735s var(--ease-osmo);
+  transition: transform 0.735s var(--ease-brand);
 }
 
 .btn-bubble-arrow__content {
@@ -438,7 +433,7 @@ html:not([data-spiral-active]) .side-nav {
   background-color: var(--paper);
   color: var(--ink);
   transform: translateX(-3.75em) rotate(0.001deg);
-  transition: transform 0.735s var(--ease-osmo);
+  transition: transform 0.735s var(--ease-brand);
 }
 
 .btn-bubble-arrow:hover .btn-bubble-arrow__arrow {
@@ -464,8 +459,7 @@ html:not([data-spiral-active]) .side-nav {
 }
 
 /* ---------------------------------------------------------------------------
- * Film Grain Effect by Osmo
- * [https://www.osmo.supply/resource/film-grain-effect]
+ * Film grain.
  *
  * The resource's texture, opacity, filter, tile size and five-step crawl,
  * unchanged — but placed *under* the content rather than over it. The page
@@ -616,8 +610,7 @@ html.has-cursor textarea {
 }
 
 /*
- * Draw SVG Page Transition by Osmo
- * [https://www.osmo.supply/resource/draw-svg-page-transition]
+ * The drawn page transition.
  */
 .transition__shape {
   width: 100%;
@@ -656,8 +649,7 @@ html.has-cursor textarea {
 }
 
 /*
- * Shutter Page Transition by Osmo
- * [https://www.osmo.supply/resource/shutter-page-transition]
+ * The shutter page transition.
  */
 .transition__panel {
   position: absolute;
@@ -695,10 +687,10 @@ html.has-cursor * {
   pointer-events: none;
   transform: translate(-50%, -50%);
   transition:
-    width 0.3s var(--ease-osmo),
-    height 0.3s var(--ease-osmo),
-    background-color 0.3s var(--ease-osmo),
-    box-shadow 0.3s var(--ease-osmo);
+    width 0.3s var(--ease-brand),
+    height 0.3s var(--ease-brand),
+    background-color 0.3s var(--ease-brand),
+    box-shadow 0.3s var(--ease-brand);
 }
 
 /* Over a link or button it opens into a ring: "this can be acted on". */

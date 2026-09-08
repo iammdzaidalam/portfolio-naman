@@ -31,7 +31,7 @@ export default function Poster({
         priority={priority}
         aria-hidden
         className="object-cover transition-transform duration-[900ms] group-hover:scale-[1.03]"
-        style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+        style={{ transitionTimingFunction: "var(--ease-brand)" }}
       />
     </div>
   );

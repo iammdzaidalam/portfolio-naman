@@ -19,20 +19,20 @@ import { SplitText } from "gsap/SplitText";
 if (typeof window !== "undefined") {
   gsap.registerPlugin(CustomEase, DrawSVGPlugin, Flip, MotionPathPlugin, ScrollTrigger, SplitText);
 
-  // Osmo's house ease. Used verbatim across their resources, including the two
-  // page transitions this site rebuilds.
-  if (!CustomEase.get("osmo")) {
-    CustomEase.create("osmo", "0.625, 0.05, 0, 1");
+  // The house ease. Every timed thing on the site uses it, including both
+  // page transitions.
+  if (!CustomEase.get("brand")) {
+    CustomEase.create("brand", "0.625, 0.05, 0, 1");
   }
 
-  gsap.defaults({ ease: "osmo", duration: 0.6 });
+  gsap.defaults({ ease: "brand", duration: 0.6 });
 
   // A phone's address bar collapsing is a height-only resize; rebuilding every
   // scroll scene for it makes the page jump mid-scroll.
   ScrollTrigger.config({ ignoreMobileResize: true });
 }
 
-/** The cubic-bezier form of the `osmo` ease, for CSS transitions. */
-export const OSMO_EASE_CSS = "cubic-bezier(0.625, 0.05, 0, 1)";
+/** The cubic-bezier form of the house ease, for CSS transitions. */
+export const EASE_CSS = "cubic-bezier(0.625, 0.05, 0, 1)";
 
 export { gsap, CustomEase, DrawSVGPlugin, Flip, MotionPathPlugin, ScrollTrigger, SplitText };

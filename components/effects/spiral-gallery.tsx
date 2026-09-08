@@ -9,7 +9,7 @@ import { gsap } from "@/lib/gsap";
 import TransitionLink from "@/components/transition/transition-link";
 
 /**
- * The spiral, after loop-agency's home.
+ * The spiral.
  *
  * Every poster sits on a helix: card `i` is `i` steps around the axis and `i`
  * steps down it. Scrolling advances the whole helix by `N - 1` steps, so each
@@ -184,7 +184,7 @@ export default function SpiralGallery({
                 sizes="(max-width: 768px) 52vw, (max-width: 992px) 38vw, 26vw"
                 priority={i < 3}
                 className="object-cover transition-transform duration-[900ms] group-hover:scale-[1.04]"
-                style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+                style={{ transitionTimingFunction: "var(--ease-brand)" }}
                 draggable={false}
               />
 

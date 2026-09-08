@@ -10,7 +10,7 @@ import TransitionLink from "@/components/transition/transition-link";
  * Services as a ruled index.
  *
  * Set on ink, the one dark section in the home sequence — the alternation
- * noth.in runs, inverted. Each row is a full-width rule with the name at
+ * the sequence runs, inverted. Each row is a full-width rule with the name at
  * display size; hovering pushes the row in and brings its line forward.
  */
 export default function ServicesList({ withHead = true }: { withHead?: boolean }) {
@@ -31,7 +31,7 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
             key={service.no}
             href="/services"
             className="rule group relative grid grid-cols-[4em_1fr_10em] items-baseline gap-[1.5em] border-b py-[1.1em] transition-[padding] duration-500 hover:pl-[1em] max-tablet:grid-cols-[3em_1fr]"
-            style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+            style={{ transitionTimingFunction: "var(--ease-brand)" }}
           >
             <span className="label opacity-60 transition-[color,opacity] duration-300 group-hover:text-accent group-hover:opacity-100">({service.no})</span>
 
@@ -43,7 +43,7 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
               {service.tag}
             </span>
 
-            {/* A still surfaces on hover, as the rows on noth.in do. */}
+            {/* A still surfaces on hover. */}
             <span
               aria-hidden
               className="pointer-events-none absolute top-1/2 right-[11em] aspect-[4/3] w-[12vw] -translate-y-1/2 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-tablet:hidden"

@@ -10,7 +10,7 @@ import ProgressiveBlur from "@/components/effects/progressive-blur";
 import SpiralGallery from "@/components/effects/spiral-gallery";
 
 /**
- * The hero, after loop-agency's home-spiral.
+ * The hero.
  *
  * One viewport. The work spirals through the middle and is driven by scroll;
  * everything else is furniture pinned to the corners: the studio statement
@@ -61,12 +61,12 @@ export default function Hero() {
       />
 
       {/*
-        Progressive Blur by Osmo. The lowest cards of the helix dissolve into
+        Progressive blur. The lowest cards of the helix dissolve into
         the foot of the viewport rather than being cut by it.
       */}
       <ProgressiveBlur edge="bottom" height="14em" />
 
-      {/* Bottom-left statement, in loop-agency's mixed-weight mono. */}
+      {/* Bottom-left statement, in mono. */}
       <h1
         data-hero-fade
         className="label pointer-events-none absolute bottom-[var(--corner)] left-[var(--corner)] z-[41] max-w-[300px]"
@@ -77,7 +77,7 @@ export default function Hero() {
         <span className="block">No boring shit.</span>
       </h1>
 
-      {/* Right column at mid-height: the numbers, like loop's theme switch. */}
+      {/* Right column at mid-height: the numbers. */}
       <ul
         data-hero-fade
         className="pointer-events-none absolute top-1/2 right-[var(--corner)] z-[41] flex -translate-y-1/2 flex-col items-end max-tablet:hidden"

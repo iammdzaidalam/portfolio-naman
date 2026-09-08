@@ -78,7 +78,7 @@ export default function ServicesPage() {
       </section>
 
       {/*
-        Sticky Section Tabs by Osmo. Each stop's header pins under the site
+        Sticky section tabs. Each stop's header pins under the site
         header and the next arrives on top of it, so the list reads as a stack
         of tabs. The header row shares its grid with the services index on the
         home page — index, name, tag — and each body puts a still in the marker
@@ -116,7 +116,7 @@ export default function ServicesPage() {
                       fill
                       sizes="(max-width: 992px) 100vw, 42vw"
                       className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-                      style={{ transitionTimingFunction: "var(--ease-osmo)" }}
+                      style={{ transitionTimingFunction: "var(--ease-brand)" }}
                     />
                   </div>
                   <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">

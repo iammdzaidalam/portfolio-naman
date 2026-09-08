@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import Reveal from "@/components/effects/reveal";
 
 /**
- * noth.in's section marker: a small mono label in parentheses. No rule, no
+ * The section marker: a small mono label in parentheses. No rule, no
  * index — the parentheses are the whole device.
  */
 export function Marker({ children, className }: { children: ReactNode; className?: string }) {
@@ -12,7 +12,7 @@ export function Marker({ children, className }: { children: ReactNode; className
 
 /**
  * Marker on the left, headline and standfirst on the right — the two-column
- * opening both references use, with the label column at 42% like noth.in.
+ * opening, with the label column at 42%.
  */
 export default function SectionHead({
   marker,

@@ -1,10 +1,8 @@
 /**
  * The open curve the Draw SVG page transition strokes across the screen.
  *
- * This is the resource's own path, taken verbatim from Osmo's published demo
- * (osmo-draw-svg-page-transition.webflow.io) rather than re-drawn — it is a
- * spiral that folds back on itself three times, which is what lets a stroke of
- * only 30% of the viewBox cover the whole screen without leaving a seam.
+ * A spiral that folds back on itself three times, which is what lets a stroke
+ * of only 30% of the viewBox cover the whole screen without leaving a seam.
  *
  * It also happens to be the right shape for this brand: "yatri" means traveller,
  * and the transition reads as a road winding away and back.

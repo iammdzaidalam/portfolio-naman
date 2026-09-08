@@ -12,7 +12,7 @@ import Poster from "./poster";
 const LABELS = WORK_FILTERS.map((filter) => filter.label);
 
 /**
- * The work wall, filtered by React Bits' OptionWheel.
+ * The work wall, filtered by the option wheel.
  *
  * The wheel replaces a row of pills. It earns the swap because the categories
  * are a single-choice list read top to bottom, which is the shape the wheel is

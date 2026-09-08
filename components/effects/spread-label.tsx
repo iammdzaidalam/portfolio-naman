@@ -6,7 +6,7 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 
 /**
- * noth.in's section label.
+ * The section label.
  *
  * The word sticks below the fixed mark. Over the first half of the scroll
  * its letters spread out until they span the full width; over the second half

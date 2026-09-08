@@ -16,10 +16,9 @@ import SmoothScroll from "@/components/effects/smooth-scroll";
 import Cursor from "@/components/effects/cursor";
 
 /**
- * PP Neue Montreal, served locally. It is the face both noth.in and
- * hobro.digital are set in, and only the Medium cut is licensed into this repo
- * — so the site uses one weight throughout and builds hierarchy from size,
- * tracking and opacity instead.
+ * PP Neue Montreal, served locally. Only the Medium cut is licensed into this
+ * repo — so the site uses one weight throughout and builds hierarchy from
+ * size, tracking and opacity instead.
  */
 const neueMontreal = localFont({
   src: "./fonts/PPNeueMontreal-Medium.woff2",
@@ -30,7 +29,7 @@ const neueMontreal = localFont({
   fallback: ["Helvetica Neue", "Helvetica", "Arial", "sans-serif"],
 });
 
-/** Geist Mono, for every small tracked label — as on loop-agency. */
+/** Geist Mono, for every small tracked label. */
 const geistMono = Geist_Mono({
   subsets: ["latin"],
   display: "swap",
@@ -65,7 +64,7 @@ export default function RootLayout({
       className={`${neueMontreal.variable} ${geistMono.variable}`}
     >
       {/*
-        `text-[length:var(--size-font)]` wires up Osmo's scaling system: the
+        `text-[length:var(--size-font)]` wires up the scaling system: the
         root font size is a function of viewport width, which is why the layout
         is written in `em` and scales rather than stepping at breakpoints.
       */}
