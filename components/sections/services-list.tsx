@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { RIDES, SERVICES, SERVICES_INTRO } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, WORKS, workCover } from "@/lib/content";
 import SectionHead from "@/components/ui/section-head";
 import TransitionLink from "@/components/transition/transition-link";
 
@@ -49,12 +49,12 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
               className="pointer-events-none absolute top-1/2 right-[11em] aspect-[4/3] w-[12vw] -translate-y-1/2 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-tablet:hidden"
             >
               <Image
-                src={RIDES[(index * 2) % RIDES.length].frame}
+                src={workCover(WORKS[(index * 2) % WORKS.length]).src}
                 alt=""
                 fill
                 sizes="12vw"
                 className="object-cover"
-                style={{ objectPosition: RIDES[(index * 2) % RIDES.length].focus }}
+                style={{ objectPosition: workCover(WORKS[(index * 2) % WORKS.length]).focus }}
               />
             </span>
           </TransitionLink>

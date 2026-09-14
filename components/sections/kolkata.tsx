@@ -1,7 +1,7 @@
 "use client";
 
 import { KOLKATA } from "@/lib/content";
-import { REELS } from "@/lib/reels";
+import { KOLKATA_REELS } from "@/lib/reels";
 import SectionHead from "@/components/ui/section-head";
 import ReelStrip from "@/components/work/reel-strip";
 
@@ -52,7 +52,7 @@ export default function Kolkata({
         are.
       */}
       <div className="-mx-[var(--gutter)] mt-[3em]">
-        <ReelStrip reels={REELS.kolkata ?? []} title="Shot in Kolkata" />
+        <ReelStrip reels={KOLKATA_REELS} title="Shot in Kolkata" />
       </div>
     </section>
   );

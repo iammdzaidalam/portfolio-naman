@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
-import { RIDES, SERVICES, SERVICES_INTRO, WHY } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, WHY, WORKS, workCover } from "@/lib/content";
 import { StickyTab, StickyTabGroup } from "@/components/effects/sticky-tabs";
 import SectionHead from "@/components/ui/section-head";
 import Reveal from "@/components/effects/reveal";
@@ -48,7 +48,8 @@ export default function ServicesPage() {
       <StickyTabGroup>
         {SERVICES.map((service, index) => {
           // Ten stops, nine rides: each stop takes the next still in the reel.
-          const ride = RIDES[index % RIDES.length];
+          const work = WORKS[index % WORKS.length];
+          const cover = workCover(work);
 
           return (
             <StickyTab
@@ -66,24 +67,24 @@ export default function ServicesPage() {
             >
               <div className="grid grid-cols-[42%_1fr] gap-[4vw] px-[var(--gutter)] pt-[2.5em] pb-[5em] max-tablet:grid-cols-1 max-tablet:gap-[2.5em]">
                 {/* A ride that came out of this stop, in colour. */}
-                <TransitionLink href={`/work/${ride.slug}`} className="group block">
+                <TransitionLink href={`/work/${work.slug}`} className="group block">
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Image
-                      src={ride.frame}
-                      alt={ride.alt}
+                      src={cover.src}
+                      alt={cover.alt}
                       fill
                       sizes="(max-width: 992px) 100vw, 42vw"
                       className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
                       style={{
                         transitionTimingFunction: "var(--ease-brand)",
-                        objectPosition: ride.focus,
+                        objectPosition: cover.focus,
                       }}
                     />
                   </div>
                   <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
-                    <span>{ride.title}</span>
+                    <span>{work.title}</span>
                     <span className="group-hover:text-accent transition-colors duration-300">
-                      {ride.tag} ↗
+                      {work.title} ↗
                     </span>
                   </p>
                 </TransitionLink>

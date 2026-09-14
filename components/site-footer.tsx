@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 
-import { CONNECT, NAV, SITE } from "@/lib/content";
+import { CONNECT, DIRECT, NAV, SITE } from "@/lib/content";
 import TransitionLink from "@/components/transition/transition-link";
 import Reveal from "@/components/effects/reveal";
 
@@ -84,18 +84,32 @@ export default function SiteFooter() {
           </div>
         </div>
 
-        <ul className="mr-[8vw] flex flex-col max-tablet:mr-0">
-          {/* No profile URLs yet, so these are names, not links. */}
-          <li className="statement text-[clamp(20px,1.9vw,28px)] opacity-60">Instagram</li>
-          <li className="statement text-[clamp(20px,1.9vw,28px)] opacity-60">LinkedIn</li>
-          <li>
-            <a
-              href={`mailto:${SITE.email}`}
-              className="statement hover:text-accent block text-[clamp(20px,1.9vw,28px)] opacity-60 transition-[opacity,color] duration-300 hover:opacity-100"
-            >
-              Email
-            </a>
-          </li>
+        {/*
+          The contact column. Every row here is a live link: the profiles open
+          the profile, the email opens a draft, the phone dials, the address
+          opens the map. They used to be plain names, which looked like links
+          and behaved like nothing.
+
+          The row's own value sits under its name in mono, so the address and
+          the number can be read off the footer without a click.
+        */}
+        <ul className="mr-[8vw] flex flex-col gap-[0.75em] max-tablet:mr-0">
+          {DIRECT.map((entry) => (
+            <li key={entry.label}>
+              <a
+                href={entry.href ?? undefined}
+                {...(entry.href?.startsWith("http")
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : null)}
+                className="group block opacity-60 transition-opacity duration-300 hover:opacity-100"
+              >
+                <span className="statement group-hover:text-accent block text-[clamp(20px,1.9vw,28px)] transition-colors duration-300">
+                  {entry.label}
+                </span>
+                <span className="label-xs block opacity-70">{entry.value}</span>
+              </a>
+            </li>
+          ))}
         </ul>
       </div>
 

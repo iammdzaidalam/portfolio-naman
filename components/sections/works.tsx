@@ -1,8 +1,7 @@
 "use client";
 
-import Image from "next/image";
-
-import { HERO, RIDES, SITE } from "@/lib/content";
+import { HERO, SITE, WORKS, workCover } from "@/lib/content";
+import WorkCard from "@/components/work/work-card";
 import Reveal from "@/components/effects/reveal";
 import SpreadLabel from "@/components/effects/spread-label";
 import TransitionLink from "@/components/transition/transition-link";
@@ -29,46 +28,40 @@ const SHAPES = [
 ];
 
 function WorkItem({
-  ride,
+  work,
   shape,
   index,
 }: {
-  ride: (typeof RIDES)[number];
+  work: (typeof WORKS)[number];
   shape: (typeof SHAPES)[number];
   index: number;
 }) {
+  const cover = workCover(work);
+
   return (
     <TransitionLink
-      href={`/work/${ride.slug}`}
+      href={`/work/${work.slug}`}
       className={`group block ${shape.offset} ${index % 2 ? "w-[82%] justify-self-end" : "w-[88%]"} max-tablet:w-full`}
       // When the two columns collapse into one, the items interleave in
       // their original order with the statement second, instead of one whole
       // column followed by the other.
       style={{ order: index === 0 ? 0 : index + 1 }}
     >
-      <p className="label-xs opacity-60 transition-[color,opacity] duration-300 group-hover:text-accent group-hover:opacity-100">{ride.tag}</p>
+      <p className="label-xs opacity-60 transition-[color,opacity] duration-300 group-hover:text-accent group-hover:opacity-100">
+        ({String(index + 1).padStart(2, "0")})
+      </p>
       <Reveal as="h3" splitLines={false} className="statement mt-[10px] text-[22px]">
-        {ride.title}
+        {work.title}
       </Reveal>
       <div className={`relative mt-[18px] overflow-hidden ${shape.aspect}`}>
-        <Image
-          src={ride.frame}
-          alt={ride.alt}
-          fill
-          sizes="(max-width: 992px) 100vw, 44vw"
-          className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-          style={{
-            transitionTimingFunction: "var(--ease-brand)",
-            objectPosition: ride.focus,
-          }}
-        />
+        <WorkCard cover={cover} sizes="(max-width: 992px) 100vw, 44vw" />
       </div>
     </TransitionLink>
   );
 }
 
 export default function Works() {
-  const featured = RIDES.slice(0, 6);
+  const featured = WORKS.slice(0, 6);
   const left = featured.filter((_, i) => i % 2 === 0);
   const right = featured.filter((_, i) => i % 2 === 1);
 
@@ -80,8 +73,8 @@ export default function Works() {
 
       <div className="mt-[10vh] grid grid-cols-2 gap-x-[4vw] max-tablet:grid-cols-1">
         <div className="grid content-start max-tablet:contents">
-          {left.map((ride, i) => (
-            <WorkItem key={ride.slug} ride={ride} shape={SHAPES[i * 2]} index={i * 2} />
+          {left.map((work, i) => (
+            <WorkItem key={work.slug} work={work} shape={SHAPES[i * 2]} index={i * 2} />
           ))}
         </div>
 
@@ -91,8 +84,8 @@ export default function Works() {
             {HERO.headline[0]} {HERO.headline[1]}
           </Reveal>
 
-          {right.map((ride, i) => (
-            <WorkItem key={ride.slug} ride={ride} shape={SHAPES[i * 2 + 1]} index={i * 2 + 1} />
+          {right.map((work, i) => (
+            <WorkItem key={work.slug} work={work} shape={SHAPES[i * 2 + 1]} index={i * 2 + 1} />
           ))}
         </div>
       </div>
@@ -106,7 +99,7 @@ export default function Works() {
           View all <span aria-hidden className="transition-colors duration-300 group-hover:text-accent">↳</span>
         </TransitionLink>
         <div className="flex items-baseline justify-between">
-          <span className="label opacity-60">({String(RIDES.length).padStart(2, "0")})</span>
+          <span className="label opacity-60">({String(WORKS.length).padStart(2, "0")})</span>
           <span className="label opacity-60">{SITE.copyright.replace("Social Yatri", "").trim()}</span>
         </div>
       </div>

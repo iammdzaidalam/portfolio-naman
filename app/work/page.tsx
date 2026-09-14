@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 
 import { WORK_INTRO } from "@/lib/content";
 import SectionHead from "@/components/ui/section-head";
-import RideGrid from "@/components/work/ride-grid";
+import WorkGrid from "@/components/work/work-grid";
 import Archive from "@/components/work/archive";
 
 export const metadata: Metadata = {
@@ -23,7 +23,7 @@ export default function WorkPage() {
           className="mb-[4em]"
         />
 
-        <RideGrid />
+        <WorkGrid />
       </section>
 
       <Archive />

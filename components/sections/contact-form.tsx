@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 
-import { CONNECT, PHOTOS, SITE } from "@/lib/content";
+import { CONNECT, DIRECT, PHOTOS } from "@/lib/content";
 import BubbleButton from "@/components/effects/bubble-button";
 
 /**
@@ -56,34 +56,23 @@ export default function ContactForm() {
         <p className="label mb-[1.5em] opacity-60">Direct</p>
         <div className="rule border-t">
           {/*
-            Anything still unconfirmed is dropped rather than guessed. A wrong
-            handle sends people to somebody else's account, which is worse than
-            an absent row.
+            The same rows as the footer, from the same list. Anything still
+            unconfirmed is absent rather than guessed: a wrong handle sends
+            people to somebody else's account, which is worse than no row.
           */}
-          {[
-            { label: SITE.email, href: `mailto:${SITE.email}` },
-            ...(SITE.phone ? [{ label: SITE.phone, href: SITE.phoneHref }] : []),
-            ...(SITE.instagram ? [{ label: `Instagram · ${SITE.instagram}`, href: null }] : []),
-            ...(SITE.linkedin ? [{ label: `LinkedIn · ${SITE.linkedin}`, href: null }] : []),
-            { label: SITE.address, href: null },
-          ].map((entry) =>
-            entry.href ? (
-              <a
-                key={entry.label}
-                href={entry.href}
-                className="rule hover:text-accent block border-b py-[0.85em] text-[1.0625em] opacity-80 transition-[opacity,padding,color] duration-300 hover:pl-[0.5em] hover:opacity-100"
-              >
-                {entry.label}
-              </a>
-            ) : (
-              <span
-                key={entry.label}
-                className="rule block border-b py-[0.85em] text-[1.0625em] opacity-60"
-              >
-                {entry.label}
-              </span>
-            ),
-          )}
+          {DIRECT.map((entry) => (
+            <a
+              key={entry.label}
+              href={entry.href ?? undefined}
+              {...(entry.href?.startsWith("http")
+                ? { target: "_blank", rel: "noreferrer" }
+                : null)}
+              className="rule hover:text-accent flex items-baseline justify-between gap-[1.5em] border-b py-[0.85em] text-[1.0625em] opacity-80 transition-[opacity,padding,color] duration-300 hover:pl-[0.5em] hover:opacity-100"
+            >
+              <span>{entry.value}</span>
+              <span className="label-xs shrink-0 opacity-50">{entry.label}</span>
+            </a>
+          ))}
         </div>
       </div>
 

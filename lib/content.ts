@@ -13,7 +13,7 @@
  */
 
 import type { ShootKey } from "./gallery";
-import type { ReelKey } from "./reels";
+import { REELS, type Reel, type ReelKey } from "./reels";
 
 export const SITE = {
   name: "Social Yatri",
@@ -39,12 +39,38 @@ export const SITE = {
    * TODO: still unconfirmed. These two are the last placeholders on the site,
    * so they are held back from the contact list rather than published as a
    * guess: a wrong handle sends people to somebody else's account.
+   *
+   * Fill in the handle alone, without the @ and without the URL: the profile
+   * address is built from it below, so the footer and the contact page both
+   * start linking the moment one of these is no longer empty.
    */
   instagram: "",
   linkedin: "",
   madeIn: "Born in Kolkata. Built for the internet.",
   copyright: "© 2026 Social Yatri",
 } as const;
+
+/**
+ * The direct contact list, in one place because the footer and the contact
+ * page show the same rows and a second copy would eventually disagree with the
+ * first.
+ *
+ * Every row that can be actioned carries an `href`: the phone dials, the email
+ * opens a draft, the address opens the map, and the two profiles open the
+ * profile. A row with an empty value is not shown at all rather than printed
+ * as dead text, so nothing on the page looks like a link that does nothing.
+ */
+export const DIRECT: { label: string; value: string; href: string | null }[] = [
+  { label: "Instagram", value: SITE.instagram, href: SITE.instagram ? `https://instagram.com/${SITE.instagram}` : null },
+  { label: "LinkedIn", value: SITE.linkedin, href: SITE.linkedin ? `https://www.linkedin.com/company/${SITE.linkedin}` : null },
+  { label: "Email", value: SITE.email, href: `mailto:${SITE.email}` },
+  { label: "Phone", value: SITE.phone, href: SITE.phoneHref },
+  {
+    label: "Address",
+    value: SITE.address,
+    href: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${SITE.address}, India`)}`,
+  },
+].filter((entry) => entry.value !== "");
 
 export const NAV = [
   { label: "Home", href: "/" },
@@ -305,150 +331,85 @@ export const WHY = {
  * Work
  * ------------------------------------------------------------------------- */
 
-export type Ride = {
+export type Photo = { src: string; alt: string; focus?: string };
+
+type WorkBase = {
   slug: string;
+  /** The client's own name for the category. */
   title: string;
-  category: string;
-  tag: string;
-  /** The client's own photography, from their “website content” drive. */
-  frame: string;
-  /** What the frame shows, for anyone who cannot see it. */
-  alt: string;
   /**
-   * `object-position` for the frame. Every ride is shown at 4:3, 16:9, 3:4 and
-   * 1:1, so a frame whose subject sits off-centre has to be told where to hold
-   * or an automatic centre crop walks off the side of it.
+   * The shoot this category has photography for, keyed into `lib/gallery.ts`.
+   * Only four of them do: the rest of the drive is video, which is how the
+   * client works.
    */
-  focus?: string;
-  /**
-   * The shoot this piece came out of, keyed into `lib/gallery.ts`. The detail
-   * page shows that whole set, so the frame above is an opening rather than the
-   * only thing there is to see. Several pieces can share a shoot; four of
-   * these came off the same two days.
-   */
-  shoot: ShootKey;
-  /**
-   * The client's own clips for this piece, keyed into `lib/reels.ts`. Only some
-   * pieces have footage; the two product slots have nothing else, since there
-   * is no product photography anywhere in what they supplied.
-   */
-  reels?: ReelKey;
+  shoot?: ShootKey;
 };
 
 /**
- * The filters are the client's own shoot folders, which is the only grouping of
- * this work that exists outside our heads. Each ride names the shoot it came
- * out of in `shoot`, so the filter is a fact about the footage rather than a
- * category invented to fill a control.
+ * A category of work.
+ *
+ * These are the client's own ten, given by name with the cover clip named by
+ * filename for each. They replace an earlier set of nine invented pieces: the
+ * drive is filed by category, the brief is written by category, and a piece
+ * that exists only on this site is a piece nobody can be shown.
+ *
+ * The two halves of the type are exclusive on purpose. A category is either
+ * video-led, in which case the cover is the head of its reel list and the wall
+ * shows that clip's own poster, or it is photography, in which case it names a
+ * still. There is no third case, and nothing here can end up with neither.
  */
-export const WORK_FILTERS = [
-  { id: "all", label: "All" },
-  { id: "wedding", label: "Wedding" },
-  { id: "interior", label: "Interiors" },
-  { id: "corporate", label: "Events" },
-  { id: "baby", label: "Studio portraits" },
-  { id: "fitness", label: "Fitness" },
-  { id: "hotel", label: "Hotels" },
-] as const;
+export type Work = WorkBase &
+  ({ reels: ReelKey; frame?: Photo } | { reels?: undefined; frame: Photo });
 
-export const RIDES: Ride[] = [
+/**
+ * What the wall shows for a piece: the cover still, plus the clip behind it
+ * where there is one, so a card can play on hover.
+ *
+ * Derived rather than stored. The cover is the head of the category's reel
+ * list, so naming a different cover clip means reordering that list and
+ * nothing else.
+ */
+export function workCover(work: Work): Photo & { reel?: Reel } {
+  const reel = work.reels ? REELS[work.reels]?.[0] : undefined;
+  if (reel) return { src: reel.poster, alt: reel.alt, reel };
+  if (work.frame) return work.frame;
+  /*
+   * A video-led category whose reel list is empty. The type cannot catch this
+   * one, because it only knows the key is declared and not that anything is
+   * filed under it. Failing loudly at build is the point: the alternative is
+   * an empty `src`, which silently makes the browser fetch the page again as
+   * an image.
+   */
+  throw new Error(`Work "${work.slug}" names reels "${work.reels}", which has no clips.`);
+}
+
+export const WORKS: Work[] = [
+  { slug: "clothing", title: "Clothing", reels: "clothing" },
+  { slug: "cafe", title: "Cafe", reels: "cafe" },
+  { slug: "fitness", title: "Fitness", reels: "fitness", shoot: "fitness" },
+  { slug: "hotel-and-resort", title: "Hotel & Resort", reels: "hotel-and-resort", shoot: "hotel" },
+  { slug: "co-living-space", title: "Co-Living Space", reels: "co-living-space" },
+  { slug: "product-spotlight", title: "Product Spotlight", reels: "product-spotlight" },
+  { slug: "store-video", title: "Store Video", reels: "store-video" },
+  { slug: "wedding-content", title: "Wedding Content", reels: "wedding-content", shoot: "wedding" },
   {
-    slug: "founder-story",
-    title: "Founder story",
-    category: "founders",
-    tag: "Founder & Personal",
-    frame: "/img/corporate-writer.jpg",
-    alt: "Older bearded man in glasses writing in a notebook, framed by blurred foreground figures",
-    shoot: "corporate",
-    reels: "intro",
-  },
-  {
-    slug: "viral-branding",
-    title: "Viral branding",
-    category: "branding",
-    tag: "Branding",
-    frame: "/img/corporate-exhibition.jpg",
-    alt: "Exhibition corridor with orange calligraphy signage, works on easels and a red opening ribbon",
-    shoot: "corporate",
-    reels: "viral",
-    // The signage wall is the subject and it runs down the left.
-    focus: "30% 50%",
-  },
-  {
-    slug: "off-camera",
-    title: "Off camera",
-    category: "edits",
-    tag: "Reels & Edits",
-    frame: "/img/studio-baby-shoot.jpg",
-    alt: "Father seated on a white studio floor steadying a laughing toddler on its feet",
-    shoot: "baby",
-    reels: "bts",
-  },
-  {
-    slug: "product-spotlight",
-    title: "Product spotlight",
-    category: "product",
-    tag: "Product",
-    frame: "/img/hotel-washstand.jpg",
-    alt: "Antique wooden washstand with a ceramic basin beside tall glazed doors",
-    shoot: "hotel",
-    reels: "product",
-    // The washstand sits right of centre against the light.
-    focus: "65% 45%",
-  },
-  {
-    slug: "personal-branding",
-    title: "Personal branding",
-    category: "founders",
-    tag: "Founder & Personal",
-    frame: "/img/fitness-pose.jpg",
-    alt: "Bald bodybuilder in a camo vest hitting a double biceps pose and grinning in a crowd",
-    shoot: "fitness",
-    reels: "personal",
-    focus: "50% 35%",
-  },
-  {
-    slug: "store-stories",
-    title: "Store stories",
-    category: "store",
-    tag: "Store Stories",
-    frame: "/img/interior-living-room.jpg",
-    alt: "Living room with an arched partition, wall-mounted screen, blush sofa and bouclé tub chairs",
-    shoot: "interior",
-    reels: "store",
-  },
-  {
-    slug: "beyond-the-feed",
-    title: "Beyond the feed",
-    category: "branding",
-    tag: "Branding",
-    frame: "/img/corporate-floor-canvas.jpg",
-    alt: "Calligrapher brushing large blue letterforms onto a floor canvas as a crowd photographs him",
-    shoot: "corporate",
-    focus: "50% 60%",
-  },
-  {
-    slug: "the-viral-edit",
-    title: "The viral edit",
-    category: "edits",
-    tag: "Reels & Edits",
-    frame: "/img/wedding-gateway.jpg",
-    alt: "Couple in white laughing together in front of a pink sandstone gateway",
+    slug: "wedding-portfolio",
+    title: "Wedding Portfolio",
     shoot: "wedding",
-    focus: "60% 50%",
+    // The one category the client shot on stills rather than video.
+    frame: {
+      src: "/img/wedding-gateway.jpg",
+      alt: "Couple in white laughing together in front of a pink sandstone gateway",
+      focus: "60% 50%",
+    },
   },
-  {
-    slug: "product-talking-head",
-    title: "Product talking head",
-    category: "product",
-    tag: "Product",
-    frame: "/img/corporate-speaker.jpg",
-    alt: "Young speaker with a microphone gesturing in front of a projected slide",
-    shoot: "corporate",
-    reels: "suitcase",
-    // The speaker is left of frame; a centre crop would hold only the slide.
-    focus: "35% 50%",
-  },
+  { slug: "interior", title: "Interior", reels: "interior", shoot: "interior" },
+  /*
+   * Given a cover clip by the client but left out of the list of ten they
+   * wrote above it. Kept, because dropping it would drop two files they asked
+   * for by name; flagged, because the list and the covers disagree.
+   */
+  { slug: "personal-branding", title: "Personal Branding", reels: "personal-branding" },
 ];
 
 export const WORK_INTRO = {
@@ -607,7 +568,7 @@ export const CLIENTS = {
         "Koliving went from having a relatively small social media presence to building a significantly larger audience and generating millions of views through organic content.",
         "From being another PG brand to becoming a brand people started noticing.",
       ],
-      reels: "pgbrand",
+      reels: "co-living-space",
       frame: "/img/interior-bedroom.jpg",
       alt: "Symmetrical bed head-on beneath a backlit plaster relief panel",
     },
@@ -669,16 +630,9 @@ export const CLIENTS = {
  *
  * The frames that are not a piece of work in their own right: the opening
  * still, the studio pages, the note beside the contact form. They live here
- * rather than being pulled out of `RIDES` by index, because a slot reaching for
- * `RIDES[6]` silently changes meaning the moment the work list is reordered.
+ * rather than being pulled out of `WORKS` by index, because a slot reaching for
+ * `WORKS[6]` silently changes meaning the moment the work list is reordered.
  * ------------------------------------------------------------------------- */
-
-export type Photo = { src: string; alt: string; focus?: string };
-
-/** A ride's frame as a plain photo, for the components that take either. */
-export function ridePhoto(ride: Ride): Photo {
-  return { src: ride.frame, alt: ride.alt, focus: ride.focus };
-}
 
 export const PHOTOS: Record<
   "showreel" | "studioNote" | "studioPortrait" | "studioLandscape" | "contact",
