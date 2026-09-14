@@ -4,9 +4,9 @@ import { useEffect, useRef } from "react";
 
 /**
  * The brand-yellow dot that trails the pointer. Over anything clickable it
- * opens into a ring — the one place the colour says "this can be acted on".
+ * opens into a ring: the one place the colour says "this can be acted on".
  *
- * Mounted only for fine pointers, and it adds `has-cursor` to <html> itself —
+ * Mounted only for fine pointers, and it adds `has-cursor` to <html> itself,
  * so a touch device, or a browser that never fires a mousemove, keeps its own
  * cursor instead of being left with none.
  */
@@ -16,7 +16,7 @@ export default function Cursor() {
   useEffect(() => {
     if (!window.matchMedia("(pointer: fine)").matches) return;
     // A dot that chases the pointer is motion, and it also replaces the native
-    // cursor — so for reduced-motion users leave their own cursor alone.
+    // cursor, so for reduced-motion users leave their own cursor alone.
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const el = dot.current;
     if (!el) return;

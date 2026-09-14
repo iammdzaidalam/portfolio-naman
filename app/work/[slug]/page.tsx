@@ -1,8 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { RIDES, WORK_FILTERS } from "@/lib/content";
+import { RIDES, SITE, WORK_FILTERS, ridePhoto } from "@/lib/content";
+import { GALLERY } from "@/lib/gallery";
+import { REELS } from "@/lib/reels";
 import Poster from "@/components/work/poster";
+import ShootViewer from "@/components/work/shoot-viewer";
+import ReelStrip from "@/components/work/reel-strip";
 import Reveal from "@/components/effects/reveal";
 import BubbleButton from "@/components/effects/bubble-button";
 import TransitionLink from "@/components/transition/transition-link";
@@ -26,7 +30,7 @@ export async function generateMetadata({
 
   return {
     title: ride.title,
-    description: `${ride.tag} — ${ride.views}. ${ride.caption}`,
+    description: `${ride.title}. ${ride.tag}, by ${SITE.name}.`,
   };
 }
 
@@ -39,6 +43,8 @@ export default async function RidePage({ params }: { params: Promise<Params> }) 
   const next = RIDES[(index + 1) % RIDES.length];
   const after = RIDES[(index + 2) % RIDES.length];
   const category = WORK_FILTERS.find((filter) => filter.id === ride.category);
+  const shoot = GALLERY[ride.shoot];
+  const reels = ride.reels ? (REELS[ride.reels] ?? []) : [];
 
   return (
     <main className="text-ink">
@@ -49,22 +55,23 @@ export default async function RidePage({ params }: { params: Promise<Params> }) 
           {ride.title}
         </Reveal>
 
-        <p className="mt-[1.5em] max-w-[26em] text-[1.25em] opacity-70">
-          {ride.caption}
-        </p>
       </section>
 
-      {/* The frame, full width. */}
-      <div className="relative aspect-[16/9] w-full overflow-hidden max-mobile:aspect-[4/5]">
-        <Poster ride={ride} sizes="100vw" priority />
-      </div>
+      {/*
+        The shoot: one frame held large with the whole set beneath it. The
+        piece's own frame opens the display, and choosing from the strip
+        replaces it.
+      */}
+      <ShootViewer shoot={shoot} openingSrc={ride.frame} />
+
+      <ReelStrip reels={reels} />
 
       {/* The facts, then the next two stops on the route. */}
       <section className="px-[var(--gutter)] pt-[3em] pb-[7em]">
         <dl className="grid grid-cols-3 max-mobile:grid-cols-1">
           {[
-            { term: "Category", value: category?.label ?? "—" },
-            { term: "Reach", value: ride.views },
+            { term: "Category", value: category?.label ?? "None" },
+            { term: "Made in", value: SITE.city },
             {
               term: "Stop",
               value: `${String(index + 1).padStart(2, "0")} / ${String(RIDES.length).padStart(2, "0")}`,
@@ -86,16 +93,15 @@ export default async function RidePage({ params }: { params: Promise<Params> }) 
             <TransitionLink
               key={ride.slug}
               href={`/work/${ride.slug}`}
-              mode="shutter"
               className="group block"
             >
               <div className="relative aspect-[4/3] overflow-hidden">
-                <Poster ride={ride} sizes="(max-width: 767px) 100vw, 48vw" />
+                <Poster photo={ridePhoto(ride)} sizes="(max-width: 767px) 100vw, 48vw" />
               </div>
               <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
                 <span>{ride.title}</span>
                 <span className="group-hover:text-accent transition-colors duration-300">
-                  {ride.views}
+                  {ride.tag}
                 </span>
               </p>
             </TransitionLink>
@@ -108,10 +114,9 @@ export default async function RidePage({ params }: { params: Promise<Params> }) 
           </BubbleButton>
           <TransitionLink
             href={`/work/${next.slug}`}
-            mode="shutter"
             className="label opacity-65 transition-opacity duration-300 hover:opacity-100"
           >
-            Next — {next.title} ↗
+            Next · {next.title} ↗
           </TransitionLink>
         </div>
       </section>

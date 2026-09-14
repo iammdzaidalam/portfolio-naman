@@ -3,11 +3,11 @@ import Works from "@/components/sections/works";
 import StudioNote from "@/components/sections/studio-note";
 import ServicesList from "@/components/sections/services-list";
 import Growth from "@/components/sections/growth";
-import Testimonials from "@/components/sections/testimonials";
+import Clients from "@/components/sections/clients";
 
 /**
- * Home: the spiral, the work, the studio, then the argument — services,
- * numbers, passengers — and the footer carries the call to action.
+ * Home: the spiral, the work, the studio, then the argument (services,
+ * numbers, passengers) and the footer carries the call to action.
  */
 export default function HomePage() {
   return (
@@ -17,7 +17,7 @@ export default function HomePage() {
       <StudioNote />
       <ServicesList />
       <Growth />
-      <Testimonials />
+      <Clients />
     </main>
   );
 }

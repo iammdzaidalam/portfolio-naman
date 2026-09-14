@@ -4,7 +4,6 @@ import { gsap } from "gsap";
 import { CustomEase } from "gsap/CustomEase";
 import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 import { Flip } from "gsap/Flip";
-import { MotionPathPlugin } from "gsap/MotionPathPlugin";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
 
@@ -17,10 +16,10 @@ import { SplitText } from "gsap/SplitText";
  * public package, so no Club token is needed.
  */
 if (typeof window !== "undefined") {
-  gsap.registerPlugin(CustomEase, DrawSVGPlugin, Flip, MotionPathPlugin, ScrollTrigger, SplitText);
+  gsap.registerPlugin(CustomEase, DrawSVGPlugin, Flip, ScrollTrigger, SplitText);
 
-  // The house ease. Every timed thing on the site uses it, including both
-  // page transitions.
+  // The house ease. Every timed thing on the site uses it, including the
+  // curved wipe.
   if (!CustomEase.get("brand")) {
     CustomEase.create("brand", "0.625, 0.05, 0, 1");
   }
@@ -35,4 +34,4 @@ if (typeof window !== "undefined") {
 /** The cubic-bezier form of the house ease, for CSS transitions. */
 export const EASE_CSS = "cubic-bezier(0.625, 0.05, 0, 1)";
 
-export { gsap, CustomEase, DrawSVGPlugin, Flip, MotionPathPlugin, ScrollTrigger, SplitText };
+export { gsap, CustomEase, DrawSVGPlugin, Flip, ScrollTrigger, SplitText };

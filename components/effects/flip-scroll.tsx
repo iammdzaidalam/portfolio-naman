@@ -10,7 +10,7 @@ import { Flip, gsap } from "@/lib/gsap";
  *
  * `[data-flip-element="wrapper"]` elements are waypoints. A single
  * `[data-flip-element="target"]` lives inside the first of them and, as you
- * scroll, `Flip.fit` retargets it onto each waypoint in turn — so one element
+ * scroll, `Flip.fit` retargets it onto each waypoint in turn, so one element
  * appears to grow, shrink and travel across the page.
  *
  * The two details that make it work, both from the resource:
@@ -103,7 +103,7 @@ export default function FlipScrollScene({
       flipTimeline();
 
       // Waypoint geometry is measured once, so anything that reflows the
-      // page — a width change, the webfont, late images — rebuilds every leg.
+      // page (a width change, the webfont, late images) rebuilds every leg.
       let resizeTimer: number | undefined;
       let lastWidth = window.innerWidth;
       const rebuild = () => {

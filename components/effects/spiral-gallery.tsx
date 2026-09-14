@@ -18,8 +18,13 @@ import TransitionLink from "@/components/transition/transition-link";
  * duration and the motion is scrubbed, so the helix is exactly as far along as
  * the reader is.
  *
+ * It also turns on its own. The helix wraps modulo the card count, which makes
+ * it endless, and a looping tween walks it forward whenever the section is on
+ * screen (so the spiral is alive before anybody touches the page, and scroll
+ * steers something already in motion rather than starting it.
+ *
  * The scene is translated back by the helix radius so the front card sits at
- * z = 0 — at the perspective's natural size — rather than being blown up by
+ * z = 0) at the perspective's natural size: rather than being blown up by
  * being nearer the camera than the page.
  */
 
@@ -34,8 +39,8 @@ const RADIUS_VW_MOBILE = 0.62;
 /**
  * The gap the helix keeps between neighbouring cards, as a multiple of a card's
  * width. The radius is raised until the chord between two neighbours clears
- * this, so a card that is wide relative to its viewport — which is every card
- * on a phone — pushes the helix open instead of overlapping the cards beside it.
+ * this, so a card that is wide relative to its viewport (which is every card
+ * on a phone) pushes the helix open instead of overlapping the cards beside it.
  */
 const CLEARANCE = 1.08;
 /** Cards this far round the back are hidden rather than drawn mirrored. */
@@ -43,6 +48,11 @@ const HIDE_BEYOND_DEG = 118;
 const HIDE_BEYOND_DEG_MOBILE = 96;
 /** How much scroll the pinned section consumes, per card. */
 const SCROLL_PER_CARD_VH = 55;
+/**
+ * Seconds a card takes to hand its place to the next one while nobody is
+ * scrolling. Slow enough to read as drift rather than as a carousel advancing.
+ */
+const SECONDS_PER_CARD = 4.5;
 
 export default function SpiralGallery({
   rides,
@@ -72,7 +82,12 @@ export default function SpiralGallery({
       const count = cards.length;
       if (!count) return;
 
+      // Two independent contributions to the same helix: `p` is how far the
+      // reader has scrolled through the pin, `drift` is the loop that runs on
+      // its own. They are summed, so scrolling steers a spiral that is already
+      // turning instead of fighting it.
       const state = { p: 0 };
+      const drift = { v: 0 };
 
       const layout = () => {
         const vw = window.innerWidth;
@@ -91,8 +106,19 @@ export default function SpiralGallery({
         stage.style.transform = `translateZ(${-radius}px)`;
 
         cards.forEach((card, i) => {
-          // Position along the helix, in card-steps, relative to the front.
-          const t = i - state.p * (count - 1);
+          /*
+           * Position along the helix, in card-steps, relative to the front,
+           * wrapped into a window centred on zero so the spiral has no ends.
+           *
+           * The wrap is what makes the loop possible: without it `drift` would
+           * march every card off the bottom of the helix and never bring one
+           * back. A card crosses the seam at +/- count/2 steps, which at 45
+           * degrees a step is far beyond the angle at which cards are already
+           * hidden, so the recycling is never seen.
+           */
+          let t = i - state.p * (count - 1) - drift.v;
+          t = ((t % count) + count) % count;
+          if (t > count / 2) t -= count;
           const angle = t * STEP_DEG;
           const y = t * pitch;
           const visible = Math.abs(angle) < hideBeyond;
@@ -118,6 +144,17 @@ export default function SpiralGallery({
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       if (reduced) return;
 
+      // The loop. One full cycle is `count` steps, and because the wrap above
+      // is modulo `count`, the tween restarting at zero lands on exactly the
+      // position it left, so the repeat is seamless.
+      const loop = gsap.to(drift, {
+        v: count,
+        duration: count * SECONDS_PER_CARD,
+        ease: "none",
+        repeat: -1,
+        onUpdate: layout,
+      });
+
       // Pin the hero section itself when there is one, so the corner
       // furniture and the blur that sit around the spiral hold with it.
       const pinEl = wrap.closest<HTMLElement>("[data-hero]") ?? wrap;
@@ -134,9 +171,14 @@ export default function SpiralGallery({
           end: () => `+=${(count * SCROLL_PER_CARD_VH * window.innerHeight) / 100}`,
           scrub: 0.6,
           invalidateOnRefresh: true,
-          // The side navigation only exists while the spiral is on screen.
-          onToggle: (self) =>
-            document.documentElement.toggleAttribute("data-spiral-active", self.isActive),
+          // The side navigation only exists while the spiral is on screen, and
+          // so does the loop: a helix turning in a section nobody is looking at
+          // is a rAF callback and nine style writes a frame, for nothing.
+          onToggle: (self) => {
+            document.documentElement.toggleAttribute("data-spiral-active", self.isActive);
+            if (self.isActive) loop.play();
+            else loop.pause();
+          },
         },
         onUpdate: layout,
       });
@@ -150,6 +192,7 @@ export default function SpiralGallery({
       return () => {
         window.clearTimeout(timer);
         window.removeEventListener("resize", onResize);
+        loop.kill();
         document.documentElement.removeAttribute("data-spiral-active");
       };
     },
@@ -171,11 +214,10 @@ export default function SpiralGallery({
             <TransitionLink
               key={ride.slug}
               href={`/work/${ride.slug}`}
-              mode="shutter"
               data-spiral-card
               className="group absolute top-0 left-0 block aspect-[3/4] w-[min(26vw,400px)] overflow-hidden bg-ink will-change-transform select-none max-tablet:w-[38vw] max-mobile:w-[52vw]"
               style={{ backfaceVisibility: "hidden" }}
-              aria-label={`${ride.title} — ${ride.tag}`}
+              aria-label={`${ride.title}: ${ride.tag}`}
             >
               <Image
                 src={ride.frame}
@@ -184,17 +226,38 @@ export default function SpiralGallery({
                 sizes="(max-width: 768px) 52vw, (max-width: 992px) 38vw, 26vw"
                 priority={i < 3}
                 className="object-cover transition-transform duration-[900ms] group-hover:scale-[1.04]"
-                style={{ transitionTimingFunction: "var(--ease-brand)" }}
+                style={{
+                  transitionTimingFunction: "var(--ease-brand)",
+                  objectPosition: ride.focus,
+                }}
                 draggable={false}
               />
 
-              {/* Poster furniture: tag top-left, reach top-right, title at foot. */}
+              {/*
+                The furniture is white, and the photography is not reliably
+                dark behind it: a pale sky or a white cyclorama swallowed the
+                tag and the title whole. This scrim only darkens the two bands
+                the text actually occupies, so the middle of the frame is left
+                alone.
+              */}
+              <div
+                aria-hidden
+                className="from-ink/60 to-ink/70 pointer-events-none absolute inset-0 bg-gradient-to-b via-transparent via-35%"
+              />
+
+              {/*
+                Poster furniture: tag top-left, stop number top-right, title at
+                foot. Set a step below the page's own sizes on purpose. This
+                type rides a moving, rotating card and sits over photography, so
+                at the page's label size it competed with the picture instead of
+                captioning it.
+              */}
               <div className="text-paper absolute inset-0 flex flex-col justify-between p-[1em] max-mobile:p-[0.75em]">
-                <div className="label flex justify-between max-mobile:text-[10px]">
+                <div className="label-xs flex justify-between max-mobile:text-[10px]">
                   <span>{ride.tag.split(" · ")[0]}</span>
-                  <span>{ride.views.replace(" views", "")}</span>
+                  <span>{String(i + 1).padStart(2, "0")}</span>
                 </div>
-                <div className="display text-[clamp(17px,2.6vw,40px)] uppercase">
+                <div className="display text-[clamp(15px,2.45vw,38px)] uppercase">
                   {ride.title}
                 </div>
               </div>

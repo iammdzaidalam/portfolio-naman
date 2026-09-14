@@ -15,22 +15,43 @@ export default function Growth() {
         className="mb-[4em]"
       />
 
-      {/* Before / after, as one line of display type. */}
-      <div className="rule flex flex-wrap items-baseline gap-[0.6em] border-t pt-[1.5em]">
+      {/*
+        Before / after / change, as one line of display type.
+
+        Every column is the same label-over-figure stack and the row aligns on
+        `items-end`, which is what actually holds the four figures on one line.
+        The delta used to be a bare number pushed right with `ml-auto`: with no
+        label above it, it sat a label's height lower than everything else and
+        read as though it belonged to the row below.
+      */}
+      <div className="rule flex flex-wrap items-end gap-x-[0.6em] gap-y-[0.75em] border-t pt-[1.5em]">
         <span className="flex flex-col">
           <span className="label opacity-60">{GROWTH.before.label}</span>
           <span className="display text-[clamp(32px,5vw,80px)] opacity-40">
             {GROWTH.before.value}
           </span>
         </span>
-        <span className="display self-end text-[clamp(32px,5vw,80px)] opacity-40">→</span>
+
+        <span
+          aria-hidden
+          className="display pb-[0.1em] text-[clamp(32px,5vw,80px)] opacity-40"
+        >
+          →
+        </span>
+
         <span className="flex flex-col">
           <span className="label opacity-60">{GROWTH.after.label}</span>
-          <span className="display text-[clamp(32px,5vw,80px)]">{GROWTH.after.value}</span>
+          <span className="display text-[clamp(32px,5vw,80px)]">
+            {GROWTH.after.value}{" "}
+            <span className="label align-baseline opacity-60">{GROWTH.after.unit}</span>
+          </span>
         </span>
-        <span className="label mb-[0.6em] opacity-60">{GROWTH.after.unit}</span>
-        <span className="display text-accent ml-auto text-[clamp(32px,5vw,80px)]">
-          {GROWTH.delta}
+
+        <span className="ml-auto flex flex-col items-end">
+          <span className="label opacity-60">{GROWTH.deltaLabel}</span>
+          <span className="display text-accent text-[clamp(32px,5vw,80px)]">
+            {GROWTH.delta}
+          </span>
         </span>
       </div>
 

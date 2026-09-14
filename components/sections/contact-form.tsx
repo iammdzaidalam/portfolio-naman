@@ -3,7 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Image from "next/image";
 
-import { CONNECT, RIDES, SITE } from "@/lib/content";
+import { CONNECT, PHOTOS, SITE } from "@/lib/content";
 import BubbleButton from "@/components/effects/bubble-button";
 
 /**
@@ -45,8 +45,8 @@ export default function ContactForm() {
       <div className="max-tablet:order-last">
         <div className="relative mb-[2em] aspect-[4/3] overflow-hidden">
           <Image
-            src={RIDES[7].frame}
-            alt=""
+            src={PHOTOS.contact.src}
+            alt={PHOTOS.contact.alt}
             fill
             sizes="(max-width: 992px) 100vw, 40vw"
             className="object-cover"
@@ -55,12 +55,17 @@ export default function ContactForm() {
 
         <p className="label mb-[1.5em] opacity-60">Direct</p>
         <div className="rule border-t">
+          {/*
+            Anything still unconfirmed is dropped rather than guessed. A wrong
+            handle sends people to somebody else's account, which is worse than
+            an absent row.
+          */}
           {[
             { label: SITE.email, href: `mailto:${SITE.email}` },
-            { label: SITE.phone, href: SITE.phoneHref },
-            { label: `Instagram — ${SITE.instagram}`, href: null },
-            { label: `LinkedIn — ${SITE.linkedin}`, href: null },
-            { label: SITE.city, href: null },
+            ...(SITE.phone ? [{ label: SITE.phone, href: SITE.phoneHref }] : []),
+            ...(SITE.instagram ? [{ label: `Instagram · ${SITE.instagram}`, href: null }] : []),
+            ...(SITE.linkedin ? [{ label: `LinkedIn · ${SITE.linkedin}`, href: null }] : []),
+            { label: SITE.address, href: null },
           ].map((entry) =>
             entry.href ? (
               <a

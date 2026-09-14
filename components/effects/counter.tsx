@@ -11,6 +11,9 @@ import { gsap } from "@/lib/gsap";
  * The source file eased with `1 - (1-p)^3`, which is `power3.out`; using GSAP's
  * own tween instead keeps the count on the same ticker as everything else, so
  * it can't drift when the tab is throttled.
+ *
+ * Grouped `en-IN`, because the client writes their figures that way (4,50,000
+ * rather than 450,000) and the audience reads them that way.
  */
 export default function Counter({
   target,
@@ -29,7 +32,7 @@ export default function Counter({
       if (!node) return;
 
       const format = (value: number) =>
-        `${Math.floor(value).toLocaleString("en-US")}${suffix}`;
+        `${Math.floor(value).toLocaleString("en-IN")}${suffix}`;
 
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
         node.textContent = format(target);

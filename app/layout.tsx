@@ -17,7 +17,7 @@ import Cursor from "@/components/effects/cursor";
 
 /**
  * PP Neue Montreal, served locally. Only the Medium cut is licensed into this
- * repo — so the site uses one weight throughout and builds hierarchy from
+ * repo, so the site uses one weight throughout and builds hierarchy from
  * size, tracking and opacity instead.
  */
 const neueMontreal = localFont({
@@ -39,12 +39,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL("https://socialyatri.com"),
   title: {
-    default: `${SITE.name} — ${SITE.tagline}`,
-    template: `%s — ${SITE.name}`,
+    default: `${SITE.name} · ${SITE.tagline}`,
+    template: `%s · ${SITE.name}`,
   },
   description: SITE.description,
   openGraph: {
-    title: `${SITE.name} — ${SITE.tagline}`,
+    title: `${SITE.name} · ${SITE.tagline}`,
     description: SITE.description,
     locale: "en_IN",
     type: "website",

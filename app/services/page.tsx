@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
-import { RIDES, SERVICES, SERVICES_INTRO } from "@/lib/content";
+import { RIDES, SERVICES, SERVICES_INTRO, WHY } from "@/lib/content";
 import { StickyTab, StickyTabGroup } from "@/components/effects/sticky-tabs";
 import SectionHead from "@/components/ui/section-head";
 import Reveal from "@/components/effects/reveal";
@@ -14,60 +14,10 @@ export const metadata: Metadata = {
   description: SERVICES_INTRO.sub,
 };
 
-/** What each stop actually involves, beyond the one-liner. */
-const DETAIL: Record<string, string[]> = {
-  "Social Media": [
-    "Content pillars built around your audience, not a template.",
-    "A posting rhythm that fits how you actually work.",
-    "Community management that sounds like you in the replies.",
-  ],
-  Content: [
-    "Formats chosen for the platform, not resized after the fact.",
-    "Hooks written to survive the first second of a scroll.",
-    "Enough volume to learn from, not one hero post a month.",
-  ],
-  Video: [
-    "Shoot days planned around a shot list, not vibes.",
-    "Edits cut for sound-off viewing first.",
-    "Vertical, horizontal and stills out of the same day.",
-  ],
-  Strategy: [
-    "Where the brand is losing people right now, and why.",
-    "What the audience already follows and saves.",
-    "A plan with a number attached to it.",
-  ],
-  Branding: [
-    "A visual system that survives being cropped to a thumbnail.",
-    "A voice you can hand to someone else and still sound like you.",
-    "Templates the team can actually use.",
-  ],
-  "Organic Growth": [
-    "Reach, saves and shares tracked as the leading signals.",
-    "More of what worked, less of what didn’t, monthly.",
-    "Growth that compounds instead of spiking and dying.",
-  ],
-  "Personal Branding": [
-    "One-to-one, built around the founder’s actual calendar.",
-    "A point of view worth following, not just a posting habit.",
-    "Content that survives you being busy for a week.",
-  ],
-};
-
-/** The ride that shows each stop best, as an index into `RIDES`. */
-const SAMPLE: Record<string, number> = {
-  "Social Media": 2,
-  Content: 0,
-  Video: 1,
-  Strategy: 3,
-  Branding: 7,
-  "Organic Growth": 5,
-  "Personal Branding": 4,
-};
-
 export default function ServicesPage() {
   return (
     <main>
-      <section className="text-ink px-[var(--gutter)] pt-[calc(var(--corner)+96px)] pb-[1.5em]">
+      <section className="text-ink px-[var(--gutter)] pt-[calc(var(--corner)+96px)] pb-[3em]">
         <SectionHead
           marker={SERVICES_INTRO.sign}
           title={SERVICES_INTRO.question}
@@ -75,18 +25,30 @@ export default function ServicesPage() {
           titleAs="h1"
           size="xl"
         />
+
+        <div className="mt-[3em] grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1">
+          <div />
+          <div className="max-w-[34em]">
+            {SERVICES_INTRO.body.map((paragraph) => (
+              <Reveal key={paragraph} as="p" className="mt-[1em] text-[1.0625em] opacity-70">
+                {paragraph}
+              </Reveal>
+            ))}
+          </div>
+        </div>
       </section>
 
       {/*
         Sticky section tabs. Each stop's header pins under the site
         header and the next arrives on top of it, so the list reads as a stack
         of tabs. The header row shares its grid with the services index on the
-        home page — index, name, tag — and each body puts a still in the marker
+        home page (index, name, tag) and each body puts a still in the marker
         column and the copy on the headline's axis, so the page keeps one grid.
       */}
       <StickyTabGroup>
-        {SERVICES.map((service) => {
-          const ride = RIDES[SAMPLE[service.name]];
+        {SERVICES.map((service, index) => {
+          // Ten stops, nine rides: each stop takes the next still in the reel.
+          const ride = RIDES[index % RIDES.length];
 
           return (
             <StickyTab
@@ -104,25 +66,24 @@ export default function ServicesPage() {
             >
               <div className="grid grid-cols-[42%_1fr] gap-[4vw] px-[var(--gutter)] pt-[2.5em] pb-[5em] max-tablet:grid-cols-1 max-tablet:gap-[2.5em]">
                 {/* A ride that came out of this stop, in colour. */}
-                <TransitionLink
-                  href={`/work/${ride.slug}`}
-                  mode="shutter"
-                  className="group block"
-                >
+                <TransitionLink href={`/work/${ride.slug}`} className="group block">
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Image
                       src={ride.frame}
-                      alt=""
+                      alt={ride.alt}
                       fill
                       sizes="(max-width: 992px) 100vw, 42vw"
                       className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-                      style={{ transitionTimingFunction: "var(--ease-brand)" }}
+                      style={{
+                        transitionTimingFunction: "var(--ease-brand)",
+                        objectPosition: ride.focus,
+                      }}
                     />
                   </div>
                   <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
                     <span>{ride.title}</span>
                     <span className="group-hover:text-accent transition-colors duration-300">
-                      {ride.views} ↗
+                      {ride.tag} ↗
                     </span>
                   </p>
                 </TransitionLink>
@@ -132,8 +93,20 @@ export default function ServicesPage() {
                     {service.desc}
                   </p>
 
+                  <div className="mt-[1.5em] max-w-[32em]">
+                    {service.body.map((paragraph) => (
+                      <Reveal
+                        key={paragraph}
+                        as="p"
+                        className="mt-[1em] text-[1.0625em] opacity-70"
+                      >
+                        {paragraph}
+                      </Reveal>
+                    ))}
+                  </div>
+
                   <ul className="mt-[2.5em] max-w-[30em]">
-                    {DETAIL[service.name].map((line) => (
+                    {service.detail.map((line) => (
                       <li key={line} className="rule border-t py-[0.9em]">
                         <Reveal
                           as="span"
@@ -145,12 +118,71 @@ export default function ServicesPage() {
                       </li>
                     ))}
                   </ul>
+
+                  {/* The client wrote a goal line for the first stop only. */}
+                  {service.goal ? (
+                    <div className="rule mt-[2.5em] max-w-[30em] border-t pt-[1.1em]">
+                      <span className="label block opacity-60">Goal</span>
+                      <p className="statement mt-[0.5em] text-[1.25em]">{service.goal}</p>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </StickyTab>
           );
         })}
       </StickyTabGroup>
+
+      {/* Why Social Yatri: the client's closing argument, set on ink. */}
+      <section
+        data-surface="ink"
+        className="surface-ink text-paper px-[var(--gutter)] py-[7em]"
+      >
+        <SectionHead marker={WHY.sign} title={WHY.question} className="mb-[3em]" />
+
+        <div className="grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1 max-tablet:gap-[2em]">
+          {/*
+            Three near-identical lines and then the turn. Ruled apart and set at
+            statement size so the repetition is the point, with the last line
+            carried in the brand colour because it is the one that answers them.
+          */}
+          <div>
+            {WHY.list.map((line) => (
+              <Reveal
+                key={line}
+                as="p"
+                className="rule statement border-t py-[0.9em] text-[1.125em] opacity-60"
+              >
+                {line}
+              </Reveal>
+            ))}
+            <Reveal
+              as="p"
+              className="rule statement text-accent border-t py-[0.9em] text-[1.5em]"
+            >
+              {WHY.turn}
+            </Reveal>
+          </div>
+
+          <div className="max-w-[34em]">
+            {WHY.body.map((paragraph) => (
+              <Reveal key={paragraph} as="p" className="mt-[1em] text-[1.0625em] opacity-70">
+                {paragraph}
+              </Reveal>
+            ))}
+
+            <Reveal
+              as="p"
+              className="display mt-[2em] max-w-[10em] text-[clamp(24px,2.8vw,44px)]"
+            >
+              {WHY.ask}
+            </Reveal>
+            <Reveal as="p" className="mt-[1em] text-[1.0625em] opacity-70">
+              {WHY.close}
+            </Reveal>
+          </div>
+        </div>
+      </section>
 
       <MarqueeStrip />
       <RouteSteps />

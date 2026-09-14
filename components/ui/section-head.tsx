@@ -4,14 +4,14 @@ import Reveal from "@/components/effects/reveal";
 
 /**
  * The section marker: a small mono label in parentheses. No rule, no
- * index — the parentheses are the whole device.
+ * index: the parentheses are the whole device.
  */
 export function Marker({ children, className }: { children: ReactNode; className?: string }) {
   return <p className={`label-xs opacity-60 ${className ?? ""}`}>( {children} )</p>;
 }
 
 /**
- * Marker on the left, headline and standfirst on the right — the two-column
+ * Marker on the left, headline and standfirst on the right: the two-column
  * opening, with the label column at 42%.
  */
 export default function SectionHead({

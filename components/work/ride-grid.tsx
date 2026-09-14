@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 
-import { RIDES, WORK_FILTERS } from "@/lib/content";
+import { RIDES, WORK_FILTERS, ridePhoto } from "@/lib/content";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import OptionWheel from "@/components/effects/option-wheel";
 import TransitionLink from "@/components/transition/transition-link";
@@ -26,15 +26,12 @@ export default function RideGrid() {
   const [filter, setFilter] = useState<string>("all");
   const grid = useRef<HTMLDivElement>(null);
 
-  // A ride belongs to a filter by its category or by any word in its tag, so
-  // "Hospitality" and "Food" find the rides that carry them in the tag line.
-  const visible = useMemo(() => {
-    if (filter === "all") return RIDES;
-    const label = WORK_FILTERS.find((item) => item.id === filter)?.label.toLowerCase() ?? "";
-    return RIDES.filter(
-      (ride) => ride.category === filter || ride.tag.toLowerCase().includes(label),
-    );
-  }, [filter]);
+  // A ride belongs to a filter by the shoot it came out of, which is the
+  // client's own filing rather than a category invented for the control.
+  const visible = useMemo(
+    () => (filter === "all" ? RIDES : RIDES.filter((ride) => ride.shoot === filter)),
+    [filter],
+  );
 
   // The grid changes height with the filter; everything measured below it
   // (the footer's reveals) has to be told.
@@ -47,9 +44,10 @@ export default function RideGrid() {
       if (!grid.current) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
+      // Left to right, like every other reveal on the site.
       gsap.from(grid.current.children, {
         opacity: 0,
-        yPercent: 6,
+        xPercent: -6,
         duration: 0.8,
         ease: "expo.out",
         stagger: { amount: 0.35 },
@@ -67,8 +65,8 @@ export default function RideGrid() {
 
         {/*
           The wheel sizes its rows in `rem`, the untouched 16px root, while this
-          column is in `em` derived from the viewport. Set large — it is the
-          page's one control, not a caption — in a column just wide enough for
+          column is in `em` derived from the viewport. Set large (it is the
+          page's one control, not a caption) in a column just wide enough for
           the longest entry at 992px, where the two scales are furthest apart.
           Any wider and the wall loses the width it needs.
         */}
@@ -98,7 +96,7 @@ export default function RideGrid() {
             textColor="rgba(20,20,20,0.45)"
             activeColor="#ffc72c"
             // The vendored root carries `outline-none`, which both removes the
-            // outline and pins `--tw-outline-style: none` — so a width utility
+            // outline and pins `--tw-outline-style: none`, so a width utility
             // alone still resolves to `outline-style: none`. `outline-solid`
             // is what puts the keyboard focus ring back.
             className="focus-visible:outline-solid focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-accent"
@@ -143,11 +141,10 @@ export default function RideGrid() {
           <TransitionLink
             key={ride.slug}
             href={`/work/${ride.slug}`}
-            mode="shutter"
             className="group block"
           >
             <div className="relative aspect-[4/3] overflow-hidden">
-              <Poster ride={ride} sizes="(max-width: 768px) 100vw, 40vw" />
+              <Poster photo={ridePhoto(ride)} sizes="(max-width: 768px) 100vw, 40vw" />
             </div>
 
             <div className="rule mt-[0.9em] flex items-baseline justify-between border-t pt-[0.7em]">
@@ -160,7 +157,6 @@ export default function RideGrid() {
             <h3 className="statement mt-[0.35em] text-[clamp(20px,2.1vw,32px)]">
               {ride.title}
             </h3>
-            <p className="label mt-[0.5em] opacity-60">{ride.views}</p>
           </TransitionLink>
         ))}
       </div>

@@ -5,7 +5,7 @@
  * [https://reactbits.dev/components/option-wheel]
  *
  * Vendored from the library's `ts-tailwind` source. Copyright (c) 2026 David Haz,
- * MIT **with the Commons Clause** — the notice must be retained, and the
+ * MIT **with the Commons Clause**: the notice must be retained, and the
  * component may be used in a product but not redistributed as a component.
  * Check that against the client's plans before shipping.
  *
@@ -23,7 +23,7 @@
  * refs during render and self-references `runFrame` inside its own callback,
  * both of which the React Compiler lint flags. Rewriting either would change
  * the component's behaviour, and the point of vendoring is that it behaves
- * exactly as published — so the deviation is quarantined here rather than
+ * exactly as published, so the deviation is quarantined here rather than
  * spread across the app.
  */
 /* eslint-disable react-hooks/refs, react-hooks/immutability */

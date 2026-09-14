@@ -1,9 +1,9 @@
 import Image from "next/image";
 
-import type { Ride } from "@/lib/content";
+import type { Photo } from "@/lib/content";
 
 /**
- * The still that stands in for the reel.
+ * The frame that carries a piece of work.
  *
  * The surfaces are black and white; the photography is where the colour lives.
  *
@@ -11,12 +11,12 @@ import type { Ride } from "@/lib/content";
  * own frame in `lib/content.ts`.
  */
 export default function Poster({
-  ride,
+  photo,
   className,
   sizes = "(max-width: 768px) 100vw, 33vw",
   priority = false,
 }: {
-  ride: Ride;
+  photo: Photo;
   className?: string;
   sizes?: string;
   priority?: boolean;
@@ -24,14 +24,16 @@ export default function Poster({
   return (
     <div className={`absolute inset-0 overflow-hidden ${className ?? ""}`}>
       <Image
-        src={ride.frame}
-        alt=""
+        src={photo.src}
+        alt={photo.alt}
         fill
         sizes={sizes}
         priority={priority}
-        aria-hidden
         className="object-cover transition-transform duration-[900ms] group-hover:scale-[1.03]"
-        style={{ transitionTimingFunction: "var(--ease-brand)" }}
+        style={{
+          transitionTimingFunction: "var(--ease-brand)",
+          objectPosition: photo.focus,
+        }}
       />
     </div>
   );

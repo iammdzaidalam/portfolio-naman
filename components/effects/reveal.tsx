@@ -23,10 +23,10 @@ type Props = {
 };
 
 /**
- * Masked line reveal.
+ * Masked line reveal, left to right.
  *
- * SplitText wraps each rendered line in its own overflow-hidden mask, then the
- * lines rise out from under it. The split waits on `document.fonts.ready`:
+ * SplitText wraps each rendered line in its own overflow-hidden mask, then each
+ * line is wiped in from its left edge. The split waits on `document.fonts.ready`:
  * measuring earlier gives the line breaks of the fallback face, which re-wrap
  * when the real face arrives and leave words clipped by stale masks.
  *
@@ -66,7 +66,7 @@ export default function Reveal({
       let cancelled = false;
 
       // The split has to wait for fonts, which puts the tween outside the GSAP
-      // context's synchronous capture window — so `useGSAP` never learns about
+      // context's synchronous capture window, so `useGSAP` never learns about
       // it and cannot revert it. Hold it here and kill it by hand instead,
       // otherwise every Reveal leaks a live ScrollTrigger on each route change.
       const build = () => {
@@ -77,7 +77,7 @@ export default function Reveal({
           split = new SplitText(el, { type: "lines", mask: "lines" });
           targets = split.lines;
 
-          // A mask is sized to its line's box, which sits on the baseline — so
+          // A mask is sized to its line's box, which sits on the baseline, so
           // by default it shears the descenders off every g, j, p and y. Pad
           // the clip box down and pull the next line back up by the same
           // amount, so the leading is unchanged but nothing is cut.
@@ -91,18 +91,38 @@ export default function Reveal({
 
         el.classList.add("is--ready");
 
-        // Masked lines rise from under their clip. An unmasked block has no
-        // clip to hide behind, so a 110% drop would sit in plain view over
-        // whatever is beneath it until the trigger fires — it fades up a
-        // short way instead.
-        tween = gsap.from(targets, {
-          ...(splitLines ? { yPercent: 110 } : { y: "0.5em", autoAlpha: 0 }),
-          duration: 1.1,
-          ease: "expo.out",
-          delay,
-          stagger,
-          scrollTrigger: immediate ? undefined : { trigger: el, start, once: true },
-        });
+        /*
+         * Left to right: each line is uncovered by its own clip travelling off
+         * the right edge, with a short drift in from the left behind it.
+         *
+         * The wipe is a `clip-path` rather than a transform because the words
+         * have to stay put while they are uncovered: sliding a full line in
+         * from the left moves every word the width of its own line, which on a
+         * paragraph of body copy reads as a stampede rather than a reveal. The
+         * drift is what keeps it from looking mechanical, and the line mask is
+         * what hides it.
+         *
+         * `fromTo` rather than `from`: the finished state has to be a real
+         * `inset(0 0% 0 0)` and not `none`, or there is nothing to tween to.
+         */
+        tween = gsap.fromTo(
+          targets,
+          {
+            clipPath: "inset(-0.35em 100% -0.35em 0)",
+            xPercent: -4,
+            ...(splitLines ? null : { autoAlpha: 0 }),
+          },
+          {
+            clipPath: "inset(-0.35em 0% -0.35em 0)",
+            xPercent: 0,
+            ...(splitLines ? null : { autoAlpha: 1 }),
+            duration: 1.1,
+            ease: "expo.out",
+            delay,
+            stagger,
+            scrollTrigger: immediate ? undefined : { trigger: el, start, once: true },
+          },
+        );
       };
 
       const teardown = () => {

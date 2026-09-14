@@ -41,7 +41,7 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
  * The intro.
  *
  * The wordmark is drawn rather than faded in: every shape in the logo is a
- * closed outline, so DrawSVGPlugin can stroke them one after another — the
+ * closed outline, so DrawSVGPlugin can stroke them one after another: the
  * road first as a single continuous pen stroke, then the lane markings, then
  * the letters left to right, then the pin. Only once a group is fully drawn
  * does its fill flood in and its outline drop away, which is what gives the
@@ -68,7 +68,7 @@ function Loader({ onDone }: { onDone: () => void }) {
    *
    * This has to be a *layout* effect, and it has to be driven by state rather
    * than written imperatively from the timeline. `useGSAP` runs inside a layout
-   * effect, which React fires before every passive `useEffect` — so when the
+   * effect, which React fires before every passive `useEffect`, so when the
    * intro is skipped and the timeline finishes synchronously during mount (the
    * `prefers-reduced-motion` path), an imperative `removeAttribute` there ran
    * *before* a passive effect had added the attribute. The lock was then set
@@ -95,7 +95,7 @@ function Loader({ onDone }: { onDone: () => void }) {
       /**
        * The header mark is outside this component's GSAP scope, and a scoped
        * `gsap.set` on it is dropped with an "invalid scope" warning. Write the
-       * styles directly instead — `autoAlpha` is only visibility plus opacity.
+       * styles directly instead: `autoAlpha` is only visibility plus opacity.
        */
       const revealHeaderLogo = () => {
         document
@@ -150,13 +150,22 @@ function Loader({ onDone }: { onDone: () => void }) {
       // The number tracks the whole timeline, so it can't finish early or late.
       tl.to(counter, { value: 100, duration: 4.4, ease: "power1.inOut" }, 0);
 
-      tl.from(q("[data-loader-meta]"), {
-        yPercent: 120,
-        opacity: 0,
-        duration: 0.9,
-        stagger: 0.08,
-        ease: "expo.out",
-      });
+      // Left to right, matching the panel's own exit and every reveal on the
+      // pages underneath. A clip rather than a slide, because the two meta
+      // labels sit at opposite ends of a `justify-between` row: sliding both
+      // in from the left would walk the right-hand one across the header.
+      tl.fromTo(
+        q("[data-loader-meta]"),
+        { clipPath: "inset(-0.35em 100% -0.35em 0)", xPercent: -6, opacity: 0 },
+        {
+          clipPath: "inset(-0.35em 0% -0.35em 0)",
+          xPercent: 0,
+          opacity: 1,
+          duration: 0.9,
+          stagger: 0.08,
+          ease: "expo.out",
+        },
+      );
 
       // 1. The road draws as one continuous stroke.
       tl.to(road, { drawSVG: "100%", duration: 1.7, ease: "power2.inOut" }, 0.15);
@@ -212,10 +221,13 @@ function Loader({ onDone }: { onDone: () => void }) {
         ease: "power2.in",
       }, 4.0);
 
+      // Left to right, the axis every reveal on the site runs on: the panel's
+      // visible region is squeezed off its own right edge, so the page beneath
+      // is uncovered from the left. `inset(top right bottom left)`.
       tl.to(
         q("[data-loader-panel]"),
         {
-          clipPath: "inset(0% 0% 100% 0%)",
+          clipPath: "inset(0% 0% 0% 100%)",
           duration: 1.2,
           ease: "expo.inOut",
         },
@@ -228,7 +240,7 @@ function Loader({ onDone }: { onDone: () => void }) {
 
       /*
        * Wall-clock backstop. GSAP advances on requestAnimationFrame, which a
-       * browser suspends entirely while the tab is in the background — so a
+       * browser suspends entirely while the tab is in the background, so a
        * page opened in a background tab can sit here with the intro frozen
        * part-way, the scroll still locked and the header mark still hidden.
        * Timers keep running (throttled, which is plenty at this scale), so if
@@ -244,8 +256,8 @@ function Loader({ onDone }: { onDone: () => void }) {
 
       return () => {
         window.clearTimeout(backstop);
-        // Whatever interrupts the intro — a fast reload, an unmount mid-Flip,
-        // a killed timeline — the page must never be left without its logo or
+        // Whatever interrupts the intro (a fast reload, an unmount mid-Flip,
+        // a killed timeline) the page must never be left without its logo or
         // with the scroll still locked.
         //
         // Gated on the timeline having actually played: in development React's

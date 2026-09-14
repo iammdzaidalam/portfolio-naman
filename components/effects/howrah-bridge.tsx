@@ -15,7 +15,7 @@ import { BANDS, BRIDGE_VIEWBOX, CAMERA, FLIGHT } from "./howrah-bridge-geometry"
  * resize. What it does not use is DrawSVGPlugin, and the reason is structural:
  * DrawSVG strokes a path by measuring its length once and animating a dash.
  * Here the camera orbits while the reader scrolls, so every point is
- * re-projected each frame and the path's length changes with it — a dash
+ * re-projected each frame and the path's length changes with it: a dash
  * measured on the first frame would be wrong on the second. The reveal is
  * therefore cut from the polyline itself, which is exact at any camera angle.
  *
@@ -231,7 +231,7 @@ export default function HowrahBridge({ className }: { className?: string }) {
       });
 
       // The framing is measured in viewBox units, so a resize needs no rebuild
-      // — but the trigger's range does.
+      //, but the trigger's range does.
       const onResize = () => ScrollTrigger.refresh();
       window.addEventListener("resize", onResize);
       return () => {

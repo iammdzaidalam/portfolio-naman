@@ -61,6 +61,15 @@ export default function SiteFooter() {
             {onContact ? SITE.tagline : CONNECT.question}
           </Reveal>
 
+          {/* The house line, in the client's own words. */}
+          <Reveal
+            as="p"
+            splitLines={false}
+            className="statement text-accent mt-[0.6em] text-[clamp(20px,2.4vw,34px)]"
+          >
+            <span lang="hi-Latn">{SITE.tagline}</span>
+          </Reveal>
+
           <div className="mt-[28px] flex flex-wrap gap-[10px]">
             {onContact ? null : (
               <TransitionLink href="/contact" className="pill">
@@ -94,7 +103,7 @@ export default function SiteFooter() {
 
       {/*
         The wordmark, set wider than the page and bled off the bottom edge so
-        only its upper four-fifths show — which is what makes it read as the
+        only its upper four-fifths show, which is what makes it read as the
         ground of the page rather than a line of type.
       */}
       <div
@@ -111,7 +120,7 @@ export default function SiteFooter() {
 
       {/* The bottom row, over the wordmark. */}
       <div className="label-xs absolute inset-x-[var(--gutter)] bottom-[var(--gutter)] z-10 flex items-center justify-between gap-[1em] mix-blend-difference max-mobile:flex-wrap">
-        <span>{SITE.copyright} — {SITE.madeIn}</span>
+        <span>{SITE.copyright} · {SITE.madeIn}</span>
         <nav aria-label="Footer" className="flex gap-[1.25em] max-tablet:hidden">
           {NAV.map((item) => (
             <TransitionLink key={item.href} href={item.href} className="opacity-70 transition-[opacity,color] duration-300 hover:text-accent hover:opacity-100">

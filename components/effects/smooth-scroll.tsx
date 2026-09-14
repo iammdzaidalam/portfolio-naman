@@ -53,8 +53,8 @@ export default function SmoothScroll() {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
-    // Anything measured against page position — the Flip waypoints, the drawn
-    // path — needs a recount once fonts and images have settled.
+    // Anything measured against page position (the Flip waypoints, the drawn
+    // path) needs a recount once fonts and images have settled.
     const refresh = () => ScrollTrigger.refresh();
     window.addEventListener("load", refresh);
 

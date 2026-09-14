@@ -9,7 +9,7 @@ import TransitionLink from "@/components/transition/transition-link";
 /**
  * Services as a ruled index.
  *
- * Set on ink, the one dark section in the home sequence — the alternation
+ * Set on ink, the one dark section in the home sequence: the alternation
  * the sequence runs, inverted. Each row is a full-width rule with the name at
  * display size; hovering pushes the row in and brings its line forward.
  */
@@ -54,6 +54,7 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
                 fill
                 sizes="12vw"
                 className="object-cover"
+                style={{ objectPosition: RIDES[(index * 2) % RIDES.length].focus }}
               />
             </span>
           </TransitionLink>

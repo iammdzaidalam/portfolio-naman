@@ -3,7 +3,7 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 
-import { ABOUT, GROWTH, RIDES } from "@/lib/content";
+import { ABOUT, PHOTOS } from "@/lib/content";
 import FlipScrollScene from "@/components/effects/flip-scroll";
 import Reveal from "@/components/effects/reveal";
 import Poster from "@/components/work/poster";
@@ -35,8 +35,8 @@ function Waypoint({ className, children }: { className?: string; children?: Reac
  * rather than over the copy.
  */
 export default function StudioNote() {
-  const still = RIDES[3];
-  const showreel = RIDES[0];
+  const still = PHOTOS.studioNote;
+  const showreel = PHOTOS.showreel;
 
   return (
     <FlipScrollScene>
@@ -46,7 +46,14 @@ export default function StudioNote() {
             <Marker>{ABOUT.sign}</Marker>
             <div className="mt-[10vh] max-w-[212px] max-tablet:mt-[2em]">
               <div className="relative aspect-[1/1] overflow-hidden">
-                <Image src={still.frame} alt="" fill sizes="212px" className="object-cover" />
+                <Image
+                  src={still.src}
+                  alt={still.alt}
+                  fill
+                  sizes="212px"
+                  className="object-cover"
+                  style={{ objectPosition: still.focus }}
+                />
               </div>
               <p className="mt-[1em] text-[0.9375em] leading-[1.3]">{ABOUT.claim}</p>
             </div>
@@ -66,7 +73,7 @@ export default function StudioNote() {
               data-flip-element="target"
               className="absolute top-0 left-0 h-full w-full overflow-hidden [isolation:isolate] will-change-transform"
             >
-              <Poster ride={showreel} sizes="100vw" />
+              <Poster photo={showreel} sizes="100vw" />
             </div>
           </Waypoint>
         </div>
@@ -87,7 +94,7 @@ export default function StudioNote() {
           <div>
             {/* Held back until the frame has narrowed into its column. */}
             <Reveal as="h2" start="top 45%" className="display max-w-[10em] text-[clamp(30px,3.4vw,52px)]">
-              {GROWTH.final.join(" ")}
+              {ABOUT.close.join(" ")}
             </Reveal>
             <Reveal
               as="p"

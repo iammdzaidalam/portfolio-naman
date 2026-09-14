@@ -109,7 +109,7 @@ export default function SiteHeader() {
       <header className="chrome pointer-events-none fixed inset-0 z-[350]">
         <TransitionLink
           href="/"
-          aria-label={`${SITE.name} — home`}
+          aria-label={`${SITE.name}, home`}
           className="pointer-events-auto absolute top-[var(--corner)] left-[var(--corner)] block w-[112px]"
         >
           <span data-header-logo className="block w-full">
@@ -123,7 +123,10 @@ export default function SiteHeader() {
           aria-expanded={open}
           aria-controls="site-menu"
           // Padded out to a 44px target without moving the text off the corner.
-          className="label hover:text-accent pointer-events-auto absolute top-[calc(var(--corner)-16px)] right-[calc(var(--corner)-12px)] min-w-[44px] p-[12px] text-right transition-colors duration-300"
+          // Not the accent on hover: the cursor dot is that same yellow and
+          // sits directly over this word, which makes it hard to read at the
+          // exact moment it is being pointed at.
+          className="label pointer-events-auto absolute top-[calc(var(--corner)-16px)] right-[calc(var(--corner)-12px)] min-w-[44px] p-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           {open ? "Close" : "Menu ::"}
         </button>
@@ -131,7 +134,7 @@ export default function SiteHeader() {
         {/* The left column: the routes, mid-height, one square. */}
         {/*
           The side column. It only exists while the home spiral is
-          pinned on screen — `html[data-spiral-active]`, set by the spiral —
+          pinned on screen: `html[data-spiral-active]`, set by the spiral:
           because every other section is editorial and uses the left edge.
           MENU carries the navigation everywhere else.
         */}

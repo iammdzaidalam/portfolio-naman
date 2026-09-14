@@ -10,7 +10,7 @@ import Magnetic from "./magnetic";
  *
  * A collapsed bubble on the left, the label, and an open duplicate bubble on
  * the right. Hovering trades the two and swings the elbow arrow out to a
- * straight diagonal. All of it is CSS — see the block in `app/globals.css`,
+ * straight diagonal. All of it is CSS: see the block in `app/globals.css`,
  * which carries the 3.75em bubble and the 0.735s easing.
  *
  * The magnetic pull is the source file's own touch, kept because it makes the

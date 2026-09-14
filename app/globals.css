@@ -10,7 +10,7 @@
  * Only one weight of PP Neue Montreal is licensed into this repo, so the whole
  * site is set at that weight and hierarchy is carried by size, tracking and
  * opacity instead. Never apply
- * `font-bold` to it — the browser would synthesise a fake bold.
+ * `font-bold` to it: the browser would synthesise a fake bold.
  * ------------------------------------------------------------------------- */
 @theme inline {
   --font-sans: var(--font-neue-montreal);
@@ -54,7 +54,7 @@
   --accent: #ffc72c;
 
   /*
-   * The fixed chrome — mark, MENU, side column — is ink over paper and paper
+   * The fixed chrome (mark, MENU, side column) is ink over paper and paper
    * over ink. Ink sections flag themselves with `data-surface="ink"`, the
    * header watches them, and these two flip. A blend mode would do the swap
    * for free but inverts anything coloured too, which is what killed the
@@ -162,7 +162,7 @@ html[data-menu-open] {
  * Type utilities
  *
  * `.label` is the small tracked mono caption the reference sites hang
- * everything off — section markers, nav, meta, indices. `.display` is the
+ * everything off: section markers, nav, meta, indices. `.display` is the
  * opposite end: very large, negative tracking, tight leading.
  * ------------------------------------------------------------------------- */
 /*
@@ -173,10 +173,16 @@ html[data-menu-open] {
  */
 @layer components {
 
-  /* UI text: Geist Mono, -0.03em, uppercase. */
+  /*
+   * UI text: Geist Mono, -0.03em, uppercase.
+   *
+   * Clamped rather than fixed. At a flat 13px these were legible on a laptop
+   * and genuinely hard to read on a large display, because every other size on
+   * the site scales with the viewport and these did not.
+   */
   .label {
     font-family: var(--font-mono);
-    font-size: 13px;
+    font-size: clamp(14px, 0.95vw, 17px);
     font-weight: 400;
     letter-spacing: -0.03em;
     text-transform: uppercase;
@@ -186,7 +192,7 @@ html[data-menu-open] {
   /* The same voice one size down, for captions and markers. */
   .label-xs {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: clamp(12px, 0.8vw, 15px);
     font-weight: 400;
     letter-spacing: 0.02em;
     text-transform: uppercase;
@@ -270,7 +276,7 @@ html:not([data-spiral-active]) .side-nav {
  * Five `backdrop-filter` layers, each masked to a different band, so content
  * scrolling underneath dissolves rather than hitting a hard blur edge. Blur
  * radii and gradient stops are the resource's, unchanged. The one adaptation
- * is `position: absolute` — the resource pins it to the viewport, here it is
+ * is `position: absolute`: the resource pins it to the viewport, here it is
  * scoped to whichever section owns it.
  * ------------------------------------------------------------------------- */
 .progressive-blur {
@@ -376,8 +382,8 @@ html:not([data-spiral-active]) .side-nav {
  *
  * A bubble on the left that starts collapsed, the label, and a duplicate
  * bubble on the right that starts open. Hovering trades the two and swings the
- * elbow arrow out to a straight diagonal. Every value — the 3.75em bubble, the
- * -3.75em content offset, the 0.735s easing, the -45deg — is deliberate.
+ * elbow arrow out to a straight diagonal. Every value (the 3.75em bubble, the
+ * -3.75em content offset, the 0.735s easing, the -45deg) is deliberate.
  * ------------------------------------------------------------------------- */
 .btn-bubble-arrow {
   position: relative;
@@ -462,10 +468,10 @@ html:not([data-spiral-active]) .side-nav {
  * Film grain.
  *
  * The resource's texture, opacity, filter, tile size and five-step crawl,
- * unchanged — but placed *under* the content rather than over it. The page
+ * unchanged (but placed *under* the content rather than over it. The page
  * itself gets one fixed layer behind everything (paper sections paint no
- * background, so it shows through them), and each opaque surface — ink
- * sections, the gradients, the sticky tab headers, the loader panel — carries
+ * background, so it shows through them), and each opaque surface) ink
+ * sections, the gradients, the sticky tab headers, the loader panel: carries
  * its own copy as a pseudo-element pinned beneath its content with z-index -1
  * inside an isolated stacking context. Type and photography stay clean.
  * ------------------------------------------------------------------------- */
@@ -598,8 +604,12 @@ html.has-cursor textarea {
 }
 
 /* ---------------------------------------------------------------------------
- * Page transitions. Both overlays sit above everything and never take pointer
- * events; only their painted children do the covering.
+ * The curved wipe page transition.
+ *
+ * The overlay sits above everything and never takes pointer events; only the
+ * band inside it does the covering. `overflow: clip` matters: the band is
+ * wider than the screen by design, and without it the page would gain a
+ * horizontal scrollbar every time one ran.
  * ------------------------------------------------------------------------- */
 .transition-overlay {
   z-index: 300;
@@ -610,60 +620,117 @@ html.has-cursor textarea {
 }
 
 /*
- * The drawn page transition.
+ * The band that sweeps the screen from the left. Width, height, dome radius
+ * and travel are all functions of the viewport and are set by the provider:
+ * see `curved-wipe.ts` for where the arc comes from. Only the parts that never
+ * vary live here.
+ *
+ * Ink underneath the footage so a clip that has not buffered, or has failed
+ * outright, still covers the page swap.
  */
-.transition__shape {
-  width: 100%;
-  height: 100%;
+.wipe__band {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 0;
-}
-
-.transition__svg {
-  /*
-   * `max-width: none` is load-bearing. The base reset sets `svg { max-width:
-   * 100% }`, which beats `width` and would clamp this back to the viewport —
-   * leaving the overscan on one side only, so the cover never reaches the
-   * right-hand 15% of the screen and the page swap shows through.
-   */
-  max-width: none;
-  width: 130%;
-  height: 130%;
-  position: absolute;
-  top: -15%;
-  left: -15%;
-}
-
-/* The paper plane that flies the head of the drawn path. Positioned by GSAP. */
-.transition__plane {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 301;
-  width: 4.5em;
-  pointer-events: none;
+  background-color: var(--ink);
+  overflow: hidden;
   opacity: 0;
   visibility: hidden;
   will-change: transform;
 }
 
 /*
- * The shutter page transition.
+ * The footage, held at viewport size and counter-translated against the band's
+ * own travel, so it stays put on screen while the curve crosses it.
  */
-.transition__panel {
+.wipe__media {
   position: absolute;
-  inset: 0;
-  display: flex;
+  top: 50%;
+  left: 0;
+  will-change: transform;
 }
 
-.transition__shutter {
-  position: relative;
-  flex: 1 1 0%;
+.wipe__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
   height: 100%;
+  object-fit: cover;
   opacity: 0;
-  background-color: var(--ink);
-  will-change: transform, clip-path;
+  visibility: hidden;
+}
+
+/* The shoot display fades each newly chosen frame in. */
+@keyframes frame-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * The shoot carousel.
+ *
+ * Slides share a height and take their width from the frame, so a portrait and
+ * a landscape can sit in one strip at their true proportions. Snapping is
+ * proximity, not mandatory: mandatory fights a slow trackpad drag and snatches
+ * the strip away mid-gesture.
+ * ------------------------------------------------------------------------- */
+.carousel-track {
+  scroll-snap-type: x proximity;
+  /* Snap to the page gutter. Without this the browser aligns each slide to the
+     scrollport edge and scrolls the track's own padding out of sight, so the
+     first frame sits flush against the window. */
+  scroll-padding-inline: var(--gutter);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  overscroll-behavior-x: contain;
+  /* The drag handler reads clientX; without this the browser starts its own
+     native image drag on mousedown and the gesture is lost. */
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.carousel-track::-webkit-scrollbar {
+  display: none;
+}
+
+.carousel-slide {
+  height: clamp(260px, 52vh, 620px);
+  scroll-snap-align: start;
+}
+
+.carousel-slide img {
+  height: 100%;
+  width: auto;
+}
+
+/* Matches `.pill`'s hairline, one notch smaller and square. */
+.carousel-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid color-mix(in srgb, currentColor 30%, transparent);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  transition:
+    background-color 0.4s var(--ease-brand),
+    color 0.4s var(--ease-brand),
+    opacity 0.4s var(--ease-brand);
+}
+
+.carousel-btn:hover:not(:disabled) {
+  background-color: var(--accent);
+  color: var(--ink);
+}
+
+.carousel-btn:disabled {
+  opacity: 0.3;
 }
 
 /* ---------------------------------------------------------------------------

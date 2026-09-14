@@ -14,7 +14,7 @@ type Props = {
   style?: CSSProperties;
   /**
    * `fg` paints the road, the letters and the pin's ink. `bg` paints the lane
-   * markings, which are holes in the artwork rather than white shapes — they
+   * markings, which are holes in the artwork rather than white shapes: they
    * have to match whatever the logo is sitting on.
    */
   fg?: string;
@@ -85,8 +85,8 @@ export default function SocialYatriLogo({
       ) : (
         /*
          * The static mark cuts the lane markings out of the road with the
-         * even-odd rule, so whatever sits behind it — a photograph, the
-         * grain — shows through the gaps instead of a painted surface colour.
+         * even-odd rule, so whatever sits behind it (a photograph, the
+         * grain) shows through the gaps instead of a painted surface colour.
          */
         <g data-logo-road fill={fg} fillRule="evenodd">
           <path d={[...LOGO_ROAD, ...LOGO_DASHES].join(" ")} />

@@ -10,14 +10,14 @@ used.
 
 Every value below is measured rather than eyeballed.
 
-- **Surfaces.** The page is paper — a warm off-white (`#f2efe9`) under film grain —
+- **Surfaces.** The page is paper, a warm off-white (`#f2efe9`) under film grain 
   and ink (`#141414`, not black) takes the sections that need
   weight: the services index and testimonials on the home page, the marquee strips,
   home turf on `/studio`, the menu and the footer. Everything muted is the foreground
   at reduced opacity, floored at 60% for small type so it clears AA on both. The
   photography is in colour; the surfaces are what stay monochrome.
-- **Grain.** A film grain layer — its noise texture (self-hosted at
-  `public/img/noise.avif`), opacity, filter, tile size and five-step crawl — but placed
+- **Grain.** A film grain layer (its noise texture (self-hosted at
+  `public/img/noise.avif`), opacity, filter, tile size and five-step crawl) but placed
   *under* the content rather than over it, at the client's request. One fixed layer
   sits behind the page for the paper; every opaque surface (`.surface-ink`,
   `.surface-paper`, the two gradients, the sticky tab headers, the loader panel) carries
@@ -47,15 +47,15 @@ Every value below is measured rather than eyeballed.
   statement bottom-left in mixed-weight mono, the numbers as a column at mid-height
   on the right, a play mark bottom-right, and the routes as a mono column on the left
   with a square on the active one. That column exists only while the spiral is
-  pinned — `html[data-spiral-active]`, set by the spiral itself — because every other
+  pinned (`html[data-spiral-active]`, set by the spiral itself) because every other
   section is editorial and uses the left edge. MENU opens an overlay of the same
   routes set very large, right-aligned, with a rolling hover.
 - **Sections.** A section label that spreads its letters across the page
   on scroll and gathers in the right corner, below the chrome; a two-column works grid
   deliberately out of step, each item a mono caption, a sentence-case title, then the
   image; the studio note with its marker, small still and paragraph; and the "View all
-  ↳ (09) © 2026" closing row. Every page head is the same two-column grid — marker at
-  42%, headline opposite — and the bodies beneath sit on that axis: the services tab
+  ↳ (09) © 2026" closing row. Every page head is the same two-column grid (marker at
+  42%, headline opposite) and the bodies beneath sit on that axis: the services tab
   copy, the route steps, the contact form, the work wall.
 - **Colour on every page.** Each services tab carries the still of a ride that came
   out of that stop; `/studio` opens on two frames; the contact page's direct column
@@ -84,7 +84,7 @@ Every value below is measured rather than eyeballed.
 viewBox (`components/logo/logo-paths.ts`). Because every shape is a closed outline,
 DrawSVGPlugin can stroke them in sequence:
 
-1. the road — the script `S` plus the swoosh — draws as one continuous pen stroke;
+1. the road (the script `S` plus the swoosh) draws as one continuous pen stroke;
 2. the lane markings pop in along it, trailing the pen;
 3. the letters of "cial Yatri" draw left to right;
 4. the map pin drops onto the road;
@@ -95,7 +95,7 @@ nav and flies the big one onto that exact box, so the two are never both on scre
 and there is no jump at the swap. A counter tracks the timeline itself, so it cannot
 finish early or late.
 
-To re-trace after a logo change, see `components/logo/logo-paths.ts` — the groups
+To re-trace after a logo change, see `components/logo/logo-paths.ts`, the groups
 (`road`, `dashes`, `pinBody`, `pinInk`, `letters`) are what the timeline animates.
 
 ## The effects
@@ -110,7 +110,7 @@ To re-trace after a logo change, see `components/logo/logo-paths.ts` — the gro
 | Sticky section tabs | `components/effects/sticky-tabs.tsx` | The seven services stacking on `/services`. No JavaScript |
 | Button with a bubble arrow | `app/globals.css` + `components/effects/bubble-button.tsx` | Every call to action |
 | Option wheel | `components/effects/option-wheel.tsx` | The category filter on `/work` |
-| Film grain | `app/globals.css` (`.grain`, `.surface-*`, `.gradient-*`) | The stock every surface is printed on — under the content, not over it |
+| Film grain | `app/globals.css` (`.grain`, `.surface-*`, `.gradient-*`) | The stock every surface is printed on: under the content, not over it |
 
 ### Notes on the implementations
 
@@ -125,9 +125,9 @@ To re-trace after a logo change, see `components/logo/logo-paths.ts` — the gro
 - **Film grain** is the resource's texture and timing but not its stacking. The
   original is a single fixed overlay above everything; here it is beneath the content
   (see Design › Grain).
-- **Draw path on scroll** keeps its trigger exactly — `clamp()` on both
+- **Draw path on scroll** keeps its trigger exactly (`clamp()` on both
   ends so a section near the top of the document cannot load part-drawn, the reveal
-  tied 1:1 to the scrollbar, `invalidateOnRefresh` — but not DrawSVGPlugin. DrawSVG
+  tied 1:1 to the scrollbar, `invalidateOnRefresh`) but not DrawSVGPlugin. DrawSVG
   strokes a path by measuring its length once and animating a dash; the bridge is
   re-projected every frame as the camera moves, so its length changes between frames
   and a dash measured on the first would be wrong on the second. The reveal is cut
@@ -140,8 +140,8 @@ To re-trace after a logo change, see `components/logo/logo-paths.ts` — the gro
 
 The drawing is modelled, not traced: a 457.2m main span between two towers 84.7m above
 the deck, 99.06m anchor arms, a 171.5m suspended span on a parallel chord, a 21.6m
-deck, and panel points where the real truss has them. The top chord is polygonal — one
-straight member per panel — because that is what a steel truss is; a smooth curve is
+deck, and panel points where the real truss has them. The top chord is polygonal (one
+straight member per panel) because that is what a steel truss is; a smooth curve is
 the tell of a drawing that was eyeballed.
 
 Nothing is pre-projected. The camera orbits while the reader scrolls: it starts square
@@ -159,7 +159,7 @@ file is output, not source.
   scoped to the header and to the hero rather than pinned to the viewport. Blur radii
   and mask stops are unchanged. Inside the header it sits at the resource's
   `z-index: 40`, so the header's own row is one above it.
-- **Shutter transition** is the one resource whose source could not be recovered — it
+- **Shutter transition** is the one resource whose source could not be recovered: it
   is not published anywhere in the clear. It is built from the resource's own
   description: ten shutters, 0.5s, 0.3s stagger from the end, `power3.in` out and
   `expo.out` back, the outgoing page lifting 15vh and the incoming arriving from 20vh.
@@ -185,8 +185,8 @@ progress rail down the left edge.
 silently break an animation. Every timeline is scoped with `useGSAP` so it is reverted
 on unmount and on route change.
 
-**Page transitions are guarded.** If a cover animation never completes — a backgrounded
-tab suspends `requestAnimationFrame`, so GSAP stops advancing — a 3s guard navigates
+**Page transitions are guarded.** If a cover animation never completes (a backgrounded
+tab suspends `requestAnimationFrame`, so GSAP stops advancing) a 3s guard navigates
 anyway, and a matching guard on the way out restores the page. Without them a stalled
 timeline would leave the router flag set and swallow every later link click. The
 shutter's page slide is skipped while the spiral is pinned: a transformed ancestor
@@ -215,7 +215,7 @@ than half-built.
 - **The contact form has no backend.** `onSubmit` in
   `components/sections/contact-form.tsx` only shows the confirmation. Wire it to a
   route handler or a form service before launch.
-- **The reel frames are placeholders** — the four architecture photographs already in
+- **The reel frames are placeholders**, the four architecture photographs already in
   `public/img`, cycled. Each ride names its own `frame` in `lib/content.ts`, so
   swapping in real stills is one line per ride and no component change.
 - **The social profiles have no URLs yet**, so they render as plain text (in the
@@ -223,7 +223,7 @@ than half-built.
   `SITE` in `lib/content.ts` and add them to the `href` column in
   `components/sections/contact-form.tsx` and the footer's column to turn them into
   links.
-- **The paper plane and the grain crawl are worth a look on a real screen** — both are
+- **The paper plane and the grain crawl are worth a look on a real screen**: both are
   driven by `requestAnimationFrame`/CSS animation, which a backgrounded tab suspends,
   so they cannot be verified from screenshots of an inactive tab.
 - **`components/naman-header.tsx`** is left over from the previous project in this repo.

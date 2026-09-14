@@ -4,11 +4,11 @@
  * Modelled, not traced: a 457.2m main span between two towers 84.7m above the
  * deck, 99.06m anchor arms, a 171.5m suspended span carried on a parallel
  * chord, a 21.6m deck, and panel points where the real truss has them. The top
- * chord is polygonal — one straight member per panel — because that is what a
+ * chord is polygonal (one straight member per panel) because that is what a
  * steel truss is; a smooth curve is the tell of a drawing that was eyeballed.
  *
  * Coordinates are world space: x across the deck, y up from the deck, z along
- * the bridge from the near anchorage. Nothing here is projected — the camera
+ * the bridge from the near anchorage. Nothing here is projected: the camera
  * moves while the reader scrolls, so the projection has to happen per frame in
  * `howrah-bridge.tsx`.
  *

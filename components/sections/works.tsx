@@ -12,8 +12,8 @@ import TransitionLink from "@/components/transition/transition-link";
  *
  * The section label sticks to the top and spreads its letters across the page
  * as you scroll, then gathers in the right corner. Below it the pieces run in
- * two columns that are deliberately out of step — the right column starts with
- * the page's one large statement and each item carries a different top offset —
+ * two columns that are deliberately out of step: the right column starts with
+ * the page's one large statement and each item carries a different top offset,
  * so the eye moves down the page in a zigzag rather than a grid. Every item is
  * a tiny mono caption, a sentence-case title, then the image.
  */
@@ -40,7 +40,6 @@ function WorkItem({
   return (
     <TransitionLink
       href={`/work/${ride.slug}`}
-      mode="shutter"
       className={`group block ${shape.offset} ${index % 2 ? "w-[82%] justify-self-end" : "w-[88%]"} max-tablet:w-full`}
       // When the two columns collapse into one, the items interleave in
       // their original order with the statement second, instead of one whole
@@ -54,11 +53,14 @@ function WorkItem({
       <div className={`relative mt-[18px] overflow-hidden ${shape.aspect}`}>
         <Image
           src={ride.frame}
-          alt=""
+          alt={ride.alt}
           fill
           sizes="(max-width: 992px) 100vw, 44vw"
           className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-          style={{ transitionTimingFunction: "var(--ease-brand)" }}
+          style={{
+            transitionTimingFunction: "var(--ease-brand)",
+            objectPosition: ride.focus,
+          }}
         />
       </div>
     </TransitionLink>
