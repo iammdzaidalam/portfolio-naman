@@ -3,7 +3,8 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 
-import { HERO, RIDES, SITE } from "@/lib/content";
+import { HERO, SITE } from "@/lib/content";
+import { SHOWREEL } from "@/lib/reels";
 import { gsap } from "@/lib/gsap";
 import { useLoaded } from "@/components/loader";
 import ProgressiveBlur from "@/components/effects/progressive-blur";
@@ -12,7 +13,8 @@ import SpiralGallery from "@/components/effects/spiral-gallery";
 /**
  * The hero.
  *
- * One viewport. The work spirals through the middle and is driven by scroll;
+ * One viewport. The client's showreel spirals through the middle, driven by
+ * scroll and by a slow loop of its own;
  * everything else is furniture pinned to the corners: the studio statement
  * bottom-left in mono and the numbers as a column on the right at mid-height.
  * Nothing decorative that looks like a control: the reference's play mark was
@@ -47,7 +49,7 @@ export default function Hero() {
   return (
     <section ref={root} data-hero className="gradient-paper text-ink relative">
       <SpiralGallery
-        rides={RIDES}
+        clips={SHOWREEL}
         onProgress={(p) => {
           // The corner furniture belongs to the pinned screen. Take it out in
           // the last stretch of the scrub so nothing scrolls away over the mark.

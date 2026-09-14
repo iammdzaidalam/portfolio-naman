@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useGSAP } from "@gsap/react";
-import Image from "next/image";
 
-import type { Ride } from "@/lib/content";
+import type { ShowreelClip } from "@/lib/reels";
 import { gsap } from "@/lib/gsap";
-import TransitionLink from "@/components/transition/transition-link";
 
 /**
  * The spiral.
@@ -55,10 +53,10 @@ const SCROLL_PER_CARD_VH = 55;
 const SECONDS_PER_CARD = 4.5;
 
 export default function SpiralGallery({
-  rides,
+  clips,
   onProgress,
 }: {
-  rides: Ride[];
+  clips: ShowreelClip[];
   /** Called with the scrub position, 0 at the top of the pin, 1 at release. */
   onProgress?: (p: number) => void;
 }) {
@@ -71,6 +69,12 @@ export default function SpiralGallery({
   }, [onProgress]);
   const root = useRef<HTMLDivElement>(null);
   const scene = useRef<HTMLDivElement>(null);
+  /*
+   * The helix holds still while a card is being watched. Without it the clip
+   * you pointed at rotates away mid-shot, which makes the hover feel like a
+   * mistake rather than a control.
+   */
+  const loopRef = useRef<gsap.core.Tween | null>(null);
 
   useGSAP(
     () => {
@@ -154,6 +158,7 @@ export default function SpiralGallery({
         repeat: -1,
         onUpdate: layout,
       });
+      loopRef.current = loop;
 
       // Pin the hero section itself when there is one, so the corner
       // furniture and the blur that sit around the spiral hold with it.
@@ -210,61 +215,172 @@ export default function SpiralGallery({
           className="absolute top-1/2 left-1/2 h-0 w-0"
           style={{ transformStyle: "preserve-3d" }}
         >
-          {rides.map((ride, i) => (
-            <TransitionLink
-              key={ride.slug}
-              href={`/work/${ride.slug}`}
-              data-spiral-card
-              className="group absolute top-0 left-0 block aspect-[3/4] w-[min(26vw,400px)] overflow-hidden bg-ink will-change-transform select-none max-tablet:w-[38vw] max-mobile:w-[52vw]"
-              style={{ backfaceVisibility: "hidden" }}
-              aria-label={`${ride.title}: ${ride.tag}`}
-            >
-              <Image
-                src={ride.frame}
-                alt=""
-                fill
-                sizes="(max-width: 768px) 52vw, (max-width: 992px) 38vw, 26vw"
-                priority={i < 3}
-                className="object-cover transition-transform duration-[900ms] group-hover:scale-[1.04]"
-                style={{
-                  transitionTimingFunction: "var(--ease-brand)",
-                  objectPosition: ride.focus,
-                }}
-                draggable={false}
-              />
-
-              {/*
-                The furniture is white, and the photography is not reliably
-                dark behind it: a pale sky or a white cyclorama swallowed the
-                tag and the title whole. This scrim only darkens the two bands
-                the text actually occupies, so the middle of the frame is left
-                alone.
-              */}
-              <div
-                aria-hidden
-                className="from-ink/60 to-ink/70 pointer-events-none absolute inset-0 bg-gradient-to-b via-transparent via-35%"
-              />
-
-              {/*
-                Poster furniture: tag top-left, stop number top-right, title at
-                foot. Set a step below the page's own sizes on purpose. This
-                type rides a moving, rotating card and sits over photography, so
-                at the page's label size it competed with the picture instead of
-                captioning it.
-              */}
-              <div className="text-paper absolute inset-0 flex flex-col justify-between p-[1em] max-mobile:p-[0.75em]">
-                <div className="label-xs flex justify-between max-mobile:text-[10px]">
-                  <span>{ride.tag.split(" · ")[0]}</span>
-                  <span>{String(i + 1).padStart(2, "0")}</span>
-                </div>
-                <div className="display text-[clamp(15px,2.45vw,38px)] uppercase">
-                  {ride.title}
-                </div>
-              </div>
-            </TransitionLink>
+          {clips.map((clip, i) => (
+            <ShowreelCard
+              key={clip.src}
+              clip={clip}
+              index={i}
+              total={clips.length}
+              onWatch={(watching) => {
+                if (watching) loopRef.current?.pause();
+                else loopRef.current?.play();
+              }}
+            />
           ))}
         </div>
       </div>
     </div>
+  );
+}
+
+/**
+ * One card on the helix: the clip, and the furniture that names it.
+ *
+ * It is a button rather than a link. The helix used to carry the nine work
+ * items and each card went to its piece, but these are cuts from the client's
+ * own reel and do not correspond to those pieces, so there is nowhere honest to
+ * send a click. What a click does instead is latch the clip on, which is also
+ * the only way to start one on a touch screen, where there is no hover.
+ *
+ * `onWatch` tells the helix to hold still while this card is being watched.
+ */
+function ShowreelCard({
+  clip,
+  index,
+  total,
+  onWatch,
+}: {
+  clip: ShowreelClip;
+  index: number;
+  total: number;
+  onWatch: (watching: boolean) => void;
+}) {
+  const video = useRef<HTMLVideoElement>(null);
+  const [latched, setLatched] = useState(false);
+
+  const reduced = useSyncExternalStore(
+    useCallback((notify: () => void) => {
+      const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+      query.addEventListener("change", notify);
+      return () => query.removeEventListener("change", notify);
+    }, []),
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+    () => false,
+  );
+  const held = latched && !reduced;
+
+  useEffect(() => {
+    if (reduced) video.current?.pause();
+  }, [reduced]);
+
+  /*
+   * Tries with sound and falls back to muted. A browser only permits unmuted
+   * playback once the page has had a real user gesture, and a hover is not one,
+   * so before the first click this plays silently rather than not at all.
+   */
+  const play = async () => {
+    const el = video.current;
+    if (!el) return;
+    el.muted = false;
+    try {
+      await el.play();
+    } catch {
+      el.muted = true;
+      try {
+        await el.play();
+      } catch {
+        /* leave the poster showing */
+      }
+    }
+  };
+
+  const start = () => {
+    if (reduced || held) return;
+    onWatch(true);
+    void play();
+  };
+  const stop = () => {
+    if (held) return;
+    onWatch(false);
+    video.current?.pause();
+  };
+  const toggle = () => {
+    if (reduced) return;
+    const next = !held;
+    setLatched(next);
+    onWatch(next);
+    if (next) void play();
+    else video.current?.pause();
+  };
+
+  return (
+    <button
+      type="button"
+      data-spiral-card
+      onClick={toggle}
+      onMouseEnter={start}
+      onMouseLeave={stop}
+      onFocus={start}
+      onBlur={stop}
+      aria-pressed={held}
+      aria-label={`${held ? "Pause" : "Play"}: ${clip.alt}`}
+      className="group bg-ink absolute top-0 left-0 block aspect-[3/4] w-[min(26vw,400px)] cursor-pointer overflow-hidden will-change-transform select-none max-tablet:w-[38vw] max-mobile:w-[52vw]"
+      style={{ backfaceVisibility: "hidden" }}
+    >
+      <video
+        ref={video}
+        poster={clip.poster}
+        muted
+        loop
+        playsInline
+        preload="none"
+        tabIndex={-1}
+        aria-hidden
+        className="h-full w-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.04]"
+        style={{ transitionTimingFunction: "var(--ease-brand)" }}
+      >
+        <source src={clip.src} type="video/mp4" />
+      </video>
+
+      {/*
+        The furniture is white and the footage is not reliably dark behind it, so
+        this scrim darkens only the two bands the text occupies and leaves the
+        middle of the frame alone.
+      */}
+      <div
+        aria-hidden
+        className="from-ink/60 to-ink/70 pointer-events-none absolute inset-0 bg-gradient-to-b via-transparent via-35%"
+      />
+
+      <div className="text-paper pointer-events-none absolute inset-0 flex flex-col justify-between p-[1em] max-mobile:p-[0.75em]">
+        <div className="label-xs flex justify-end max-mobile:text-[10px]">
+          <span>
+            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
+          </span>
+        </div>
+
+        <div>
+          <div className="display text-[clamp(15px,2.45vw,38px)] uppercase">
+            {clip.title}
+          </div>
+          {/*
+            A still frame with no affordance reads as an image, not a clip, so
+            the card says it can be played. It clears on hover and once latched,
+            because by then the motion says it for itself.
+          */}
+          <span
+            className={`label-xs mt-[0.75em] flex items-center gap-[0.5em] transition-opacity duration-300 group-hover:opacity-0 ${
+              held ? "opacity-0" : "opacity-80"
+            }`}
+          >
+            <span className="border-paper/70 flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[8px] leading-none">
+              ▶
+            </span>
+            Play
+          </span>
+        </div>
+      </div>
+      <span className="sr-only">{`${index + 1} of ${total}`}</span>
+    </button>
   );
 }

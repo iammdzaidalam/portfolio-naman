@@ -84,3 +84,94 @@ export const REELS: Partial<Record<ReelKey, Reel[]>> = {
     { src: "/video/reels/intro-02.mp4", poster: "/video/posters/intro-02.jpg", w: 720, h: 1280, alt: "Man with a clip-on mic walks along tram tracks toward camera as a teal Kolkata tram waits behind him." },
   ],
 };
+
+/**
+ * The showreel that turns in the home page hero.
+ *
+ * The client's own "home screen" folder: a spread of what they do rather than a
+ * set of finished pieces. The order and the titles are theirs, given file by
+ * file, so both are recorded here exactly as sent rather than derived from the
+ * footage or from the filenames, which are camera exports and carry no meaning.
+ *
+ * Seven of the nine titles are also work items in the brief; "Raw takes" and
+ * "Gen-Z fashion" are not, and are the client's own additions.
+ */
+export type ShowreelClip = Reel & {
+  /** The client's name for the piece, along the foot of the card. */
+  title: string;
+};
+
+export const SHOWREEL: ShowreelClip[] = [
+  {
+    src: "/video/reels/home-04.mp4",
+    poster: "/video/posters/home-04.jpg",
+    w: 720,
+    h: 1280,
+    title: "Beyond the feed",
+    alt: "Man in a rust shirt walks along tram tracks beside a vintage blue Kolkata tram, captioned Kolkata.",
+  },
+  {
+    src: "/video/reels/home-06.mp4",
+    poster: "/video/posters/home-06.jpg",
+    w: 720,
+    h: 1280,
+    title: "Talking head",
+    alt: "Man stands in a sage-green kitchen showroom behind an island laid with material samples.",
+  },
+  {
+    src: "/video/reels/home-08.mp4",
+    poster: "/video/posters/home-08.jpg",
+    w: 720,
+    h: 1280,
+    title: "Raw takes",
+    alt: "Aerial view of a cricket stadium at golden hour with a huge IPL logo sheet spread across the outfield.",
+  },
+  {
+    src: "/video/reels/home-09.mp4",
+    poster: "/video/posters/home-09.jpg",
+    w: 720,
+    h: 1280,
+    title: "Viral branding",
+    alt: "Man walks toward camera on a leafy college footpath, with a yellow caption reading St. Xaviers College.",
+  },
+  {
+    src: "/video/reels/home-05.mp4",
+    poster: "/video/posters/home-05.jpg",
+    w: 720,
+    h: 1280,
+    title: "Gen-Z fashion",
+    alt: "Two women pose in a warmly lit room with pampas grass and an arched mirror, in crop tops and wide trousers.",
+  },
+  {
+    src: "/video/reels/home-07.mp4",
+    poster: "/video/posters/home-07.jpg",
+    w: 720,
+    h: 1280,
+    title: "Personal branding",
+    alt: "Bearded man in glasses and a check blazer speaks to camera at an office desk below framed certificates.",
+  },
+  {
+    src: "/video/reels/home-02.mp4",
+    poster: "/video/posters/home-02.jpg",
+    w: 720,
+    h: 1280,
+    title: "Product spotlight",
+    alt: "Out-of-focus studio scene: two grey suitcases and a woman in black, overlaid with the words We Believe.",
+  },
+  {
+    src: "/video/reels/home-01.mp4",
+    poster: "/video/posters/home-01.jpg",
+    w: 720,
+    h: 1280,
+    title: "Store stories",
+    alt: "Woman in a pale pink anarkali raises her arms on a sunlit pavement outside a Fashor clothing store.",
+  },
+  {
+    src: "/video/reels/home-03.mp4",
+    poster: "/video/posters/home-03.jpg",
+    w: 720,
+    h: 1280,
+    title: "Founder story",
+    alt: "Man in a white shirt speaks to camera at a desk against warm wood panelling, captioned Har Brand.",
+  },
+];
