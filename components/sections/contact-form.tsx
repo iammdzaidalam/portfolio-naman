@@ -2,15 +2,15 @@
 
 import { useState, type FormEvent } from "react";
 
-import { CONNECT, CONTACT_CLIP, DIRECT } from "@/lib/content";
-import Reel from "@/components/work/reel";
+import { CONNECT, DIRECT } from "@/lib/content";
 import BubbleButton from "@/components/effects/bubble-button";
 
 /**
  * The booking form. Underlined fields, mono labels, nothing boxed.
  *
  * Laid out on the page's own two columns: the direct contacts take the marker
- * column under a still, the form takes the headline column.
+ * column and hold their place there while the form, in the headline column,
+ * scrolls past them.
  *
  * There is no endpoint behind it yet: `onSubmit` only shows the confirmation.
  * Wire it to a route handler or a form service before launch.
@@ -37,40 +37,45 @@ export default function ContactForm() {
 
   return (
     <div className="grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1 max-tablet:gap-[3em]">
+      {/*
+        The contact details, and nothing else in this column.
+        
+        It held a clip before, which meant the one thing a reader might have
+        come here to copy sat below the fold behind a piece of decoration.
+        These four rows are the column now.
+
+        Sticky, so they hold their place for the whole length of the form
+        rather than scrolling away and leaving a dead half-page beside it. A
+        reader who gets three fields in and decides they would rather just
+        phone can still see the number. Released below 992px, where the columns
+        stack and there is nothing to hold position against.
+      */}
       <div className="max-tablet:order-last">
-        {/*
-          The founder, talking. Somebody who has scrolled to this form has
-          decided to get in touch; what helps them now is seeing who picks up
-          and hearing what the work sounds like. Held to the clip's own 9:16 so
-          nothing is cropped, and narrow enough that it introduces the column
-          rather than filling it.
+        <div className="sticky top-[calc(var(--nav-height)+2em)] max-tablet:static">
+          <p className="label mb-[1.5em] opacity-60">Direct</p>
 
-          Hover plays it. A click opens it full screen with the sound up.
-        */}
-        <div className="mb-[2.5em] w-full max-w-[280px] max-tablet:max-w-[220px]">
-          <Reel reel={CONTACT_CLIP} className="bg-ink w-full" />
-        </div>
-
-        <p className="label mb-[1.5em] opacity-60">Direct</p>
-        <div className="rule border-t">
-          {/*
-            The same rows as the footer, from the same list. Anything still
-            unconfirmed is absent rather than guessed: a wrong handle sends
-            people to somebody else's account, which is worse than no row.
-          */}
-          {DIRECT.map((entry) => (
-            <a
-              key={entry.label}
-              href={entry.href ?? undefined}
-              {...(entry.href?.startsWith("http")
-                ? { target: "_blank", rel: "noreferrer" }
-                : null)}
-              className="rule hover:text-accent flex items-baseline justify-between gap-[1.5em] border-b py-[0.85em] text-[1.0625em] opacity-80 transition-[opacity,padding,color] duration-300 hover:pl-[0.5em] hover:opacity-100"
-            >
-              <span>{entry.value}</span>
-              <span className="label-xs shrink-0 opacity-50">{entry.label}</span>
-            </a>
-          ))}
+          <div className="rule border-t">
+            {/*
+              The same rows as the footer, from the same list. Anything still
+              unconfirmed is absent rather than guessed: a wrong handle sends
+              people to somebody else's account.
+            */}
+            {DIRECT.map((entry) => (
+              <a
+                key={entry.label}
+                href={entry.href ?? undefined}
+                {...(entry.href?.startsWith("http")
+                  ? { target: "_blank", rel: "noreferrer" }
+                  : null)}
+                className="rule hover:text-accent group flex items-baseline justify-between gap-[1.5em] border-b py-[1em] text-[1.0625em] opacity-80 transition-[opacity,padding,color] duration-300 hover:pl-[0.5em] hover:opacity-100"
+              >
+                <span>{entry.value}</span>
+                <span className="label-xs shrink-0 opacity-50 transition-opacity duration-300 group-hover:opacity-80">
+                  {entry.label}
+                </span>
+              </a>
+            ))}
+          </div>
         </div>
       </div>
 

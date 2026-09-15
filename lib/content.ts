@@ -36,15 +36,19 @@ export const SITE = {
   phoneHref: "tel:+919707344375",
   address: "91/6, Beltala Road, Bhawanipur, Kolkata 700026",
   /*
-   * TODO: still unconfirmed. These two are the last placeholders on the site,
-   * so they are held back from the contact list rather than published as a
-   * guess: a wrong handle sends people to somebody else's account.
+   * The handle alone, without the @ and without the URL: the profile address is
+   * built from it below, so the footer and the contact page both link the
+   * moment one of these is filled in.
    *
-   * Fill in the handle alone, without the @ and without the URL: the profile
-   * address is built from it below, so the footer and the contact page both
-   * start linking the moment one of these is no longer empty.
+   * Note the spelling. The handle is "yaatri" with two a's and the email is
+   * "yatri" with one; both are as the client gave them, and they are not a
+   * typo introduced here.
+   *
+   * LinkedIn is still unconfirmed and is the last placeholder on the site. It
+   * is held back rather than guessed: a wrong handle sends people to somebody
+   * else's page, which is worse than an absent row.
    */
-  instagram: "",
+  instagram: "Socialyaatri",
   linkedin: "",
   madeIn: "Born in Kolkata. Built for the internet.",
   copyright: "© 2026 Social Yatri",
@@ -681,24 +685,6 @@ export const PHOTOS: Record<
     alt: "Couple in white embracing in the rain on a carved terrace below a hilltop fort",
   },
 };
-
-/**
- * Beside the contact form.
- *
- * A clip rather than a still, and the founder rather than a photograph from a
- * shoot. Somebody on this page has decided to talk to the studio; what helps
- * them is seeing who they would be talking to and what the work sounds like.
- * The frame that used to sit here was a laughing toddler from the studio
- * portrait set: charming, and the wrong answer to "should I hire these people
- * to run my brand's content".
- */
-export const CONTACT_CLIP = {
-  src: "/video/reels/home-03.mp4",
-  poster: "/video/posters/home-03.jpg",
-  w: 720,
-  h: 1280,
-  alt: "Man in a white shirt speaks to camera at a desk against warm wood panelling, captioned Har Brand",
-} as const;
 
 /* ---------------------------------------------------------------------------
  * The rest
