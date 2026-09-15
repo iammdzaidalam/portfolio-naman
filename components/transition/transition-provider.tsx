@@ -211,10 +211,11 @@ export default function TransitionProvider({
    * rather than a cover that backs out the way it came.
    *
    * The two clips leave differently, which is the point of there being two.
-   * The taxi drives off at an even pace. The tram is towed: its trolley pole
-   * comes up out of the band, hooks the overhead wire, the slack goes out of
-   * it, and the whole screen is dragged away on the pull, bringing the next
-   * page with it. The client asked for that one by name.
+   * The taxi drives off at an even pace. The tram is towed: the coupling hook
+   * on the back of it takes the strain, the slack goes out of the drawbar, and
+   * the whole screen is dragged away on the pull with the next page behind it.
+   * The client asked for that one by name, and the hook is drawn into their
+   * animation for it: it is the last thing to leave the frame.
    * ------------------------------------------------------------------- */
   const reveal = useCallback(() => {
     const tl = gsap.timeline();
@@ -259,10 +260,10 @@ export default function TransitionProvider({
 
       if (hook) {
         /*
-         * The pole rides the band's trailing edge, which is the band's own
+         * The coupling rides the band's trailing edge, which is the band's own
          * `x`: the element is laid out a full width to the left of that
-         * origin, so its base sits exactly on the seam and the hook and wire
-         * reach out over the page coming in behind it.
+         * origin, so the drawbar runs back under the band and the hook itself
+         * reaches out over the page coming in behind it.
          */
         tl.set(hook, { autoAlpha: 0, x: m.covered }, 0);
         tl.to(hook, { autoAlpha: 0.75, duration: 0.22 }, 0);
@@ -448,50 +449,37 @@ export default function TransitionProvider({
           </div>
         </div>
 
-        {/*
-          The trolley pole, for the tram's exit only.
-
-          It is the tram's own mechanism rather than a flourish: the pole comes
-          up out of the band, the hook closes round the overhead wire, and the
-          wire runs off to the left across the page arriving behind it. Drawn
-          rather than cut from the clip, because it has to sit exactly on the
-          band's moving edge and hold its line at any viewport height.
-
-          Sized in `vh` and anchored a full width left of its own origin, so the
-          base meets the seam and everything else reaches back over the page.
-        */}
         <div ref={hookRef} className="wipe__hook">
-          <span className="wipe__wire" />
-          <svg viewBox="0 0 240 260" fill="none" aria-hidden>
-            {/*
-              The wire, continuing the strip drawn outside the box, and
-              passing through the middle of the hook rather than stopping at
-              it: the hook is closed around it.
-            */}
-            <path d="M0 40H240" stroke="currentColor" strokeWidth="2.5" opacity="0.55" />
-            {/*
-              The hook: five sixths of a turn about the wire, starting below it
-              and stopping short on the upper right, so the gap it was put on
-              through is still visible.
-            */}
+          {/*
+            The tram's own coupling hook, traced off the client's animation.
+            It is drawn into the back of their tram and it is the last thing to
+            leave the frame, which is the whole reason they pointed at it: the
+            hook reaches out past the band's edge and takes the next page with
+            it.
+
+            Drawn rather than cut from the clip because it has to sit exactly on
+            the band's moving edge, and the clip inside the band is playing to
+            its own clock. Set low, where a coupling belongs, rather than
+            centred: a hook at eye level would read as a crane.
+          */}
+          <svg viewBox="0 0 200 120" fill="none" aria-hidden>
+            {/* The drawbar, running back under the band to the tram. */}
             <path
-              d="M70 56A16 16 0 1 1 82 30"
+              d="M200 55H128"
               stroke="currentColor"
-              strokeWidth="5.5"
+              strokeWidth="26"
               strokeLinecap="round"
             />
-            {/* The pole, from the roofline out to the hook. */}
+            {/* The pivot it swings on. */}
+            <circle cx="124" cy="55" r="17" fill="currentColor" />
+            {/*
+              The hook: most of a turn, open at the top, tapering to a point at
+              the upper left. The gap is the part you drop a link into.
+            */}
             <path
-              d="M226 226L70 56"
+              d="M107 37A40 40 0 1 1 48 53"
               stroke="currentColor"
-              strokeWidth="5.5"
-              strokeLinecap="round"
-            />
-            {/* The mounting it pivots on, sitting on the seam. */}
-            <path
-              d="M212 236H240"
-              stroke="currentColor"
-              strokeWidth="9"
+              strokeWidth="22"
               strokeLinecap="round"
             />
           </svg>

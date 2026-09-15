@@ -659,14 +659,23 @@ html.has-cursor textarea {
  * keeps its proportion to the screen rather than to the box it is drawn in.
  */
 .wipe__hook {
-  --pole-h: clamp(150px, 26vh, 300px);
+  /*
+   * Traced off the coupling on the back of the client's tram. Placed by the
+   * provider at the band's trailing edge and laid out a full width to the left
+   * of it, so the drawbar runs back under the band and the hook itself reaches
+   * out over the page arriving behind.
+   *
+   * Low in the frame, near where the coupling sits on the tram, rather than on
+   * the centre line: this is something that pulls a carriage, not a crane.
+   */
+  --hook-w: clamp(120px, 17vh, 230px);
   position: absolute;
-  top: 50%;
+  top: 72%;
   left: 0;
-  height: var(--pole-h);
-  width: calc(var(--pole-h) * 240 / 260);
-  margin-top: calc(var(--pole-h) / -2);
-  margin-left: calc(var(--pole-h) * -240 / 260);
+  width: var(--hook-w);
+  height: calc(var(--hook-w) * 120 / 200);
+  margin-top: calc(var(--hook-w) * -60 / 200);
+  margin-left: calc(var(--hook-w) * -1);
   color: var(--ink);
   opacity: 0;
   visibility: hidden;
@@ -677,26 +686,6 @@ html.has-cursor textarea {
   display: block;
   height: 100%;
   width: 100%;
-}
-
-/*
- * The overhead wire, carried on past the drawing towards the far side of the
- * screen: the pole runs along a line rather than holding up a stick. Faded out
- * along its length rather than ruled across the page, so it reads as receding
- * and does not put a hard rule through the heading arriving underneath it.
- */
-.wipe__wire {
-  position: absolute;
-  right: 100%;
-  top: calc(100% * 40 / 260);
-  width: 62vw;
-  height: 2.5px;
-  transform: translateY(-1.25px);
-  background-image: linear-gradient(
-    to right,
-    transparent,
-    color-mix(in srgb, currentColor 55%, transparent) 55%
-  );
 }
 
 .wipe__video {

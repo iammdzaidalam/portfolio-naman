@@ -29,7 +29,11 @@
 /** Arc radius, as a fraction of the span it crosses. Measured, not chosen. */
 export const WIPE_RADIUS_RATIO = 0.77;
 
-/** The two clips the wipe carries, taken in turn on successive navigations. */
+/**
+ * The two clips the wipe carries, taken in turn on successive navigations.
+ * The client's own animations, drawn for this: their tram is branded and has a
+ * coupling hook on the back of it, which is what the tram's exit is built on.
+ */
 export const WIPE_CLIPS = [
   { src: "/video/taxi.mp4", label: "taxi" },
   { src: "/video/tram.mp4", label: "tram" },
