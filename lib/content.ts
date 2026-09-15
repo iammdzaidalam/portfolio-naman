@@ -656,7 +656,7 @@ export const CLIENTS = {
  * ------------------------------------------------------------------------- */
 
 export const PHOTOS: Record<
-  "showreel" | "studioNote" | "studioPortrait" | "studioLandscape" | "contact",
+  "showreel" | "studioNote" | "studioPortrait" | "studioLandscape",
   Photo
 > = {
   /** The home page's opening still. */
@@ -680,12 +680,25 @@ export const PHOTOS: Record<
     src: "/img/wedding-rain-terrace.jpg",
     alt: "Couple in white embracing in the rain on a carved terrace below a hilltop fort",
   },
-  /** Beside the contact form. */
-  contact: {
-    src: "/img/studio-toddler.jpg",
-    alt: "Toddler in a rainbow-striped dress sitting on a white studio floor, laughing at the camera",
-  },
 };
+
+/**
+ * Beside the contact form.
+ *
+ * A clip rather than a still, and the founder rather than a photograph from a
+ * shoot. Somebody on this page has decided to talk to the studio; what helps
+ * them is seeing who they would be talking to and what the work sounds like.
+ * The frame that used to sit here was a laughing toddler from the studio
+ * portrait set: charming, and the wrong answer to "should I hire these people
+ * to run my brand's content".
+ */
+export const CONTACT_CLIP = {
+  src: "/video/reels/home-03.mp4",
+  poster: "/video/posters/home-03.jpg",
+  w: 720,
+  h: 1280,
+  alt: "Man in a white shirt speaks to camera at a desk against warm wood panelling, captioned Har Brand",
+} as const;
 
 /* ---------------------------------------------------------------------------
  * The rest

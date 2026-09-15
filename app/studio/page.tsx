@@ -5,6 +5,7 @@ import { PHOTOS, SITE } from "@/lib/content";
 import KolkataSection from "@/components/sections/kolkata";
 import Clients from "@/components/sections/clients";
 import MarqueeStrip from "@/components/sections/marquee-strip";
+import RouteSteps from "@/components/sections/route-steps";
 
 export const metadata: Metadata = {
   title: "Studio",
@@ -46,6 +47,15 @@ export default function StudioPage() {
           </div>
         </div>
       </section>
+
+      {/*
+        How the work gets made, drawn as a flight over the Howrah Bridge.
+        It was on /services, where it read as a process diagram. It belongs on
+        the page that opens "Born in Kolkata": the bridge is the city, and the
+        eight stages are what the studio does with it. /services is left to say
+        what we sell.
+      */}
+      <RouteSteps />
 
       <MarqueeStrip />
       <Clients surface="paper" />

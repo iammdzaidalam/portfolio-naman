@@ -5,7 +5,6 @@ import { SERVICES, SERVICES_INTRO, WHY, WORKS, workCover } from "@/lib/content";
 import { StickyTab, StickyTabGroup } from "@/components/effects/sticky-tabs";
 import SectionHead from "@/components/ui/section-head";
 import Reveal from "@/components/effects/reveal";
-import RouteSteps from "@/components/sections/route-steps";
 import MarqueeStrip from "@/components/sections/marquee-strip";
 import TransitionLink from "@/components/transition/transition-link";
 
@@ -186,7 +185,6 @@ export default function ServicesPage() {
       </section>
 
       <MarqueeStrip />
-      <RouteSteps />
     </main>
   );
 }

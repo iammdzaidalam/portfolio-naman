@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import Image from "next/image";
 
-import { CONNECT, DIRECT, PHOTOS } from "@/lib/content";
+import { CONNECT, CONTACT_CLIP, DIRECT } from "@/lib/content";
+import Reel from "@/components/work/reel";
 import BubbleButton from "@/components/effects/bubble-button";
 
 /**
@@ -37,20 +37,18 @@ export default function ContactForm() {
 
   return (
     <div className="grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1 max-tablet:gap-[3em]">
-      {/*
-        Only the entries that go somewhere are links. The social profiles have
-        no URLs yet and the address is not a destination; announcing those as
-        links would promise a navigation that only jumps to the top of the page.
-      */}
       <div className="max-tablet:order-last">
-        <div className="relative mb-[2em] aspect-[4/3] overflow-hidden">
-          <Image
-            src={PHOTOS.contact.src}
-            alt={PHOTOS.contact.alt}
-            fill
-            sizes="(max-width: 992px) 100vw, 40vw"
-            className="object-cover"
-          />
+        {/*
+          The founder, talking. Somebody who has scrolled to this form has
+          decided to get in touch; what helps them now is seeing who picks up
+          and hearing what the work sounds like. Held to the clip's own 9:16 so
+          nothing is cropped, and narrow enough that it introduces the column
+          rather than filling it.
+
+          Hover plays it. A click opens it full screen with the sound up.
+        */}
+        <div className="mb-[2.5em] w-full max-w-[280px] max-tablet:max-w-[220px]">
+          <Reel reel={CONTACT_CLIP} className="bg-ink w-full" />
         </div>
 
         <p className="label mb-[1.5em] opacity-60">Direct</p>

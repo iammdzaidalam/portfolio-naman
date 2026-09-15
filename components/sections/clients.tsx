@@ -8,6 +8,7 @@ import ReelStrip from "@/components/work/reel-strip";
 import type { ReelKey } from "@/lib/reels";
 import Reveal from "@/components/effects/reveal";
 import SectionHead from "@/components/ui/section-head";
+import TransitionLink from "@/components/transition/transition-link";
 
 /**
  * The client results.
@@ -21,12 +22,32 @@ import SectionHead from "@/components/ui/section-head";
  * Each case keeps the page's two-column opening (label and still at 42%, the
  * argument on the headline's axis) so it sits on the same grid as every other
  * section rather than reading as a separate template.
+ *
+ * Two lengths, because it is asked to do two jobs. On /studio it runs in full:
+ * the story, the figures, what was done, the result, and the brand's own clips.
+ * On the home page it runs brief, which is the named brands and their numbers
+ * and a way through to the rest.
+ *
+ * The brief version exists because the full one had no business being the last
+ * thing on the home page. By the time a reader reached it they had already had
+ * the hero, the work, the studio note, every service and the growth figures;
+ * what followed was two complete case studies including their reel strips, and
+ * the same clips are on /work already. The home page's job at that point is to
+ * name who we did it for and send them somewhere, not to spend another screen
+ * and a half proving it a second time.
  */
 /** A brand's clips, or nothing at all if that folder yielded none. */
 const reelsFor = (key?: ReelKey) => (key ? (REELS[key] ?? []) : []);
 
-export default function Clients({ surface = "ink" }: { surface?: "ink" | "paper" }) {
+export default function Clients({
+  surface = "ink",
+  variant = "full",
+}: {
+  surface?: "ink" | "paper";
+  variant?: "full" | "brief";
+}) {
   const ink = surface === "ink";
+  const brief = variant === "brief";
 
   return (
     <section
@@ -51,6 +72,61 @@ export default function Clients({ surface = "ink" }: { surface?: "ink" | "paper"
         </div>
       </div>
 
+      {brief ? (
+        <div className="mt-[4em]">
+          <div className="grid grid-cols-2 gap-x-[4vw] gap-y-[3em] max-tablet:grid-cols-1">
+            {CLIENTS.cases.map((study, index) => (
+              <article key={study.name} className="rule border-t pt-[1.5em]">
+                <p className="label opacity-60">
+                  ({String(index + 1).padStart(2, "0")}) {study.name}
+                </p>
+
+                <div className="relative mt-[1.25em] aspect-[3/2] overflow-hidden">
+                  <Image
+                    src={study.frame}
+                    alt={study.alt}
+                    fill
+                    sizes="(max-width: 992px) 100vw, 44vw"
+                    className="object-cover"
+                  />
+                </div>
+
+                <Reveal
+                  as="h3"
+                  className="display mt-[1em] max-w-[12em] text-[clamp(22px,2.3vw,34px)]"
+                >
+                  {study.claim}
+                </Reveal>
+
+                {/* The figures alone. The story behind them is on /studio. */}
+                <div className="mt-[1.5em] grid grid-cols-2 gap-[2vw] max-mobile:grid-cols-1 max-mobile:gap-[1.25em]">
+                  {study.metrics.map((metric) => (
+                    <div key={metric.label} className="rule border-t pt-[0.9em]">
+                      <p className="label opacity-60">{metric.label}</p>
+                      <p className="display mt-[0.4em] text-[clamp(20px,2vw,30px)]">
+                        {metric.value}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </article>
+            ))}
+          </div>
+
+          <TransitionLink
+            href="/studio"
+            className="statement group mt-[3em] inline-block text-[clamp(20px,2.2vw,32px)] opacity-60 transition-opacity duration-300 hover:opacity-100"
+          >
+            Read the full stories{" "}
+            <span
+              aria-hidden
+              className="transition-colors duration-300 group-hover:text-accent"
+            >
+              ↳
+            </span>
+          </TransitionLink>
+        </div>
+      ) : (
       <div className="mt-[5em]">
         {CLIENTS.cases.map((study, index) => (
           <article
@@ -137,6 +213,7 @@ export default function Clients({ surface = "ink" }: { surface?: "ink" | "paper"
           </article>
         ))}
       </div>
+      )}
 
       {/* The client's closing pitch. */}
       <div className="rule grid grid-cols-[42%_1fr] gap-[4vw] border-t pt-[2.5em] max-tablet:grid-cols-1 max-tablet:gap-[2em]">

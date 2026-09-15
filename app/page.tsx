@@ -6,8 +6,12 @@ import Growth from "@/components/sections/growth";
 import Clients from "@/components/sections/clients";
 
 /**
- * Home: the spiral, the work, the studio, then the argument (services,
- * numbers, passengers) and the footer carries the call to action.
+ * Home: the spiral, the work, the studio, then the argument (services, the
+ * numbers, the brands they were made for) and the footer carries the call to
+ * action.
+ *
+ * The clients section runs brief here. In full it is two complete case studies
+ * with their own reel strips, which is a page of its own and is one: /studio.
  */
 export default function HomePage() {
   return (
@@ -17,7 +21,7 @@ export default function HomePage() {
       <StudioNote />
       <ServicesList />
       <Growth />
-      <Clients />
+      <Clients variant="brief" />
     </main>
   );
 }
