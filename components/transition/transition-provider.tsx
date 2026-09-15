@@ -43,6 +43,16 @@ const COVER_S = 0.9;
 /** Reveal: it keeps climbing, and the new page comes out from under it. */
 const REVEAL_S = 1.15;
 
+/*
+ * The tram's tow. The coupling creeps a tenth of the way across while the
+ * slack goes out of it, then the pull takes the other nine tenths. Slightly
+ * longer than the taxi's reveal all told, which is right: one drives off, the
+ * other has to get a whole screen moving.
+ */
+const TOW_SLACK = 0.1;
+const TOW_TAKEUP_S = 0.32;
+const TOW_PULL_S = 0.95;
+
 export default function TransitionProvider({
   children,
   chrome,
@@ -62,10 +72,13 @@ export default function TransitionProvider({
   const wrapRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
+  const hookRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
 
   /** Which clip the next navigation takes. The two alternate, strictly. */
   const clipRef = useRef(0);
+  /** Which one is on screen now, which the reveal needs and `clipRef` has already passed. */
+  const playingRef = useRef(0);
   /** Set while the screen is covered and we are waiting on the new route. */
   const pendingRef = useRef<string | null>(null);
   /**
@@ -148,6 +161,7 @@ export default function TransitionProvider({
   /** Start whichever clip is next in the rotation, from its first frame. */
   const rollFilm = useCallback(() => {
     const index = clipRef.current;
+    playingRef.current = index;
     clipRef.current = (index + 1) % WIPE_CLIPS.length;
 
     videoRefs.current.forEach((video, i) => {
@@ -195,6 +209,12 @@ export default function TransitionProvider({
    * Reveal. The band carries on in the same direction and leaves by the right
    * edge, so the wipe is one continuous travel interrupted by the route swap
    * rather than a cover that backs out the way it came.
+   *
+   * The two clips leave differently, which is the point of there being two.
+   * The taxi drives off at an even pace. The tram is towed: its trolley pole
+   * comes up out of the band, hooks the overhead wire, the slack goes out of
+   * it, and the whole screen is dragged away on the pull, bringing the next
+   * page with it. The client asked for that one by name.
    * ------------------------------------------------------------------- */
   const reveal = useCallback(() => {
     const tl = gsap.timeline();
@@ -204,6 +224,7 @@ export default function TransitionProvider({
     const m = layout();
     const band = bandRef.current;
     const media = mediaRef.current;
+    const hook = hookRef.current;
     const wrap = wrapRef.current;
     if (!m || !band || !media) return tl;
 
@@ -213,8 +234,49 @@ export default function TransitionProvider({
     // came back.
     if (wrap) gsap.set(wrap, { autoAlpha: 1 });
 
-    tl.to(band, { x: m.after, duration: REVEAL_S, ease: "brand" }, 0);
-    tl.to(media, { x: -m.after, duration: REVEAL_S, ease: "brand" }, 0);
+    const towed = WIPE_CLIPS[playingRef.current]?.label === "tram";
+
+    /*
+     * Where the content comes in. On the taxi it follows the band out; on the
+     * tram it waits for the pull, so the page arrives *because* the hook took
+     * up the slack rather than merely after it.
+     */
+    let headingAt = 0.45;
+
+    if (towed) {
+      /*
+       * Two stages, and the ratio between them is what sells it: a short,
+       * decelerating creep while the coupling takes the strain, then the
+       * pull. `power1.in` into `power3.out` is a rope going taut and then
+       * yanking, which a single ease cannot describe.
+       */
+      const slack = m.covered + (m.after - m.covered) * TOW_SLACK;
+
+      tl.to(band, { x: slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
+      tl.to(media, { x: -slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
+      tl.to(band, { x: m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
+      tl.to(media, { x: -m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
+
+      if (hook) {
+        /*
+         * The pole rides the band's trailing edge, which is the band's own
+         * `x`: the element is laid out a full width to the left of that
+         * origin, so its base sits exactly on the seam and the hook and wire
+         * reach out over the page coming in behind it.
+         */
+        tl.set(hook, { autoAlpha: 0, x: m.covered }, 0);
+        tl.to(hook, { autoAlpha: 0.75, duration: 0.22 }, 0);
+        tl.to(hook, { x: slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
+        tl.to(hook, { x: m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
+        // Gone before the band is, so the last thing on screen is the page.
+        tl.to(hook, { autoAlpha: 0, duration: 0.28 }, TOW_TAKEUP_S + TOW_PULL_S * 0.45);
+      }
+
+      headingAt = TOW_TAKEUP_S + 0.06;
+    } else {
+      tl.to(band, { x: m.after, duration: REVEAL_S, ease: "brand" }, 0);
+      tl.to(media, { x: -m.after, duration: REVEAL_S, ease: "brand" }, 0);
+    }
 
     // The incoming page's h1 wipes in from the left as the band leaves, on the
     // same left-to-right gesture every reveal on the site runs: see
@@ -224,18 +286,19 @@ export default function TransitionProvider({
     if (heading) {
       tl.fromTo(
         heading,
-        { clipPath: "inset(-0.35em 100% -0.35em 0)", xPercent: -4 },
+        { clipPath: "inset(-0.35em 100% -0.35em 0)", xPercent: towed ? -9 : -4 },
         {
           clipPath: "inset(-0.35em 0% -0.35em 0)",
           xPercent: 0,
-          ease: "expo.out",
+          ease: towed ? "power3.out" : "expo.out",
           duration: 1,
         },
-        0.45,
+        headingAt,
       );
     }
 
     tl.set(band, { autoAlpha: 0 });
+    if (hook) tl.set(hook, { autoAlpha: 0 }, "<");
     tl.call(stopFilm);
 
     return tl;
@@ -331,6 +394,7 @@ export default function TransitionProvider({
         gsap.set(wrapRef.current, { autoAlpha: 1, clearProps: "transform" });
       }
       if (bandRef.current) gsap.set(bandRef.current, { autoAlpha: 0 });
+      if (hookRef.current) gsap.set(hookRef.current, { autoAlpha: 0 });
       ScrollTrigger.refresh();
     };
 
@@ -382,6 +446,55 @@ export default function TransitionProvider({
               />
             ))}
           </div>
+        </div>
+
+        {/*
+          The trolley pole, for the tram's exit only.
+
+          It is the tram's own mechanism rather than a flourish: the pole comes
+          up out of the band, the hook closes round the overhead wire, and the
+          wire runs off to the left across the page arriving behind it. Drawn
+          rather than cut from the clip, because it has to sit exactly on the
+          band's moving edge and hold its line at any viewport height.
+
+          Sized in `vh` and anchored a full width left of its own origin, so the
+          base meets the seam and everything else reaches back over the page.
+        */}
+        <div ref={hookRef} className="wipe__hook">
+          <span className="wipe__wire" />
+          <svg viewBox="0 0 240 260" fill="none" aria-hidden>
+            {/*
+              The wire, continuing the strip drawn outside the box, and
+              passing through the middle of the hook rather than stopping at
+              it: the hook is closed around it.
+            */}
+            <path d="M0 40H240" stroke="currentColor" strokeWidth="2.5" opacity="0.55" />
+            {/*
+              The hook: five sixths of a turn about the wire, starting below it
+              and stopping short on the upper right, so the gap it was put on
+              through is still visible.
+            */}
+            <path
+              d="M70 56A16 16 0 1 1 82 30"
+              stroke="currentColor"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+            />
+            {/* The pole, from the roofline out to the hook. */}
+            <path
+              d="M226 226L70 56"
+              stroke="currentColor"
+              strokeWidth="5.5"
+              strokeLinecap="round"
+            />
+            {/* The mounting it pivots on, sitting on the seam. */}
+            <path
+              d="M212 236H240"
+              stroke="currentColor"
+              strokeWidth="9"
+              strokeLinecap="round"
+            />
+          </svg>
         </div>
       </div>
     </TransitionContext.Provider>

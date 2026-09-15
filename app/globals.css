@@ -650,6 +650,55 @@ html.has-cursor textarea {
   will-change: transform;
 }
 
+/*
+ * The tram's trolley pole. Placed by the provider at the band's trailing edge
+ * and shifted a full width left of it, so its base meets the seam and the hook
+ * and wire reach back over the page arriving behind.
+ *
+ * Sized against the viewport's height, like the arc it rides on, so the pole
+ * keeps its proportion to the screen rather than to the box it is drawn in.
+ */
+.wipe__hook {
+  --pole-h: clamp(150px, 26vh, 300px);
+  position: absolute;
+  top: 50%;
+  left: 0;
+  height: var(--pole-h);
+  width: calc(var(--pole-h) * 240 / 260);
+  margin-top: calc(var(--pole-h) / -2);
+  margin-left: calc(var(--pole-h) * -240 / 260);
+  color: var(--ink);
+  opacity: 0;
+  visibility: hidden;
+  will-change: transform;
+}
+
+.wipe__hook svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+/*
+ * The overhead wire, carried on past the drawing towards the far side of the
+ * screen: the pole runs along a line rather than holding up a stick. Faded out
+ * along its length rather than ruled across the page, so it reads as receding
+ * and does not put a hard rule through the heading arriving underneath it.
+ */
+.wipe__wire {
+  position: absolute;
+  right: 100%;
+  top: calc(100% * 40 / 260);
+  width: 62vw;
+  height: 2.5px;
+  transform: translateY(-1.25px);
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, currentColor 55%, transparent) 55%
+  );
+}
+
 .wipe__video {
   position: absolute;
   inset: 0;
