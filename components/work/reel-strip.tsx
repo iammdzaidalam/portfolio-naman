@@ -4,6 +4,7 @@ import { useCallback, useRef, useState } from "react";
 
 import Reel from "./reel";
 import type { Reel as ReelData } from "@/lib/reels";
+import { useMediaViewer, type ViewerItem } from "@/components/effects/media-viewer";
 
 /**
  * The cut, not a still of it.
@@ -16,10 +17,13 @@ import type { Reel as ReelData } from "@/lib/reels";
  * behave identically; with only a handful of clips it simply does not overflow.
  *
  * Sound rides the hover. Nothing plays or makes a noise on its own, but a clip
- * you point at or open comes up with its audio, because these were cut for a
- * feed and half of them are somebody talking. The switch in the corner is there
- * for anyone who would rather watch them silently, and it is the only thing on
- * the strip that persists between clips.
+ * you point at comes up with its audio, because these were cut for a feed and
+ * half of them are somebody talking. The switch in the corner is there for
+ * anyone who would rather watch them silently, and it is the only thing on the
+ * strip that persists between clips.
+ *
+ * A click opens the clip full screen, with the rest of the strip to move
+ * through: a card this size is a thumbnail of something cut to fill a phone.
  */
 export default function ReelStrip({
   reels,
@@ -28,6 +32,7 @@ export default function ReelStrip({
   reels: ReelData[];
   title?: string;
 }) {
+  const viewer = useMediaViewer();
   const trackRef = useRef<HTMLDivElement>(null);
   /*
    * Two copies of one fact. The ref is what each card reads at the moment it
@@ -49,6 +54,23 @@ export default function ReelStrip({
       video.muted = !on;
     });
   }, []);
+
+  const openAt = useCallback(
+    (index: number) =>
+      viewer.open(
+        reels.map<ViewerItem>((reel) => ({
+          kind: "video",
+          src: reel.src,
+          poster: reel.poster,
+          alt: reel.alt,
+          w: reel.w,
+          h: reel.h,
+        })),
+        index,
+        title,
+      ),
+    [reels, title, viewer],
+  );
 
   if (!reels.length) return null;
 
@@ -79,11 +101,12 @@ export default function ReelStrip({
         ref={trackRef}
         className="carousel-track flex gap-[1.5vw] overflow-x-auto px-[var(--gutter)]"
       >
-        {reels.map((reel) => (
+        {reels.map((reel, i) => (
           <figure key={reel.src} className="carousel-slide relative m-0 shrink-0">
             <Reel
               reel={reel}
               soundRef={soundRef}
+              onOpen={() => openAt(i)}
               className="bg-ink h-full w-auto max-w-none"
             />
           </figure>

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 import type { GalleryPhoto } from "@/lib/gallery";
+import { useMediaViewer, type ViewerItem } from "@/components/effects/media-viewer";
 
 /**
  * The full set of frames from one shoot, as a horizontal strip.
@@ -34,8 +35,10 @@ export default function Carousel({
   /** Names the set for assistive tech: "Wedding photography, 40 frames". */
   label: string;
   /**
-   * Makes each frame a control that promotes itself to the display above. When
-   * absent the strip is a plain gallery and the frames are not focusable.
+   * Makes each frame promote itself to the display above instead of opening
+   * the viewer. Used where there is a display above to promote it to; without
+   * it, a frame opens full screen, which is the only sensible meaning a click
+   * on a photo has when nothing else on the page would change.
    */
   onSelect?: (index: number) => void;
   /** Which frame is currently showing above, so the strip can mark it. */
@@ -48,6 +51,7 @@ export default function Carousel({
    */
   eager?: number;
 }) {
+  const viewer = useMediaViewer();
   const trackRef = useRef<HTMLDivElement>(null);
   const [index, setIndex] = useState(0);
   const [atStart, setAtStart] = useState(true);
@@ -114,8 +118,8 @@ export default function Carousel({
 
   /*
    * Mouse drag. Pointer capture keeps the gesture alive when the cursor leaves
-   * the strip, and the 4px threshold is what stops a click on a frame being
-   * swallowed as a one-pixel drag.
+   * the strip, and the threshold below is what separates a drag of the strip
+   * from a click on a frame.
    */
   const drag = useRef({ active: false, startX: 0, startLeft: 0, moved: false });
 
@@ -133,20 +137,36 @@ export default function Carousel({
   };
 
   /*
-   * A drag that ends over a frame must not also select it. The 4px threshold
-   * set in `onPointerMove` is what separates the two, and this is read on the
-   * click that follows the drag.
+   * A drag that ends over a frame must not also open it. The threshold set in
+   * `onPointerMove` is what separates the two, and this is read on the click
+   * that follows the drag.
    */
   const onSlideClick = (index: number) => {
     if (drag.current.moved) return;
-    onSelect?.(index);
+    if (onSelect) {
+      onSelect(index);
+      return;
+    }
+    viewer.open(
+      photos.map<ViewerItem>((photo) => ({
+        kind: "photo",
+        src: photo.src,
+        alt: photo.alt,
+        w: photo.w,
+        h: photo.h,
+      })),
+      index,
+      label,
+    );
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const track = trackRef.current;
     if (!drag.current.active || !track) return;
     const dx = event.clientX - drag.current.startX;
-    if (Math.abs(dx) > 4) drag.current.moved = true;
+    // 10px, not 4. A press-and-release on a trackpad routinely travels five or
+    // six pixels, and at 4 those clicks were being thrown away as drags.
+    if (Math.abs(dx) > 10) drag.current.moved = true;
     track.scrollLeft = drag.current.startLeft - dx;
   };
 
@@ -199,22 +219,22 @@ export default function Carousel({
               className="carousel-slide relative m-0 shrink-0"
               aria-label={`${i + 1} of ${photos.length}`}
             >
-              {onSelect ? (
-                <button
-                  type="button"
-                  onClick={() => onSlideClick(i)}
-                  aria-current={active ? "true" : undefined}
-                  aria-label={`Show frame ${i + 1}: ${photo.alt}`}
-                  className={`block h-full cursor-pointer transition-opacity duration-500 ${
-                    active ? "opacity-100" : "opacity-55 hover:opacity-100"
-                  }`}
-                  style={{ transitionTimingFunction: "var(--ease-brand)" }}
-                >
-                  {frame}
-                </button>
-              ) : (
-                frame
-              )}
+              <button
+                type="button"
+                onClick={() => onSlideClick(i)}
+                aria-current={onSelect && active ? "true" : undefined}
+                aria-label={
+                  onSelect
+                    ? `Show frame ${i + 1}: ${photo.alt}`
+                    : `Open frame ${i + 1} full screen: ${photo.alt}`
+                }
+                className={`block h-full cursor-pointer transition-opacity duration-500 ${
+                  onSelect && !active ? "opacity-55 hover:opacity-100" : "opacity-100"
+                }`}
+                style={{ transitionTimingFunction: "var(--ease-brand)" }}
+              >
+                {frame}
+              </button>
             </figure>
           );
         })}

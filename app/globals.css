@@ -709,6 +709,130 @@ html.has-cursor textarea {
   visibility: hidden;
 }
 
+/* ---------------------------------------------------------------------------
+ * The full-screen viewer.
+ *
+ * Above the page transition (300) and the menu (350), because it is opened on
+ * top of whatever is already there and nothing should paint over it. Below the
+ * cursor (999), which belongs on top of everything.
+ * ------------------------------------------------------------------------- */
+
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  animation: viewer-in 0.3s var(--ease-brand);
+}
+
+.viewer__scrim {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background-color: color-mix(in srgb, var(--ink) 97%, transparent);
+  /* Blur rather than a flat wash: the page stays legible as context behind the
+     frame, which is what tells the reader they are on top of it, not gone. */
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.viewer__bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5em;
+  padding: var(--gutter);
+  color: var(--paper);
+}
+
+.viewer__stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: 0 clamp(16px, 6vw, 96px) clamp(24px, 4vh, 56px);
+  pointer-events: none;
+}
+
+/*
+ * Contained, never cropped: this is the one place on the site whose job is to
+ * show the whole frame the photographer actually shot.
+ */
+.viewer__media {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  pointer-events: auto;
+  animation: viewer-frame 0.35s var(--ease-brand);
+}
+
+.viewer__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  height: 46px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--paper) 30%, transparent);
+  border-radius: 999px;
+  color: var(--paper);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background-color 0.4s var(--ease-brand),
+    color 0.4s var(--ease-brand),
+    border-color 0.4s var(--ease-brand);
+}
+
+.viewer__btn:hover {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
+.viewer__nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  translate: 0 -50%;
+}
+
+.viewer__nav--prev {
+  left: clamp(8px, 2vw, 28px);
+}
+
+.viewer__nav--next {
+  right: clamp(8px, 2vw, 28px);
+}
+
+@keyframes viewer-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes viewer-frame {
+  from {
+    opacity: 0;
+    scale: 0.985;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .viewer,
+  .viewer__media {
+    animation: none;
+  }
+}
+
 /* The shoot display fades each newly chosen frame in. */
 @keyframes frame-in {
   from {

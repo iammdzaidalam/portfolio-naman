@@ -4,7 +4,6 @@ import {
   useCallback,
   useEffect,
   useRef,
-  useState,
   useSyncExternalStore,
   type RefObject,
 } from "react";
@@ -15,9 +14,14 @@ import type { Reel as ReelData } from "@/lib/reels";
  * One of the client's clips. Nothing plays, and nothing makes a sound, until it
  * is asked for.
  *
- * Hovering starts it with the sound up; leaving stops it. A click latches it on
- * so it keeps running once the pointer moves away, which is also the whole
- * story on a touch screen, where there is no hover to give.
+ * Hovering starts it with the sound up; leaving stops it. A click opens it full
+ * screen in the viewer, which is also the whole story on a touch screen, where
+ * there is no hover to give.
+ *
+ * Click used to latch the clip playing in place. It was the wrong thing for a
+ * card 200px wide holding footage cut for a phone: the reader had asked to
+ * watch it, and the answer was to keep it small. Opening it is the answer to
+ * the same question.
  *
  * Sound riding the hover is the reason `play()` has a fallback. A browser only
  * permits unmuted playback once the page has had a real user gesture, and a
@@ -38,6 +42,11 @@ export default function Reel({
   reel,
   className,
   /**
+   * What a click opens. Given the whole strip and this card's place in it, so
+   * the viewer can move between clips; without it the card opens just itself.
+   */
+  onOpen,
+  /**
    * The strip's master switch, held as a ref rather than a prop value so
    * flipping it does not re-render every card. A re-rendered `<video>` can drop
    * its playback position, and the switch only needs to be read at the moment
@@ -47,11 +56,10 @@ export default function Reel({
 }: {
   reel: ReelData;
   className?: string;
+  onOpen?: () => void;
   soundRef?: RefObject<boolean>;
 }) {
   const ref = useRef<HTMLVideoElement>(null);
-  /** Latched by a click, and unaffected by the pointer leaving. */
-  const [latched, setLatched] = useState(false);
 
   /*
    * Subscribed rather than sampled once: a reader who turns reduced motion on
@@ -68,10 +76,6 @@ export default function Reel({
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     () => false,
   );
-
-  // Derived rather than stored, so turning reduced motion on releases the latch
-  // without writing state from an effect.
-  const held = latched && !reduced;
 
   useEffect(() => {
     if (reduced) ref.current?.pause();
@@ -96,31 +100,28 @@ export default function Reel({
   }, [soundRef]);
 
   const onEnter = () => {
-    if (reduced || held) return;
+    if (reduced) return;
     void play();
   };
   const onLeave = () => {
-    if (held) return;
     ref.current?.pause();
   };
-  const onToggle = () => {
-    if (reduced) return;
-    const next = !held;
-    setLatched(next);
-    if (next) void play();
-    else ref.current?.pause();
+  const onOpenClick = () => {
+    // Stop the card's own copy before handing over: two of the same clip
+    // playing at once, one of them behind a scrim, is audible.
+    ref.current?.pause();
+    onOpen?.();
   };
 
   return (
     <button
       type="button"
-      onClick={onToggle}
+      onClick={onOpenClick}
       onMouseEnter={onEnter}
       onMouseLeave={onLeave}
       onFocus={onEnter}
       onBlur={onLeave}
-      aria-pressed={held}
-      aria-label={`${held ? "Pause" : "Play"}: ${reel.alt}`}
+      aria-label={`Open full screen: ${reel.alt}`}
       /*
        * The aspect ratio has to be declared. With `preload="none"` the video
        * never reports its intrinsic size, so a width derived from the element
@@ -147,19 +148,17 @@ export default function Reel({
 
       {/*
         A poster with no affordance reads as a broken image, so the card says
-        what it is. It clears once the clip is latched on, and on hover, because
-        by then the motion is the affordance.
+        what it is. It clears on hover, because by then the motion is the
+        affordance and the word is in the way of the frame.
       */}
       <span
         aria-hidden
-        className={`label-xs text-paper pointer-events-none absolute bottom-[0.9em] left-[0.9em] flex items-center gap-[0.5em] transition-opacity duration-300 group-hover:opacity-0 ${
-          held ? "opacity-0" : "opacity-90"
-        }`}
+        className="label-xs text-paper pointer-events-none absolute bottom-[0.9em] left-[0.9em] flex items-center gap-[0.5em] opacity-90 transition-opacity duration-300 group-hover:opacity-0"
       >
         <span className="border-paper/70 flex h-[22px] w-[22px] items-center justify-center rounded-full border text-[9px] leading-none">
           ▶
         </span>
-        Play
+        Watch
       </span>
     </button>
   );

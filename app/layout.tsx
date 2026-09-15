@@ -14,6 +14,7 @@ import SiteHeader from "@/components/site-header";
 import SiteFooter from "@/components/site-footer";
 import SmoothScroll from "@/components/effects/smooth-scroll";
 import Cursor from "@/components/effects/cursor";
+import MediaViewerProvider from "@/components/effects/media-viewer";
 
 /**
  * PP Neue Montreal, served locally. Only the Medium cut is licensed into this
@@ -80,10 +81,12 @@ export default function RootLayout({
         <div className="grain" aria-hidden />
 
         <LoadingProvider>
-          <TransitionProvider chrome={<SiteHeader />}>
-            {children}
-            <SiteFooter />
-          </TransitionProvider>
+          <MediaViewerProvider>
+            <TransitionProvider chrome={<SiteHeader />}>
+              {children}
+              <SiteFooter />
+            </TransitionProvider>
+          </MediaViewerProvider>
         </LoadingProvider>
       </body>
     </html>

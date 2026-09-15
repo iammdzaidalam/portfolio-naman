@@ -4,6 +4,7 @@ import { useState } from "react";
 import Image from "next/image";
 
 import Carousel from "./carousel";
+import { useMediaViewer, type ViewerItem } from "@/components/effects/media-viewer";
 import type { Shoot } from "@/lib/gallery";
 
 /**
@@ -41,6 +42,7 @@ export default function ShootViewer({
     photos.findIndex((photo) => photo.src === openingSrc),
   );
   const [active, setActive] = useState(opening);
+  const viewer = useMediaViewer();
 
   const shown = photos[active];
 
@@ -52,8 +54,28 @@ export default function ShootViewer({
           A CSS animation rather than a transition on state, so there is no
           second render to schedule and nothing to reset between frames.
         */}
-        <div
-          className="relative h-full"
+        {/*
+          The display opens the frame full screen, and the strip below chooses
+          which frame that is. One action each: the strip changes what is on
+          show, the show itself enlarges. Both on one click would be a guess.
+        */}
+        <button
+          type="button"
+          onClick={() =>
+            viewer.open(
+              photos.map<ViewerItem>((photo) => ({
+                kind: "photo",
+                src: photo.src,
+                alt: photo.alt,
+                w: photo.w,
+                h: photo.h,
+              })),
+              active,
+              shoot.label,
+            )
+          }
+          aria-label={`Open full screen: ${shown.alt}`}
+          className="relative h-full cursor-pointer"
           style={{ aspectRatio: `${shown.w} / ${shown.h}` }}
         >
           <Image
@@ -65,7 +87,7 @@ export default function ShootViewer({
             priority
             className="animate-[frame-in_0.5s_var(--ease-brand)] object-cover"
           />
-        </div>
+        </button>
       </div>
 
       <div className="px-[var(--gutter)]">
