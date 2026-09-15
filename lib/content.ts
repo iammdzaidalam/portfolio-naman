@@ -76,6 +76,12 @@ export const NAV = [
   { label: "Home", href: "/" },
   { label: "Services", href: "/services" },
   { label: "Work", href: "/work" },
+  /*
+   * The client asked for this one by name. /work is the video categories, so
+   * the stills would otherwise only exist as a strip at the foot of that page,
+   * which is not where you put a service you sell.
+   */
+  { label: "Photoshoot", href: "/photoshoot" },
   { label: "Studio", href: "/studio" },
   { label: "Connect", href: "/contact" },
 ] as const;
@@ -411,6 +417,21 @@ export const WORKS: Work[] = [
    */
   { slug: "personal-branding", title: "Personal Branding", reels: "personal-branding" },
 ];
+
+/**
+ * The photography page.
+ *
+ * The client asked for "all types of photos, wedding, corporates, product".
+ * Wedding and corporate are both here. There is no product photography
+ * anywhere in what they supplied, so no product set is claimed: the product
+ * work they sent is all video, and it is on /work under Product Spotlight.
+ */
+export const PHOTOSHOOT = {
+  sign: "Photoshoot",
+  question: ["Every frame", "we shot."],
+  sub: "Weddings, interiors, events, studio portraits, fitness and hotels. The full set, not a selection.",
+  sets: "6 shoots",
+} as const;
 
 export const WORK_INTRO = {
   sign: "Our work",

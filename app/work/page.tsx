@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { WORK_INTRO } from "@/lib/content";
 import SectionHead from "@/components/ui/section-head";
 import WorkGrid from "@/components/work/work-grid";
-import Archive from "@/components/work/archive";
 
 export const metadata: Metadata = {
   title: "Work",
@@ -25,8 +24,6 @@ export default function WorkPage() {
 
         <WorkGrid />
       </section>
-
-      <Archive />
     </main>
   );
 }
