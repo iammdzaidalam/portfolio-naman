@@ -31,12 +31,41 @@ export const WIPE_RADIUS_RATIO = 0.77;
 
 /**
  * The two clips the wipe carries, taken in turn on successive navigations.
- * The client's own animations, drawn for this: their tram is branded and has a
- * coupling hook on the back of it, which is what the tram's exit is built on.
+ *
+ * The client's own animations, drawn for this. Both run on pure white and both
+ * travel left to right, which is why the panel is white and why the wipe goes
+ * the way it does: the vehicle and the panel are moving together, not past each
+ * other.
+ *
+ * `start` is where each clip is scrubbed to when a navigation begins, and it is
+ * the whole reason the transition reads. A page transition can afford about a
+ * second and a half; these run 2.4 and 3.8. Played from zero you get the empty
+ * lead-in and the panel leaves before anything happens. Measured frame by frame
+ * (mean luminance per eighth of a second) and started here instead, the part
+ * that matters lands inside the window:
+ *
+ *   taxi  blacks out at 1.88s and clears by 2.25. Starting at 0.61 puts the
+ *         smoke building through the cover, the blackout behind the panel
+ *         mid-reveal, and the clearing exactly as the panel leaves.
+ *   tram  never covers at all: its darkest frame is still 60% grey, so the
+ *         panel does the covering and the tram rides it. Its coupling hook
+ *         leaves frame at about 3.35s, so starting at 1.56 lands that on the
+ *         last beat of the reveal, which is the moment the client pointed at.
+ *
+ * `crop` says whether there is anything in the frame worth losing, and it is
+ * measured too, by where the ink actually falls:
+ *
+ *   taxi  ink from 39% to 100% of the frame. The top two fifths are empty sky,
+ *         so on a screen wider than the clip that headroom can be cropped away
+ *         and the car comes up to a proper size instead of sitting in the
+ *         bottom third of a white field.
+ *   tram  ink from 0% to 100%. The trolley pole touches the top edge and the
+ *         wheels touch the bottom, so there is nothing to give: any vertical
+ *         crop takes the pole off. It is contained at every size.
  */
 export const WIPE_CLIPS = [
-  { src: "/video/taxi.mp4", label: "taxi" },
-  { src: "/video/tram.mp4", label: "tram" },
+  { src: "/video/taxi.mp4", label: "taxi", start: 0.61, crop: "headroom" },
+  { src: "/video/tram.mp4", label: "tram", start: 1.56, crop: "none" },
 ] as const;
 
 export type BandMetrics = {

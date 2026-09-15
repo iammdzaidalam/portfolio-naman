@@ -632,7 +632,14 @@ html.has-cursor textarea {
   position: absolute;
   top: 50%;
   left: 0;
-  background-color: var(--ink);
+  /*
+   * White, because the client's animations are drawn on white and this is the
+   * sheet they are drawn on. It used to be ink, from before the clips were
+   * theirs, which put a hard black edge around a white cartoon and showed as a
+   * black flash on any frame the video had not decoded yet. The panel and the
+   * artwork are one surface now, and the only edge on screen is the arc.
+   */
+  background-color: #fff;
   overflow: hidden;
   opacity: 0;
   visibility: hidden;
@@ -650,14 +657,6 @@ html.has-cursor textarea {
   will-change: transform;
 }
 
-/*
- * The tram's trolley pole. Placed by the provider at the band's trailing edge
- * and shifted a full width left of it, so its base meets the seam and the hook
- * and wire reach back over the page arriving behind.
- *
- * Sized against the viewport's height, like the arc it rides on, so the pole
- * keeps its proportion to the screen rather than to the box it is drawn in.
- */
 .wipe__hook {
   /*
    * Traced off the coupling on the back of the client's tram. Placed by the
@@ -688,14 +687,47 @@ html.has-cursor textarea {
   width: 100%;
 }
 
+/*
+ * Contained, so the whole drawing is on screen at every size and nothing is
+ * ever cut.
+ *
+ * It was `object-fit: cover`, which is right for photography and wrong for a
+ * drawing of a vehicle: cover crops whichever axis does not fit, and on a phone
+ * it scaled this 16:9 frame to 1422px wide to fill 400px of screen, so the
+ * reader got the middle quarter of a tram and no idea what it was. Sizing by
+ * width instead fixed that and introduced a smaller version of the same fault:
+ * the client draws the vehicle sitting low on a ground line, so the 58px of
+ * vertical overflow on a wide screen took the wheels off.
+ *
+ * Contain cannot crop. The letterbox it leaves is the same white as the panel
+ * and the same white as the clip, so there is no seam to see, and the
+ * composition arrives exactly as it was drawn.
+ */
 .wipe__video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   opacity: 0;
   visibility: hidden;
+}
+
+/*
+ * The one clip with room to spare. Above the clips' own 16:9 the binding
+ * dimension is width, so `cover` can only ever crop vertically, and anchoring
+ * it to the bottom puts that crop in the taxi's empty sky and keeps its wheels
+ * on the ground line. At exactly 16:9 the two fits are identical, so nothing
+ * jumps as a window crosses the threshold.
+ *
+ * The tram is not in here on purpose: its pole reaches the top edge of the
+ * frame, so there is no sky to take.
+ */
+@media (min-aspect-ratio: 16 / 9) {
+  .wipe__video[data-crop="headroom"] {
+    object-fit: cover;
+    object-position: center bottom;
+  }
 }
 
 /* ---------------------------------------------------------------------------

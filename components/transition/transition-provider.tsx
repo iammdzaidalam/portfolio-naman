@@ -38,20 +38,24 @@ export function useTransition() {
  */
 const GUARD_MS = 3000;
 
-/** Cover: the band climbs from below the fold until the screen is its. */
-const COVER_S = 0.9;
-/** Reveal: it keeps climbing, and the new page comes out from under it. */
-const REVEAL_S = 1.15;
+/*
+ * Cover, then reveal. A page transition is a cost the reader pays on every
+ * click, and these were 0.9 and 1.15, which is two full seconds of not being
+ * on the page you asked for. Brought in to about 1.5 all told: long enough for
+ * the animation to land, short enough that the tenth click does not grate.
+ */
+const COVER_S = 0.62;
+const REVEAL_S = 0.85;
 
 /*
- * The tram's tow. The coupling creeps a tenth of the way across while the
- * slack goes out of it, then the pull takes the other nine tenths. Slightly
- * longer than the taxi's reveal all told, which is right: one drives off, the
- * other has to get a whole screen moving.
+ * The tram's tow. The coupling creeps a tenth of the way across while the slack
+ * goes out of it, then the pull takes the other nine tenths. A little longer
+ * than the taxi's reveal all told, which is right: one drives off, the other
+ * has to get a whole screen moving.
  */
 const TOW_SLACK = 0.1;
-const TOW_TAKEUP_S = 0.32;
-const TOW_PULL_S = 0.95;
+const TOW_TAKEUP_S = 0.26;
+const TOW_PULL_S = 0.79;
 
 export default function TransitionProvider({
   children,
@@ -171,7 +175,7 @@ export default function TransitionProvider({
         video.pause();
         return;
       }
-      video.currentTime = 0;
+      video.currentTime = WIPE_CLIPS[index].start;
       // Muted and inline, and this is downstream of a click, so the play
       // promise resolves, but a rejected one must not break the navigation.
       void video.play().catch(() => {});
@@ -438,6 +442,7 @@ export default function TransitionProvider({
                   videoRefs.current[i] = el;
                 }}
                 className="wipe__video"
+                data-crop={clip.crop}
                 src={clip.src}
                 muted
                 playsInline
