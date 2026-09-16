@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 
 import { HERO, SITE } from "@/lib/content";
@@ -26,6 +26,23 @@ export default function Hero() {
   const root = useRef<HTMLElement>(null);
   const loaded = useLoaded();
 
+  /*
+   * The sound switch. Two copies of one fact, as on the reel strips: the ref is
+   * what a card reads the moment it starts, the state only re-renders the
+   * label. Applied to the cards directly as well, so a clip already running
+   * changes at once instead of at its next play.
+   */
+  const soundRef = useRef(true);
+  const [sound, setSound] = useState(true);
+  const toggleSound = useCallback(() => {
+    const on = !soundRef.current;
+    soundRef.current = on;
+    setSound(on);
+    root.current?.querySelectorAll<HTMLVideoElement>("[data-spiral-card] video").forEach((v) => {
+      v.muted = !on;
+    });
+  }, []);
+
   useGSAP(
     () => {
       if (!loaded) return;
@@ -50,6 +67,7 @@ export default function Hero() {
     <section ref={root} data-hero className="gradient-paper text-ink relative">
       <SpiralGallery
         clips={SHOWREEL}
+        soundRef={soundRef}
         onProgress={(p) => {
           // The corner furniture belongs to the pinned screen. Take it out in
           // the last stretch of the scrub so nothing scrolls away over the mark.
@@ -118,6 +136,35 @@ export default function Hero() {
           {SITE.tagline}
         </span>
       </h1>
+
+      {/*
+        The sound switch, bottom-right, mirroring the statement bottom-left.
+        The one control in the corners, so it is set as a mono label like the
+        reel strips' switch rather than as a button, and it fades with the rest
+        of the furniture at the end of the scrub.
+      */}
+      <div
+        data-hero-fade
+        /*
+         * Bottom-right on anything wider than a phone. On a phone the statement
+         * runs nearly the full width of the bottom edge, so the switch moves up
+         * under the MENU control, where the page's other control already is.
+         */
+        className="absolute right-[var(--corner)] bottom-[var(--corner)] z-[41] max-mobile:top-[calc(var(--nav-height)+0.75em)] max-mobile:bottom-auto max-mobile:[text-shadow:0_0_16px_var(--paper)]"
+      >
+        <button
+          type="button"
+          onClick={toggleSound}
+          aria-pressed={sound}
+          className="label-xs flex items-center gap-[0.6em] opacity-65 transition-opacity duration-300 hover:opacity-100"
+        >
+          <span
+            aria-hidden
+            className={`h-[7px] w-[7px] rounded-full border border-current ${sound ? "bg-current" : ""}`}
+          />
+          Sound {sound ? "on" : "off"}
+        </button>
+      </div>
 
 
     </section>

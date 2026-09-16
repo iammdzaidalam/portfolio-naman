@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useRef, useSyncExternalStore, type RefObject } from "react";
 import { useGSAP } from "@gsap/react";
 
 import type { ShowreelClip } from "@/lib/reels";
 import { gsap } from "@/lib/gsap";
+import { useMediaViewer, type ViewerItem } from "@/components/effects/media-viewer";
 
 /**
  * The spiral.
@@ -55,11 +56,27 @@ const SECONDS_PER_CARD = 4.5;
 export default function SpiralGallery({
   clips,
   onProgress,
+  soundRef,
 }: {
   clips: ShowreelClip[];
   /** Called with the scrub position, 0 at the top of the pin, 1 at release. */
   onProgress?: (p: number) => void;
+  /**
+   * The hero's sound switch, read by each card at the moment it starts. A ref
+   * rather than a value so flipping it does not re-render nine videos.
+   */
+  soundRef?: RefObject<boolean>;
 }) {
+  const viewer = useMediaViewer();
+  // The whole reel goes to the viewer, so the arrows there move through it.
+  const items = clips.map<ViewerItem>((clip) => ({
+    kind: "video",
+    src: clip.src,
+    poster: clip.poster,
+    alt: clip.alt,
+    w: clip.w,
+    h: clip.h,
+  }));
   // Kept in a ref so the scrub's onUpdate always calls the latest callback
   // without the timeline having to be rebuilt; synced in an effect rather than
   // during render, which React's ref rules forbid.
@@ -221,6 +238,8 @@ export default function SpiralGallery({
               clip={clip}
               index={i}
               total={clips.length}
+              soundRef={soundRef}
+              onOpen={() => viewer.open(items, i, "Showreel")}
               onWatch={(watching) => {
                 if (watching) loopRef.current?.pause();
                 else loopRef.current?.play();
@@ -236,11 +255,11 @@ export default function SpiralGallery({
 /**
  * One card on the helix: the clip, and the furniture that names it.
  *
- * It is a button rather than a link. The helix used to carry the nine work
- * items and each card went to its piece, but these are cuts from the client's
- * own reel and do not correspond to those pieces, so there is nowhere honest to
- * send a click. What a click does instead is latch the clip on, which is also
- * the only way to start one on a touch screen, where there is no hover.
+ * Hovering plays it in place, with the sound the hero's switch says. A click
+ * opens it full screen in the viewer with the rest of the reel behind the
+ * arrows, which is also the whole story on a touch screen, where there is no
+ * hover. A click used to latch the clip playing inside the card; for footage
+ * cut to fill a phone, a 300px card was the wrong place to leave it.
  *
  * `onWatch` tells the helix to hold still while this card is being watched.
  */
@@ -248,15 +267,18 @@ function ShowreelCard({
   clip,
   index,
   total,
+  soundRef,
+  onOpen,
   onWatch,
 }: {
   clip: ShowreelClip;
   index: number;
   total: number;
+  soundRef?: RefObject<boolean>;
+  onOpen: () => void;
   onWatch: (watching: boolean) => void;
 }) {
   const video = useRef<HTMLVideoElement>(null);
-  const [latched, setLatched] = useState(false);
 
   const reduced = useSyncExternalStore(
     useCallback((notify: () => void) => {
@@ -267,21 +289,21 @@ function ShowreelCard({
     () => window.matchMedia("(prefers-reduced-motion: reduce)").matches,
     () => false,
   );
-  const held = latched && !reduced;
 
   useEffect(() => {
     if (reduced) video.current?.pause();
   }, [reduced]);
 
   /*
-   * Tries with sound and falls back to muted. A browser only permits unmuted
-   * playback once the page has had a real user gesture, and a hover is not one,
-   * so before the first click this plays silently rather than not at all.
+   * Plays with the sound the switch asks for and falls back to muted. A
+   * browser only permits unmuted playback once the page has had a real user
+   * gesture, and a hover is not one, so before the first click this plays
+   * silently rather than not at all.
    */
   const play = async () => {
     const el = video.current;
     if (!el) return;
-    el.muted = false;
+    el.muted = soundRef ? !soundRef.current : false;
     try {
       await el.play();
     } catch {
@@ -295,36 +317,37 @@ function ShowreelCard({
   };
 
   const start = () => {
-    if (reduced || held) return;
+    if (reduced) return;
     onWatch(true);
     void play();
   };
   const stop = () => {
-    if (held) return;
     onWatch(false);
     video.current?.pause();
   };
-  const toggle = () => {
-    if (reduced) return;
-    const next = !held;
-    setLatched(next);
-    onWatch(next);
-    if (next) void play();
-    else video.current?.pause();
+  const open = () => {
+    // The card's own copy stops before the viewer's starts, or the same clip
+    // plays twice, one of them behind the scrim.
+    video.current?.pause();
+    onOpen();
   };
 
   return (
     <button
       type="button"
       data-spiral-card
-      onClick={toggle}
+      onClick={open}
       onMouseEnter={start}
       onMouseLeave={stop}
       onFocus={start}
       onBlur={stop}
-      aria-pressed={held}
-      aria-label={`${held ? "Pause" : "Play"}: ${clip.alt}`}
-      className="group bg-ink absolute top-0 left-0 block aspect-[3/4] w-[min(26vw,400px)] cursor-pointer overflow-hidden will-change-transform select-none max-tablet:w-[38vw] max-mobile:w-[52vw]"
+      aria-label={`Open full screen: ${clip.alt}`}
+      /*
+       * 9:16, the shape the footage was cut in, so nothing is cropped off a
+       * frame built for a phone. The width is three quarters of what the old
+       * 3:4 card had, which keeps the card the same height on the helix.
+       */
+      className="group bg-ink absolute top-0 left-0 block aspect-[9/16] w-[min(19.5vw,300px)] cursor-pointer overflow-hidden will-change-transform select-none max-tablet:w-[29vw] max-mobile:w-[40vw]"
       style={{ backfaceVisibility: "hidden" }}
     >
       <video
@@ -365,18 +388,14 @@ function ShowreelCard({
           </div>
           {/*
             A still frame with no affordance reads as an image, not a clip, so
-            the card says it can be played. It clears on hover and once latched,
-            because by then the motion says it for itself.
+            the card says it can be watched. It clears on hover, because by
+            then the motion says it for itself.
           */}
-          <span
-            className={`label-xs mt-[0.75em] flex items-center gap-[0.5em] transition-opacity duration-300 group-hover:opacity-0 ${
-              held ? "opacity-0" : "opacity-80"
-            }`}
-          >
+          <span className="label-xs mt-[0.75em] flex items-center gap-[0.5em] opacity-80 transition-opacity duration-300 group-hover:opacity-0">
             <span className="border-paper/70 flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[8px] leading-none">
               ▶
             </span>
-            Play
+            Watch
           </span>
         </div>
       </div>

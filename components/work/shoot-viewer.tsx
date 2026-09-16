@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 
 import Carousel from "./carousel";
@@ -43,11 +43,47 @@ export default function ShootViewer({
   );
   const [active, setActive] = useState(opening);
   const viewer = useMediaViewer();
+  const root = useRef<HTMLElement>(null);
 
   const shown = photos[active];
+  const count = photos.length;
+  const step = useCallback(
+    (direction: 1 | -1) => setActive((i) => (i + direction + count) % count),
+    [count],
+  );
+
+  /*
+   * The arrow keys turn the frames whenever this section is the thing on
+   * screen. Scoped by visibility rather than by focus, because nobody focuses a
+   * photograph before pressing a key; and stood down while the full-screen
+   * viewer is open, which owns the same keys, or while a field has focus.
+   */
+  useEffect(() => {
+    const el = root.current;
+    if (!el) return;
+    let inView = false;
+    const io = new IntersectionObserver(([entry]) => {
+      inView = entry.isIntersecting;
+    }, { threshold: 0.35 });
+    io.observe(el);
+    const onKey = (event: KeyboardEvent) => {
+      if (!inView) return;
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      if (document.querySelector(".viewer")) return;
+      const target = event.target as HTMLElement | null;
+      if (target && /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+      event.preventDefault();
+      step(event.key === "ArrowRight" ? 1 : -1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      io.disconnect();
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [step]);
 
   return (
-    <section aria-label={shoot.label}>
+    <section ref={root} aria-label={shoot.label}>
       {/*
         The display's height is the constant and its width follows the frame,
         but the width is capped at the column too. Without that cap a landscape
@@ -67,35 +103,67 @@ export default function ShootViewer({
           which frame that is. One action each: the strip changes what is on
           show, the show itself enlarges. Both on one click would be a guess.
         */}
-        <button
-          type="button"
-          onClick={() =>
-            viewer.open(
-              photos.map<ViewerItem>((photo) => ({
-                kind: "photo",
-                src: photo.src,
-                alt: photo.alt,
-                w: photo.w,
-                h: photo.h,
-              })),
-              active,
-              shoot.label,
-            )
-          }
-          aria-label={`Open full screen: ${shown.alt}`}
-          className="relative w-[min(100%,calc(var(--display-h)*var(--ar)))] max-h-full cursor-pointer"
+        {/*
+          The frame, with its own previous and next on it. They used to be the
+          strip's arrows, a screen further down on the right, which is nowhere
+          near the thing they turn. These sit on the picture's edges, where a
+          hand goes, and the keyboard's arrows do the same while the section is
+          on screen.
+        */}
+        <div
+          className="relative w-[min(100%,calc(var(--display-h)*var(--ar)))] max-h-full"
           style={{ aspectRatio: "var(--ar)", ["--ar" as string]: shown.w / shown.h }}
         >
-          <Image
-            key={shown.src}
-            src={shown.src}
-            alt={shown.alt}
-            fill
-            sizes="(max-width: 768px) 100vw, 72vh"
-            priority
-            className="animate-[frame-in_0.5s_var(--ease-brand)] object-cover"
-          />
-        </button>
+          <button
+            type="button"
+            onClick={() =>
+              viewer.open(
+                photos.map<ViewerItem>((photo) => ({
+                  kind: "photo",
+                  src: photo.src,
+                  alt: photo.alt,
+                  w: photo.w,
+                  h: photo.h,
+                })),
+                active,
+                shoot.label,
+              )
+            }
+            aria-label={`Open full screen: ${shown.alt}`}
+            className="absolute inset-0 cursor-pointer"
+          >
+            <Image
+              key={shown.src}
+              src={shown.src}
+              alt={shown.alt}
+              fill
+              sizes="(max-width: 768px) 100vw, 72vh"
+              priority
+              className="animate-[frame-in_0.5s_var(--ease-brand)] object-cover"
+            />
+          </button>
+
+          {count > 1 ? (
+            <>
+              <button
+                type="button"
+                onClick={() => step(-1)}
+                aria-label="Previous frame"
+                className="carousel-btn carousel-btn--float absolute top-1/2 left-[10px] -translate-y-1/2"
+              >
+                ←
+              </button>
+              <button
+                type="button"
+                onClick={() => step(1)}
+                aria-label="Next frame"
+                className="carousel-btn carousel-btn--float absolute top-1/2 right-[10px] -translate-y-1/2"
+              >
+                →
+              </button>
+            </>
+          ) : null}
+        </div>
       </div>
 
       <div className="px-[var(--gutter)]">

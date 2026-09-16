@@ -937,6 +937,19 @@ html.has-cursor textarea {
   opacity: 0.3;
 }
 
+/*
+ * The same button sitting on a photograph rather than on paper: a paper
+ * backing at four fifths with the picture blurred through it, so it reads on
+ * a dark frame and a pale one alike without shouting on either.
+ */
+.carousel-btn--float {
+  color: var(--ink);
+  background-color: color-mix(in srgb, var(--paper) 82%, transparent);
+  border-color: transparent;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
 /* ---------------------------------------------------------------------------
  * Custom cursor.
  * ------------------------------------------------------------------------- */

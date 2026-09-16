@@ -87,6 +87,25 @@ export default function Carousel({
     setAtEnd(left + track.clientWidth >= track.scrollWidth - 2);
   }, []);
 
+  /*
+   * When the display above changes frame by its own arrows or the keyboard,
+   * the strip brings that frame into view, so the mark for "current" is never
+   * off to one side of the strip where it cannot be seen.
+   */
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track || activeIndex === undefined) return;
+    const slide = track.children[activeIndex] as HTMLElement | undefined;
+    if (!slide) return;
+    const pad = parseFloat(getComputedStyle(track).paddingLeft) || 0;
+    const left = slide.offsetLeft - track.offsetLeft - pad;
+    const right = left + slide.offsetWidth;
+    const view = track.scrollLeft;
+    if (left < view || right > view + track.clientWidth - pad) {
+      track.scrollTo({ left, behavior: "smooth" });
+    }
+  }, [activeIndex]);
+
   useEffect(() => {
     const track = trackRef.current;
     if (!track) return;
