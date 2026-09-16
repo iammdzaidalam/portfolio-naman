@@ -539,7 +539,7 @@ export const KOLKATA = {
 
 export type CaseStudy = {
   name: string;
-  claim: string;
+  claim: string | readonly string[];
   intro: string[];
   metrics: { value: string; label: string; note: string }[];
   did: string[];
@@ -599,7 +599,12 @@ export const CLIENTS = {
     },
     {
       name: "EnvyMe Fashion",
-      claim: "From 12K to 4.1 lakh+ followers.",
+      /*
+       * Two authored lines. As one string the browser broke it between the
+       * figure and its unit ("From 12K to 4.1" / "lakh+ followers.") on every
+       * screen, and a no-break space does not survive the line splitter.
+       */
+      claim: ["From 12K to", "4.1 lakh+ followers."],
       intro: [
         "EnvyMe Fashion is a premium women’s wear boutique focused on stylish, contemporary fashion for women.",
         "The goal was simple but ambitious: make the brand impossible to ignore on social media.",
@@ -609,7 +614,7 @@ export const CLIENTS = {
         {
           value: "12,000 → 4,10,000+",
           label: "The growth",
-          note: "We helped EnvyMe Fashion grow its social media audience from approximately 12K followers to 4.1 lakh+ followers, creating a dramatically stronger digital presence for the brand.",
+          note: "We helped EnvyMe Fashion grow its social media audience from approximately 12K followers to 4.1 lakh+ followers, creating a dramatically stronger digital presence for the brand.",
         },
       ],
       did: [
@@ -623,7 +628,7 @@ export const CLIENTS = {
         "Brand positioning",
       ],
       result: [
-        "EnvyMe Fashion transformed its social media presence, growing from a 12K-follower fashion boutique into a 4.1 lakh+ follower digital fashion brand.",
+        "EnvyMe Fashion transformed its social media presence, growing from a 12K-follower fashion boutique into a 4.1 lakh+ follower digital fashion brand.",
         "The growth wasn’t about chasing numbers alone. It was about creating content people wanted to watch, share, follow, and remember.",
       ],
       reels: "clothing",

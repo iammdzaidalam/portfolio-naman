@@ -86,7 +86,7 @@ export default function WorkCard({
           {/* Says the card is footage before anyone points at it. */}
           <span
             aria-hidden
-            className="label-xs text-paper pointer-events-none absolute bottom-[0.9em] left-[0.9em] flex items-center gap-[0.5em] opacity-90 transition-opacity duration-300 group-hover:opacity-0"
+            className="label-xs text-paper bg-ink/55 pointer-events-none absolute bottom-[0.9em] left-[0.9em] flex items-center gap-[0.5em] rounded-full py-[0.35em] pr-[0.8em] pl-[0.4em] opacity-90 backdrop-blur-sm transition-opacity duration-300 group-hover:opacity-0"
           >
             <span className="border-paper/70 flex h-[22px] w-[22px] items-center justify-center rounded-full border text-[9px] leading-none">
               ▶

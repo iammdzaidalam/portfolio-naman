@@ -126,7 +126,10 @@ export const REELS: Partial<Record<ReelKey, Reel[]>> = {
   "product-spotlight": [
     // Cover: copy_02D7D94A. The client merged their suitcase and product
     // folders into this one category.
-    { src: "/video/reels/product-01.mp4", poster: "/video/posters/product-01.jpg", w: 720, h: 1280, alt: "Two grey hardshell suitcases on a pale studio backdrop, a woman in black stepping past, all out of focus" },
+    // Poster cut at 9.2s, past the rack-focus opener: the first three seconds
+    // of this clip are deliberately out of focus and a still from them read as
+    // an image that had failed to load.
+    { src: "/video/reels/product-01.mp4", poster: "/video/posters/product-01.jpg", w: 720, h: 1280, alt: "Model in a beige coat and jeans sits on an olive hardshell suitcase in a white studio, captioned Strong" },
     { src: "/video/reels/suitcase-01.mp4", poster: "/video/posters/suitcase-01.jpg", w: 720, h: 1280, alt: "Model in a cream trench coat sits on an olive hardshell suitcase in a white studio, a second case beside her" },
     { src: "/video/reels/product-03.mp4", poster: "/video/posters/product-03.jpg", w: 720, h: 1280, alt: "A smiling woman rests her hand on a dark trolley suitcase on a street below a red sandstone fort" },
     { src: "/video/reels/suitcase-02.mp4", poster: "/video/posters/suitcase-02.jpg", w: 720, h: 1280, alt: "Close-up of a hand gripping the black telescoping handle of a rolling suitcase, tiled floor blurred behind" },
@@ -233,7 +236,7 @@ export const SHOWREEL: ShowreelClip[] = [
     w: 720,
     h: 1280,
     title: "Product spotlight",
-    alt: "Out-of-focus studio scene: two grey suitcases and a woman in black, overlaid with the words We Believe.",
+    alt: "Model in a beige coat and jeans sits on an olive hardshell suitcase in a white studio, captioned Strong.",
   },
   {
     src: "/video/reels/home-01.mp4",

@@ -78,7 +78,7 @@ export default function ContactForm() {
       </div>
 
       {/* The bubble draws its own arrow, so the label drops the one in the copy. */}
-      <BubbleButton type="submit">
+      <BubbleButton type="submit" invert>
         {CONNECT.submit.replace(" →", "")}
       </BubbleButton>
 

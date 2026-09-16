@@ -56,7 +56,7 @@ export default function ShootViewer({
         fits and keeps the frame's own proportions either way. `--display-h`
         is the height budget the width is derived from.
       */}
-      <div className="flex h-[var(--display-h)] items-center justify-center px-[var(--gutter)] [--display-h:min(72vh,680px)] max-mobile:[--display-h:min(62vh,520px)]">
+      <div className="flex h-[var(--display-h)] items-center justify-center px-[var(--gutter)] [--display-h:min(72vh,680px)] max-mobile:h-auto max-mobile:[--display-h:min(62vh,520px)]">
         {/*
           Keyed on the source so a new frame mounts fresh and runs the fade in.
           A CSS animation rather than a transition on state, so there is no

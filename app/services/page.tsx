@@ -83,7 +83,7 @@ export default function ServicesPage() {
                   <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
                     <span>{work.title}</span>
                     <span className="group-hover:text-accent transition-colors duration-300">
-                      {work.title} ↗
+                      View ↗
                     </span>
                   </p>
                 </TransitionLink>

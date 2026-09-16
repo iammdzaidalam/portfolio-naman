@@ -888,8 +888,22 @@ html.has-cursor textarea {
 }
 
 .carousel-slide {
-  height: clamp(260px, 52vh, 620px);
-  scroll-snap-align: start;
+  /*
+   * A common height, and the width follows each frame. The height is also
+   * held under two thirds of the column so a 3:2 frame always fits: on a
+   * tablet 52vh came to 613px, a 3:2 frame at that height is 920px wide,
+   * and the first frame of every landscape strip ran off the right edge.
+   * The width cap and `object-fit` underneath are belt and braces for a
+   * frame wider than 3:2.
+   */
+  height: min(clamp(260px, 52vh, 620px), calc((100vw - 2 * var(--gutter)) * 2 / 3));
+  max-width: calc(100vw - 2 * var(--gutter));
+}
+
+.carousel-slide img,
+.carousel-slide video {
+  max-width: 100%;
+  object-fit: contain;
 }
 
 .carousel-slide img {

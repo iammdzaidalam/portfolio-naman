@@ -74,7 +74,11 @@ export default function Reveal({
 
         let targets: Element[];
         if (splitLines) {
-          split = new SplitText(el, { type: "lines", mask: "lines" });
+          // Words split on the plain space only. SplitText's default
+          // delimiter also matches a non-breaking space, which turned
+          // "4.1\u00a0lakh+" into two words and let the figure break from
+          // its unit; a no-break space has to mean no break.
+          split = new SplitText(el, { type: "lines", mask: "lines", wordDelimiter: " " });
           targets = split.lines;
 
           // A mask is sized to its line's box, which sits on the baseline, so

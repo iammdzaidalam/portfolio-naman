@@ -45,7 +45,7 @@ export default function SectionHead({
         <Reveal
           as={titleAs}
           className={`display ${
-            size === "xl" ? "text-[clamp(44px,6.6vw,104px)]" : "text-[clamp(32px,4vw,64px)]"
+            size === "xl" ? "text-[clamp(42px,6.6vw,104px)]" : "text-[clamp(32px,4vw,64px)]"
           }`}
         >
           {lines.map((line) => (

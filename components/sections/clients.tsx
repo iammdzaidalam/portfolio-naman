@@ -39,6 +39,13 @@ import TransitionLink from "@/components/transition/transition-link";
 /** A brand's clips, or nothing at all if that folder yielded none. */
 const reelsFor = (key?: ReelKey) => (key ? (REELS[key] ?? []) : []);
 
+/**
+ * A claim as written: one string, or lines the client's copy breaks in a set
+ * place, each held whole so no width can split a figure from its unit.
+ */
+const claimLines = (claim: string | readonly string[]) =>
+  typeof claim === "string" ? claim : claim.map((line) => <span key={line} className="block">{line}</span>);
+
 export default function Clients({
   surface = "ink",
   variant = "full",
@@ -95,7 +102,7 @@ export default function Clients({
                   as="h3"
                   className="display mt-[1em] max-w-[12em] text-[clamp(22px,2.3vw,34px)]"
                 >
-                  {study.claim}
+                  {claimLines(study.claim)}
                 </Reveal>
 
                 {/* The figures alone. The story behind them is on /studio. */}
@@ -151,7 +158,7 @@ export default function Clients({
 
             <div>
               <Reveal as="h3" className="display max-w-[11em] text-[clamp(26px,3.4vw,52px)]">
-                {study.claim}
+                {claimLines(study.claim)}
               </Reveal>
 
               <div className="mt-[1.5em] max-w-[34em]">
@@ -203,7 +210,10 @@ export default function Clients({
             </div>
 
             {reelsFor(study.reels).length ? (
-              <div className="col-span-2 max-tablet:col-span-1">
+              // The strip pads itself by the gutter, so the section's is
+              // cancelled here or the strip steps in 20px from every rule
+              // around it.
+              <div className="col-span-2 -mx-[var(--gutter)] max-tablet:col-span-1">
                 <ReelStrip
                   reels={reelsFor(study.reels)}
                   title={`${study.name}: the reels`}

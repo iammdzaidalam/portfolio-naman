@@ -61,14 +61,20 @@ export default function SiteFooter() {
             {onContact ? SITE.tagline : CONNECT.question}
           </Reveal>
 
-          {/* The house line, in the client's own words. */}
-          <Reveal
-            as="p"
-            splitLines={false}
-            className="statement text-accent mt-[0.6em] text-[clamp(20px,2.4vw,34px)]"
-          >
-            <span lang="hi-Latn">{SITE.tagline}</span>
-          </Reveal>
+          {/*
+            The house line, in the client's own words. Not on /contact, where
+            the heading above it already is the tagline and the two printed
+            the same sentence twice, one under the other.
+          */}
+          {onContact ? null : (
+            <Reveal
+              as="p"
+              splitLines={false}
+              className="statement text-accent mt-[0.6em] text-[clamp(20px,2.4vw,34px)]"
+            >
+              <span lang="hi-Latn">{SITE.tagline}</span>
+            </Reveal>
+          )}
 
           <div className="mt-[28px] flex flex-wrap gap-[10px]">
             {onContact ? null : (
@@ -121,7 +127,7 @@ export default function SiteFooter() {
         ground of the page rather than a line of type.
       */}
       <div
-        className="pointer-events-none absolute inset-x-[var(--gutter)] bottom-[56px] h-[13vw] overflow-hidden select-none"
+        className="pointer-events-none absolute inset-x-[var(--gutter)] bottom-[56px] h-[13vw] overflow-hidden select-none max-mobile:bottom-[84px]"
         aria-hidden
       >
         <span
@@ -134,7 +140,15 @@ export default function SiteFooter() {
 
       {/* The bottom row, over the wordmark. */}
       <div className="label-xs absolute inset-x-[var(--gutter)] bottom-[var(--gutter)] z-10 flex items-center justify-between gap-[1em] mix-blend-difference max-mobile:flex-wrap">
-        <span>{SITE.copyright} · {SITE.madeIn}</span>
+        {/*
+          The strapline is dropped on phones: with it the row wrapped to three
+          lines and climbed into the wordmark, and the same words already run
+          in the marquee.
+        */}
+        <span>
+          {SITE.copyright}
+          <span className="max-mobile:hidden"> · {SITE.madeIn}</span>
+        </span>
         <nav aria-label="Footer" className="flex gap-[1.25em] max-tablet:hidden">
           {NAV.map((item) => (
             <TransitionLink key={item.href} href={item.href} className="opacity-70 transition-[opacity,color] duration-300 hover:text-accent hover:opacity-100">
