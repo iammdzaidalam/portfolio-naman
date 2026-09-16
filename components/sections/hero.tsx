@@ -122,7 +122,12 @@ export default function Hero() {
       */}
       <h1
         data-hero-fade
-        className="pointer-events-none absolute bottom-[var(--corner)] left-[var(--corner)] z-[41] max-w-[min(500px,calc(100vw_-_2*var(--corner)))] max-mobile:[text-shadow:0_0_16px_var(--paper)]"
+        /*
+         * On a phone the block is lifted clear of the fixed corner control,
+         * which sits in this same corner and was covering the first letters of
+         * the tagline. On wider screens the two clear each other already.
+         */
+        className="pointer-events-none absolute bottom-[var(--corner)] left-[var(--corner)] z-[41] max-w-[min(500px,calc(100vw_-_2*var(--corner)))] max-mobile:bottom-[calc(var(--corner)+52px)] max-mobile:[text-shadow:0_0_16px_var(--paper)]"
       >
         <span className="label-xs mb-[1.6em] block">{HERO.eyebrow}</span>
 
