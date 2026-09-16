@@ -120,11 +120,25 @@ export default function Carousel({
    * Mouse drag. Pointer capture keeps the gesture alive when the cursor leaves
    * the strip, and the threshold below is what separates a drag of the strip
    * from a click on a frame.
+   *
+   * Capture is taken only once a drag has actually begun, never on the press
+   * itself. This is not a nicety. With capture held from pointerdown, the
+   * browser delivers the click that follows pointerup to the capturing
+   * element, the track, and the button under the cursor never hears it. Every
+   * real mouse click on a frame was being swallowed that way; the automated
+   * checks passed only because `element.click()` skips pointer events
+   * altogether and so never saw the capture.
    */
-  const drag = useRef({ active: false, startX: 0, startLeft: 0, moved: false });
+  const drag = useRef({
+    active: false,
+    startX: 0,
+    startLeft: 0,
+    moved: false,
+    pointerId: -1,
+  });
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType !== "mouse") return;
+    if (event.pointerType !== "mouse" || event.button !== 0) return;
     const track = trackRef.current;
     if (!track) return;
     drag.current = {
@@ -132,8 +146,8 @@ export default function Carousel({
       startX: event.clientX,
       startLeft: track.scrollLeft,
       moved: false,
+      pointerId: event.pointerId,
     };
-    track.setPointerCapture(event.pointerId);
   };
 
   /*
@@ -166,8 +180,13 @@ export default function Carousel({
     const dx = event.clientX - drag.current.startX;
     // 10px, not 4. A press-and-release on a trackpad routinely travels five or
     // six pixels, and at 4 those clicks were being thrown away as drags.
-    if (Math.abs(dx) > 10) drag.current.moved = true;
-    track.scrollLeft = drag.current.startLeft - dx;
+    if (!drag.current.moved && Math.abs(dx) > 10) {
+      drag.current.moved = true;
+      // Now it is a drag, and only now, take the pointer so the gesture
+      // survives the cursor leaving the strip.
+      track.setPointerCapture(event.pointerId);
+    }
+    if (drag.current.moved) track.scrollLeft = drag.current.startLeft - dx;
   };
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {

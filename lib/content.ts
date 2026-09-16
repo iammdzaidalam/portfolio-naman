@@ -663,10 +663,26 @@ export const PHOTOS: Record<
   "showreel" | "studioNote" | "studioPortrait" | "studioLandscape",
   Photo
 > = {
-  /** The home page's opening still. */
+  /**
+   * The studio section's large frame, the one that grows to the viewport and
+   * lands beside the closing claim.
+   *
+   * The crew at work: a frame from their own behind-the-scenes footage of the
+   * Zensu shoot, cut from the 4K source. Two of the team are directing a model
+   * seated on one of the suitcases, one of them holding up a laptop.
+   *
+   * It replaces a wedding photograph, which was a piece of client work sitting
+   * where a picture of the studio should be. The client asked for the founder
+   * with the team. There is no such photograph anywhere in what they have
+   * supplied, and the one clip titled "Founder story" turned out to be a
+   * client advert (Aurex Electricals) whose subject is that client's founder,
+   * so nothing here is captioned as the founder. This is the team on set,
+   * which is true, and it can be swapped the day a team photograph arrives.
+   */
   showreel: {
-    src: "/img/wedding-bougainvillea.jpg",
-    alt: "Couple in white posing playfully against a red-orange wall draped with bougainvillea",
+    src: "/img/studio-crew-zensu.jpg",
+    alt: "Two of the crew direct a model seated on a suitcase on the Zensu set, one of them showing her a laptop",
+    focus: "50% 45%",
   },
   /** Square, beside the studio note on the home page. */
   studioNote: {

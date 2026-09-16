@@ -37,36 +37,92 @@ export const WIPE_RADIUS_RATIO = 0.77;
  * the way it does: the vehicle and the panel are moving together, not past each
  * other.
  *
- * `start` is where each clip is scrubbed to when a navigation begins, and it is
- * the whole reason the transition reads. A page transition can afford about a
- * second and a half; these run 2.4 and 3.8. Played from zero you get the empty
- * lead-in and the panel leaves before anything happens. Measured frame by frame
- * (mean luminance per eighth of a second) and started here instead, the part
- * that matters lands inside the window:
+ * Every number here is measured off the file, not chosen by eye. A page
+ * transition can afford about a second and a half; these clips run 2.4 and
+ * 3.8, so each is scrubbed to `start` and run at `rate` so the part that
+ * matters lands inside the window.
  *
- *   taxi  blacks out at 1.88s and clears by 2.25. Starting at 0.61 puts the
- *         smoke building through the cover, the blackout behind the panel
- *         mid-reveal, and the clearing exactly as the panel leaves.
- *   tram  never covers at all: its darkest frame is still 60% grey, so the
- *         panel does the covering and the tram rides it. Its coupling hook
- *         leaves frame at about 3.35s, so starting at 1.56 lands that on the
- *         last beat of the reveal, which is the moment the client pointed at.
+ *   taxi  Mean luminance sampled every eighth of a second: the exhaust blacks
+ *         the frame out at 1.88s (grey 5 of 255) and it is clear white again by
+ *         2.25. That blackout is the swap the client drew. Started at 0.95 and
+ *         run at 1.15x, the smoke is already building as the panel arrives,
+ *         the frame goes black behind it, and the panel leaves the moment the
+ *         smoke has cleared: `exitAt` is that clearing.
+ *   tram  Never covers at all; its darkest frame is still 60% grey. The panel
+ *         does the covering and the tram rides it. What the tram has instead
+ *         is a coupling hook on its rear, and the rear's position was measured
+ *         frame by frame: it enters the left edge at 2.15s and crosses at a
+ *         constant 0.632 frame-widths per second (every sample within 0.4% of
+ *         that line). The reveal is driven off that: the panel's trailing edge
+ *         is pinned to the tram's rear, so the page is pulled in by the hook.
+ *         `start` puts the rear at the left edge just as the cover completes.
  *
- * `crop` says whether there is anything in the frame worth losing, and it is
- * measured too, by where the ink actually falls:
- *
- *   taxi  ink from 39% to 100% of the frame. The top two fifths are empty sky,
- *         so on a screen wider than the clip that headroom can be cropped away
- *         and the car comes up to a proper size instead of sitting in the
- *         bottom third of a white field.
- *   tram  ink from 0% to 100%. The trolley pole touches the top edge and the
- *         wheels touch the bottom, so there is nothing to give: any vertical
- *         crop takes the pole off. It is contained at every size.
+ * `crop` says whether there is anything in the frame worth losing, measured
+ * by where the ink falls: the taxi runs from 39% to 100% of the frame, so the
+ * top two fifths are sky and can go, and its subject is the exhaust rather
+ * than the car, so on a phone the sides can go too and the smoke fills the
+ * screen; the tram runs 0% to 100%, pole to wheels, and is contained at every
+ * size.
  */
 export const WIPE_CLIPS = [
-  { src: "/video/taxi.mp4", label: "taxi", start: 0.61, crop: "headroom" },
-  { src: "/video/tram.mp4", label: "tram", start: 1.56, crop: "none" },
+  {
+    src: "/video/taxi.mp4",
+    label: "taxi",
+    start: 0.95,
+    rate: 1.15,
+    crop: "headroom",
+    /** Clip time at which the exhaust has cleared and the panel may leave. */
+    exitAt: 2.22,
+  },
+  {
+    src: "/video/tram.mp4",
+    label: "tram",
+    start: 1.48,
+    rate: 1.35,
+    crop: "none",
+    /** Clip time at which the tram's rear edge reaches the left of the frame. */
+    rearEntersAt: 2.15,
+    /** Frame widths per second the rear edge then travels at. */
+    rearSpeed: 0.632,
+  },
 ] as const;
+
+export type WipeClip = (typeof WIPE_CLIPS)[number];
+
+/** Where the tram's rear edge is, as a fraction of the frame width. */
+export function tramRear(clip: WipeClip, time: number): number {
+  if (!("rearEntersAt" in clip)) return 1;
+  return (time - clip.rearEntersAt) * clip.rearSpeed;
+}
+
+/**
+ * The clip's rendered box inside a viewport, under the same rules the CSS
+ * applies: cover anchored to the bottom for the clip with headroom, contained
+ * for the other. Needed so a position measured as a fraction of the frame can
+ * be put on screen in pixels.
+ */
+export function clipBox(
+  clip: WipeClip,
+  width: number,
+  height: number,
+): { left: number; top: number; width: number; height: number } {
+  const ratio = 16 / 9;
+  const wide = width / height > ratio;
+  if (clip.crop === "headroom") {
+    if (wide) {
+      const h = width / ratio;
+      return { left: 0, top: height - h, width, height: h };
+    }
+    const w = height * ratio;
+    return { left: width - w, top: 0, width: w, height };
+  }
+  if (wide) {
+    const w = height * ratio;
+    return { left: (width - w) / 2, top: 0, width: w, height };
+  }
+  const h = width / ratio;
+  return { left: 0, top: (height - h) / 2, width, height: h };
+}
 
 export type BandMetrics = {
   /** Band width: a screenful plus the over-travel, and never less than the dome. */

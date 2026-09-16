@@ -353,7 +353,7 @@ function ShowreelCard({
       />
 
       <div className="text-paper pointer-events-none absolute inset-0 flex flex-col justify-between p-[1em] max-mobile:p-[0.75em]">
-        <div className="label-xs flex justify-end max-mobile:text-[10px]">
+        <div className="label-xs flex justify-end max-mobile:text-[clamp(11px,0.75vw,13px)]">
           <span>
             {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
           </span>

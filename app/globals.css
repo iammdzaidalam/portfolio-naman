@@ -612,7 +612,14 @@ html.has-cursor textarea {
  * horizontal scrollbar every time one ran.
  * ------------------------------------------------------------------------- */
 .transition-overlay {
-  z-index: 300;
+  /*
+   * Above the menu (345), below the header chrome (350). A menu link starts
+   * a navigation and closes the menu on a 0.3s fade; with the wipe below the
+   * menu, that fade ghosted the link text through the arriving panel for its
+   * first frames. Above it, the panel simply covers the menu and the fade
+   * finishes unseen. The logo and the MENU control stay on top throughout.
+   */
+  z-index: 348;
   pointer-events: none;
   position: fixed;
   inset: 0;
@@ -657,52 +664,6 @@ html.has-cursor textarea {
   will-change: transform;
 }
 
-.wipe__hook {
-  /*
-   * Traced off the coupling on the back of the client's tram. Placed by the
-   * provider at the band's trailing edge and laid out a full width to the left
-   * of it, so the drawbar runs back under the band and the hook itself reaches
-   * out over the page arriving behind.
-   *
-   * Low in the frame, near where the coupling sits on the tram, rather than on
-   * the centre line: this is something that pulls a carriage, not a crane.
-   */
-  --hook-w: clamp(120px, 17vh, 230px);
-  position: absolute;
-  top: 72%;
-  left: 0;
-  width: var(--hook-w);
-  height: calc(var(--hook-w) * 120 / 200);
-  margin-top: calc(var(--hook-w) * -60 / 200);
-  margin-left: calc(var(--hook-w) * -1);
-  color: var(--ink);
-  opacity: 0;
-  visibility: hidden;
-  will-change: transform;
-}
-
-.wipe__hook svg {
-  display: block;
-  height: 100%;
-  width: 100%;
-}
-
-/*
- * Contained, so the whole drawing is on screen at every size and nothing is
- * ever cut.
- *
- * It was `object-fit: cover`, which is right for photography and wrong for a
- * drawing of a vehicle: cover crops whichever axis does not fit, and on a phone
- * it scaled this 16:9 frame to 1422px wide to fill 400px of screen, so the
- * reader got the middle quarter of a tram and no idea what it was. Sizing by
- * width instead fixed that and introduced a smaller version of the same fault:
- * the client draws the vehicle sitting low on a ground line, so the 58px of
- * vertical overflow on a wide screen took the wheels off.
- *
- * Contain cannot crop. The letterbox it leaves is the same white as the panel
- * and the same white as the clip, so there is no seam to see, and the
- * composition arrives exactly as it was drawn.
- */
 .wipe__video {
   position: absolute;
   inset: 0;
@@ -714,20 +675,28 @@ html.has-cursor textarea {
 }
 
 /*
- * The one clip with room to spare. Above the clips' own 16:9 the binding
- * dimension is width, so `cover` can only ever crop vertically, and anchoring
- * it to the bottom puts that crop in the taxi's empty sky and keeps its wheels
- * on the ground line. At exactly 16:9 the two fits are identical, so nothing
- * jumps as a window crosses the threshold.
+ * The one clip with room to spare, and the one whose subject is the smoke
+ * rather than the car. Cover, anchored to the bottom, at every size.
  *
- * The tram is not in here on purpose: its pole reaches the top edge of the
- * frame, so there is no sky to take.
+ * On a screen wider than the clip's 16:9 that crops the taxi's empty sky and
+ * brings the car up to size. On a phone it crops the sides instead, and that
+ * is wanted too: the taxi is already right of centre when the panel arrives
+ * (measured: x 0.52 to 0.90 of the frame at the start, off the right edge by
+ * 1.65s) so what a phone sees is its tail driving off and the exhaust filling
+ * the whole screen, which beats a black band across the middle of a
+ * letterboxed strip. The tram is not in here: its pole touches the top edge
+ * and its wheels the bottom, and it has to be seen whole to be read at all.
  */
-@media (min-aspect-ratio: 16 / 9) {
-  .wipe__video[data-crop="headroom"] {
-    object-fit: cover;
-    object-position: center bottom;
-  }
+.wipe__video[data-crop="headroom"] {
+  object-fit: cover;
+  /*
+   * Right, not centre: on a phone the window is the right quarter of the
+   * frame, which is where the taxi is (x 0.52 to 0.90 at the start), so the
+   * car is seen driving off before the smoke takes the screen. On a wide
+   * screen the crop is vertical only and the horizontal anchor changes
+   * nothing.
+   */
+  object-position: right bottom;
 }
 
 /* ---------------------------------------------------------------------------
@@ -742,8 +711,14 @@ html.has-cursor textarea {
   position: fixed;
   inset: 0;
   z-index: 400;
-  display: grid;
-  grid-template-rows: auto 1fr;
+  /*
+   * A flex column, so the stage is a flex item with a definite height. It was
+   * a grid with a `1fr` row, which is not a definite height for a child's
+   * percentage max-height to resolve against, and a portrait frame rendered
+   * at its full 2000px and ran off a 982px screen.
+   */
+  display: flex;
+  flex-direction: column;
   animation: viewer-in 0.3s var(--ease-brand);
 }
 
@@ -761,6 +736,7 @@ html.has-cursor textarea {
 .viewer__bar {
   position: relative;
   z-index: 1;
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -772,6 +748,7 @@ html.has-cursor textarea {
 .viewer__stage {
   position: relative;
   z-index: 1;
+  flex: 1 1 0;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -785,7 +762,14 @@ html.has-cursor textarea {
  * show the whole frame the photographer actually shot.
  */
 .viewer__media {
+  /*
+   * Bounded by the viewport as well as by the stage: `--viewer-chrome` is the
+   * room the bar and the stage's own padding take, and the frame gets the
+   * rest whatever the layout engine makes of percentages.
+   */
+  --viewer-chrome: 150px;
   max-height: 100%;
+  max-height: min(100%, calc(100dvh - var(--viewer-chrome)));
   max-width: 100%;
   width: auto;
   height: auto;
@@ -832,6 +816,18 @@ html.has-cursor textarea {
 
 .viewer__nav--next {
   right: clamp(8px, 2vw, 28px);
+}
+
+/*
+ * No chevrons on a phone. At 390px the frame is 343px wide and two 46px
+ * buttons have nowhere to sit but on top of it. The gesture there is a swipe,
+ * which is wired, and the counter in the bar says there is a set to swipe
+ * through. This is how a phone's own photo app behaves.
+ */
+@media (max-width: 767px) {
+  .viewer__nav {
+    display: none;
+  }
 }
 
 @keyframes viewer-in {

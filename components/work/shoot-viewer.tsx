@@ -48,7 +48,15 @@ export default function ShootViewer({
 
   return (
     <section aria-label={shoot.label}>
-      <div className="flex h-[min(72vh,680px)] items-center justify-center px-[var(--gutter)] max-mobile:h-[min(62vh,520px)]">
+      {/*
+        The display's height is the constant and its width follows the frame,
+        but the width is capped at the column too. Without that cap a landscape
+        frame at 72vh on a phone comes out wider than the screen and the whole
+        page scrolls sideways; with it, the box takes the smaller of the two
+        fits and keeps the frame's own proportions either way. `--display-h`
+        is the height budget the width is derived from.
+      */}
+      <div className="flex h-[var(--display-h)] items-center justify-center px-[var(--gutter)] [--display-h:min(72vh,680px)] max-mobile:[--display-h:min(62vh,520px)]">
         {/*
           Keyed on the source so a new frame mounts fresh and runs the fade in.
           A CSS animation rather than a transition on state, so there is no
@@ -75,8 +83,8 @@ export default function ShootViewer({
             )
           }
           aria-label={`Open full screen: ${shown.alt}`}
-          className="relative h-full cursor-pointer"
-          style={{ aspectRatio: `${shown.w} / ${shown.h}` }}
+          className="relative w-[min(100%,calc(var(--display-h)*var(--ar)))] max-h-full cursor-pointer"
+          style={{ aspectRatio: "var(--ar)", ["--ar" as string]: shown.w / shown.h }}
         >
           <Image
             key={shown.src}

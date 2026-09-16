@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { getLenis } from "@/components/effects/smooth-scroll";
 import { useLoaded } from "@/components/loader";
-import { WIPE_CLIPS, bandMetrics } from "./curved-wipe";
+import { WIPE_CLIPS, bandMetrics, clipBox, tramRear } from "./curved-wipe";
 
 type TransitionContextValue = {
   /** Cover the screen, navigate, then wipe away. Falls back to a plain push. */
@@ -39,23 +39,21 @@ export function useTransition() {
 const GUARD_MS = 3000;
 
 /*
- * Cover, then reveal. A page transition is a cost the reader pays on every
- * click, and these were 0.9 and 1.15, which is two full seconds of not being
- * on the page you asked for. Brought in to about 1.5 all told: long enough for
- * the animation to land, short enough that the tenth click does not grate.
+ * Cover, then leave. A page transition is a cost the reader pays on every
+ * click, and the whole thing is held to about a second and a half.
+ *
+ * The cover is a sweep. What happens after it is the clip's business: the taxi
+ * leaves once its exhaust has cleared, and the tram's rear edge drags the panel
+ * off itself. Both of those are read off the video's own clock, so the panel
+ * and the picture cannot drift apart. `EXIT_S` is the only tween on the way
+ * out and it is the taxi's; the tram has no tween at all.
  */
-const COVER_S = 0.62;
-const REVEAL_S = 0.85;
-
-/*
- * The tram's tow. The coupling creeps a tenth of the way across while the slack
- * goes out of it, then the pull takes the other nine tenths. A little longer
- * than the taxi's reveal all told, which is right: one drives off, the other
- * has to get a whole screen moving.
- */
-const TOW_SLACK = 0.1;
-const TOW_TAKEUP_S = 0.26;
-const TOW_PULL_S = 0.79;
+const COVER_S = 0.5;
+const EXIT_S = 0.45;
+/** The tween used on the way out when a clip is not actually playing. */
+const FALLBACK_S = 0.9;
+/** How long to wait on the taxi's smoke before leaving regardless. */
+const EXIT_WAIT_MS = 1700;
 
 export default function TransitionProvider({
   children,
@@ -76,7 +74,6 @@ export default function TransitionProvider({
   const wrapRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
-  const hookRef = useRef<HTMLDivElement>(null);
   const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
 
   /** Which clip the next navigation takes. The two alternate, strictly. */
@@ -93,6 +90,8 @@ export default function TransitionProvider({
    * the reader the page swap.
    */
   const revealRef = useRef<gsap.core.Timeline | null>(null);
+  /** Stops whatever is driving the current reveal off the video's clock. */
+  const revealStopRef = useRef<(() => void) | null>(null);
   const settleRef = useRef<(() => void) | null>(null);
   const [isBusy, setIsBusy] = useState(false);
 
@@ -175,6 +174,7 @@ export default function TransitionProvider({
         video.pause();
         return;
       }
+      video.playbackRate = WIPE_CLIPS[index].rate;
       video.currentTime = WIPE_CLIPS[index].start;
       // Muted and inline, and this is downstream of a click, so the play
       // promise resolves, but a rejected one must not break the navigation.
@@ -210,28 +210,37 @@ export default function TransitionProvider({
   }, [layout, rollFilm]);
 
   /* ---------------------------------------------------------------------
-   * Reveal. The band carries on in the same direction and leaves by the right
+   * Leave. The band carries on in the same direction and goes by the right
    * edge, so the wipe is one continuous travel interrupted by the route swap
    * rather than a cover that backs out the way it came.
    *
-   * The two clips leave differently, which is the point of there being two.
-   * The taxi drives off at an even pace. The tram is towed: the coupling hook
-   * on the back of it takes the strain, the slack goes out of the drawbar, and
-   * the whole screen is dragged away on the pull with the next page behind it.
-   * The client asked for that one by name, and the hook is drawn into their
-   * animation for it: it is the last thing to leave the frame.
+   * How it goes depends on which clip is on it, and both are read off the
+   * video's own clock rather than timed to match it:
+   *
+   *   taxi  The panel waits for the exhaust to clear (the frame goes black
+   *         and comes back to white behind it, the swap the client drew),
+   *         then sweeps off.
+   *   tram  No sweep. The panel's trailing edge is pinned, every frame, to
+   *         where the tram's rear edge is in the picture, so the coupling hook
+   *         on the back of it is what drags the page in. The client asked for
+   *         exactly that, and with the position measured off the clip it can
+   *         be done literally rather than suggested.
+   *
+   * If the clip is not actually playing (not decoded, a tab throttled to a
+   * stop) neither of those can be trusted, and the panel leaves on a plain
+   * tween instead. The reader gets the page either way.
    * ------------------------------------------------------------------- */
-  const reveal = useCallback(() => {
-    const tl = gsap.timeline();
+  const reveal = useCallback((): { tl: gsap.core.Timeline; stop: () => void } => {
+    const tl = gsap.timeline({ paused: true });
+    let stop = () => {};
     // Re-measure rather than reuse the cover's numbers: the screen is fully
     // covered at this point, so a window resized mid-transition can be taken
     // account of here without anything showing.
     const m = layout();
     const band = bandRef.current;
     const media = mediaRef.current;
-    const hook = hookRef.current;
     const wrap = wrapRef.current;
-    if (!m || !band || !media) return tl;
+    if (!m || !band || !media) return { tl, stop };
 
     // Reveal the incoming page. Done synchronously rather than as a timeline
     // step: if the ticker is asleep (a backgrounded tab throttles rAF to
@@ -239,74 +248,95 @@ export default function TransitionProvider({
     // came back.
     if (wrap) gsap.set(wrap, { autoAlpha: 1 });
 
-    const towed = WIPE_CLIPS[playingRef.current]?.label === "tram";
+    const clip = WIPE_CLIPS[playingRef.current];
+    const video = videoRefs.current[playingRef.current];
+    const live = !!video && video.readyState >= 2 && !video.paused && !video.ended;
+    const box = clipBox(clip, window.innerWidth, window.innerHeight);
 
-    /*
-     * Where the content comes in. On the taxi it follows the band out; on the
-     * tram it waits for the pull, so the page arrives *because* the hook took
-     * up the slack rather than merely after it.
-     */
-    let headingAt = 0.45;
-
-    if (towed) {
-      /*
-       * Two stages, and the ratio between them is what sells it: a short,
-       * decelerating creep while the coupling takes the strain, then the
-       * pull. `power1.in` into `power3.out` is a rope going taut and then
-       * yanking, which a single ease cannot describe.
-       */
-      const slack = m.covered + (m.after - m.covered) * TOW_SLACK;
-
-      tl.to(band, { x: slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
-      tl.to(media, { x: -slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
-      tl.to(band, { x: m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
-      tl.to(media, { x: -m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
-
-      if (hook) {
-        /*
-         * The coupling rides the band's trailing edge, which is the band's own
-         * `x`: the element is laid out a full width to the left of that
-         * origin, so the drawbar runs back under the band and the hook itself
-         * reaches out over the page coming in behind it.
-         */
-        tl.set(hook, { autoAlpha: 0, x: m.covered }, 0);
-        tl.to(hook, { autoAlpha: 0.75, duration: 0.22 }, 0);
-        tl.to(hook, { x: slack, duration: TOW_TAKEUP_S, ease: "power1.in" }, 0);
-        tl.to(hook, { x: m.after, duration: TOW_PULL_S, ease: "power3.out" }, TOW_TAKEUP_S);
-        // Gone before the band is, so the last thing on screen is the page.
-        tl.to(hook, { autoAlpha: 0, duration: 0.28 }, TOW_TAKEUP_S + TOW_PULL_S * 0.45);
-      }
-
-      headingAt = TOW_TAKEUP_S + 0.06;
-    } else {
-      tl.to(band, { x: m.after, duration: REVEAL_S, ease: "brand" }, 0);
-      tl.to(media, { x: -m.after, duration: REVEAL_S, ease: "brand" }, 0);
-    }
-
-    // The incoming page's h1 wipes in from the left as the band leaves, on the
+    // The incoming page's h1 wipes in from the left as the panel goes, on the
     // same left-to-right gesture every reveal on the site runs: see
     // `components/effects/reveal.tsx`. The vertical inset keeps ascenders and
     // descenders outside the clip.
     const heading = wrap?.querySelector("h1, [data-page-heading]");
-    if (heading) {
-      tl.fromTo(
+    const bringHeading = (duration: number) => {
+      if (!heading) return;
+      gsap.fromTo(
         heading,
-        { clipPath: "inset(-0.35em 100% -0.35em 0)", xPercent: towed ? -9 : -4 },
-        {
-          clipPath: "inset(-0.35em 0% -0.35em 0)",
-          xPercent: 0,
-          ease: towed ? "power3.out" : "expo.out",
-          duration: 1,
-        },
-        headingAt,
+        { clipPath: "inset(-0.35em 100% -0.35em 0)", xPercent: -6 },
+        { clipPath: "inset(-0.35em 0% -0.35em 0)", xPercent: 0, ease: "power3.out", duration },
       );
+    };
+
+    // The last steps, shared by every way out.
+    const finish = () => {
+      stop();
+      gsap.set(band, { autoAlpha: 0 });
+      stopFilm();
+      tl.play();
+    };
+    tl.call(() => {});
+
+    // The plain way out: a sweep.
+    const sweep = (duration: number) => {
+      bringHeading(Math.max(0.8, duration));
+      gsap.to(band, { x: m.after, duration, ease: "brand" });
+      gsap.to(media, { x: -m.after, duration, ease: "brand", onComplete: finish });
+    };
+
+    if (live && "rearEntersAt" in clip) {
+      /*
+       * The tram. Each frame, put the panel's trailing edge where the tram's
+       * rear edge is. The clip is pinned to the viewport, so a fraction of the
+       * frame maps straight to pixels through the rendered box; the band's
+       * `x` *is* its trailing edge, and the media is counter-translated by the
+       * same amount as always so the picture holds still under the moving
+       * panel. Stalls are watched for: a clock that stops advancing for half
+       * a second hands over to the sweep rather than leaving the screen stuck.
+       */
+      bringHeading(1.0);
+      let last = -1;
+      let stalled = 0;
+      const tick = () => {
+        const t = video.currentTime;
+        if (t === last) {
+          stalled += 1;
+          if (stalled > 30) {
+            stop();
+            sweep(FALLBACK_S * 0.6);
+            return;
+          }
+        } else {
+          stalled = 0;
+          last = t;
+        }
+        const seam = box.left + tramRear(clip, t) * box.width;
+        const x = Math.max(m.covered, Math.min(m.after, seam));
+        gsap.set(band, { x });
+        gsap.set(media, { x: -x });
+        if (x >= m.after) finish();
+      };
+      gsap.ticker.add(tick);
+      stop = () => gsap.ticker.remove(tick);
+    } else if (live && "exitAt" in clip) {
+      /*
+       * The taxi. Hold the panel until the exhaust has cleared, then leave.
+       * The blackout happens on the way: that is the swap, and it is the one
+       * moment the client's own animation was built around.
+       */
+      const began = performance.now();
+      const tick = () => {
+        if (video.currentTime >= clip.exitAt || performance.now() - began > EXIT_WAIT_MS) {
+          stop();
+          sweep(EXIT_S);
+        }
+      };
+      gsap.ticker.add(tick);
+      stop = () => gsap.ticker.remove(tick);
+    } else {
+      sweep(FALLBACK_S);
     }
 
-    tl.set(band, { autoAlpha: 0 });
-    if (hook) tl.set(hook, { autoAlpha: 0 }, "<");
-    tl.call(stopFilm);
-
-    return tl;
+    return { tl, stop };
   }, [layout, stopFilm]);
 
   const navigate = useCallback(
@@ -328,6 +358,8 @@ export default function TransitionProvider({
       }
 
       // Interrupting a reveal is allowed; leaving it running is not.
+      revealStopRef.current?.();
+      revealStopRef.current = null;
       revealRef.current?.kill();
       revealRef.current = null;
       settleRef.current?.();
@@ -380,15 +412,18 @@ export default function TransitionProvider({
     window.scrollTo(0, 0);
     ScrollTrigger.refresh();
 
-    const tl = reveal();
+    const { tl, stop } = reveal();
     revealRef.current = tl;
+    revealStopRef.current = stop;
 
     let settled = false;
     const settle = () => {
       if (settled) return;
       settled = true;
       window.clearTimeout(guard);
+      stop();
       revealRef.current = null;
+      revealStopRef.current = null;
       settleRef.current = null;
       setIsBusy(false);
       document.documentElement.removeAttribute("data-transitioning");
@@ -399,7 +434,6 @@ export default function TransitionProvider({
         gsap.set(wrapRef.current, { autoAlpha: 1, clearProps: "transform" });
       }
       if (bandRef.current) gsap.set(bandRef.current, { autoAlpha: 0 });
-      if (hookRef.current) gsap.set(hookRef.current, { autoAlpha: 0 });
       ScrollTrigger.refresh();
     };
 
@@ -409,6 +443,7 @@ export default function TransitionProvider({
 
     return () => {
       window.clearTimeout(guard);
+      stop();
       tl.kill();
     };
   }, [pathname, reveal, stopFilm]);
@@ -454,41 +489,6 @@ export default function TransitionProvider({
           </div>
         </div>
 
-        <div ref={hookRef} className="wipe__hook">
-          {/*
-            The tram's own coupling hook, traced off the client's animation.
-            It is drawn into the back of their tram and it is the last thing to
-            leave the frame, which is the whole reason they pointed at it: the
-            hook reaches out past the band's edge and takes the next page with
-            it.
-
-            Drawn rather than cut from the clip because it has to sit exactly on
-            the band's moving edge, and the clip inside the band is playing to
-            its own clock. Set low, where a coupling belongs, rather than
-            centred: a hook at eye level would read as a crane.
-          */}
-          <svg viewBox="0 0 200 120" fill="none" aria-hidden>
-            {/* The drawbar, running back under the band to the tram. */}
-            <path
-              d="M200 55H128"
-              stroke="currentColor"
-              strokeWidth="26"
-              strokeLinecap="round"
-            />
-            {/* The pivot it swings on. */}
-            <circle cx="124" cy="55" r="17" fill="currentColor" />
-            {/*
-              The hook: most of a turn, open at the top, tapering to a point at
-              the upper left. The gap is the part you drop a link into.
-            */}
-            <path
-              d="M107 37A40 40 0 1 1 48 53"
-              stroke="currentColor"
-              strokeWidth="22"
-              strokeLinecap="round"
-            />
-          </svg>
-        </div>
       </div>
     </TransitionContext.Provider>
   );
