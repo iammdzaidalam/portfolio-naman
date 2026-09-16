@@ -6,8 +6,8 @@ import Growth from "@/components/sections/growth";
 import Clients from "@/components/sections/clients";
 
 /**
- * Home: the spiral, the work, the studio, then the argument (services, the
- * numbers, the brands they were made for) and the footer carries the call to
+ * Home: the spiral, then what we do, the work it made, the studio, the
+ * numbers and the brands they were made for; the footer carries the call to
  * action.
  *
  * The clients section runs brief here. In full it is two complete case studies
@@ -17,9 +17,10 @@ export default function HomePage() {
   return (
     <main>
       <Hero />
+      {/* What we do comes straight after the showreel, before the work it made. */}
+      <ServicesList />
       <Works />
       <StudioNote />
-      <ServicesList />
       <Growth />
       <Clients variant="brief" />
     </main>

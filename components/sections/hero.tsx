@@ -157,11 +157,18 @@ export default function Hero() {
          */
         className="absolute right-[var(--corner)] bottom-[var(--corner)] z-[41] max-mobile:top-[calc(var(--nav-height)+0.75em)] max-mobile:bottom-auto max-mobile:[text-shadow:0_0_16px_var(--paper)]"
       >
+        {/*
+          No opacity transition on this button. The hero's intro fades it in
+          with a GSAP `from` tween, and a CSS transition on the same property
+          let the tween capture a mid-transition value as its target: the
+          switch was arriving at 0.15 instead of 0.9. Hover feedback is an
+          underline, as on the reel strips' switch.
+        */}
         <button
           type="button"
           onClick={toggleSound}
           aria-pressed={sound}
-          className="label-xs flex items-center gap-[0.6em] opacity-65 transition-opacity duration-300 hover:opacity-100"
+          className="label-xs flex items-center gap-[0.6em] opacity-90 underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           <span
             aria-hidden

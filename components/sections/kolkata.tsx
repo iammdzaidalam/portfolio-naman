@@ -1,9 +1,7 @@
 "use client";
 
 import { KOLKATA } from "@/lib/content";
-import { KOLKATA_REELS } from "@/lib/reels";
 import SectionHead from "@/components/ui/section-head";
-import ReelStrip from "@/components/work/reel-strip";
 
 /**
  * Home turf: the claim, then four ruled columns of context.
@@ -45,15 +43,6 @@ export default function Kolkata({
         ))}
       </div>
 
-      {/*
-        The city itself, shot in it: a heritage tram on the Esplanade line and a
-        yellow Ambassador on a residential lane. Both arrived filed under other
-        folders, which is where the client happened to put them, not what they
-        are.
-      */}
-      <div className="-mx-[var(--gutter)] mt-[3em]">
-        <ReelStrip reels={KOLKATA_REELS} title="Shot in Kolkata" />
-      </div>
     </section>
   );
 }

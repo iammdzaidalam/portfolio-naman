@@ -9,6 +9,7 @@ import {
 } from "react";
 
 import type { Reel as ReelData } from "@/lib/reels";
+import { claimPlayback } from "@/lib/solo-video";
 
 /**
  * One of the client's clips. Nothing plays, and nothing makes a sound, until it
@@ -84,6 +85,7 @@ export default function Reel({
   const play = useCallback(async () => {
     const video = ref.current;
     if (!video) return;
+    claimPlayback(video);
     video.muted = soundRef ? !soundRef.current : true;
     try {
       await video.play();

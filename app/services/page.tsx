@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
-import { SERVICES, SERVICES_INTRO, WHY, WORKS, workCover } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, WHY, WORKS, serviceId, workCover } from "@/lib/content";
 import { StickyTab, StickyTabGroup } from "@/components/effects/sticky-tabs";
 import SectionHead from "@/components/ui/section-head";
 import Reveal from "@/components/effects/reveal";
@@ -53,6 +53,7 @@ export default function ServicesPage() {
           return (
             <StickyTab
               key={service.no}
+              id={serviceId(service)}
               className="text-ink"
               header={
                 <div className="surface-paper border-ink/15 grid grid-cols-[4em_1fr_10em] items-baseline gap-[1.5em] border-y px-[var(--gutter)] py-[0.9em] max-tablet:grid-cols-[3em_1fr]">

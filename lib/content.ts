@@ -305,6 +305,14 @@ export const SERVICES: Service[] = [
   },
 ];
 
+/**
+ * The anchor a service's section carries on /services, and the home page
+ * links to. Built from the name so the two can never disagree.
+ */
+export function serviceId(service: { name: string }) {
+  return service.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+}
+
 export const SERVICES_INTRO = {
   sign: "Services",
   question: "What do we actually do?",
@@ -402,17 +410,6 @@ export const WORKS: Work[] = [
   { slug: "product-spotlight", title: "Product Spotlight", reels: "product-spotlight" },
   { slug: "store-video", title: "Store Video", reels: "store-video" },
   { slug: "wedding-content", title: "Wedding Content", reels: "wedding-content", shoot: "wedding" },
-  {
-    slug: "wedding-portfolio",
-    title: "Wedding Portfolio",
-    shoot: "wedding",
-    // The one category the client shot on stills rather than video.
-    frame: {
-      src: "/img/wedding-gateway.jpg",
-      alt: "Couple in white laughing together in front of a pink sandstone gateway",
-      focus: "60% 50%",
-    },
-  },
   { slug: "interior", title: "Interior", reels: "interior", shoot: "interior" },
   /*
    * Given a cover clip by the client but left out of the list of ten they

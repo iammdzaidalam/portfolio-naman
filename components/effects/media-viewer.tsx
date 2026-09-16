@@ -12,6 +12,7 @@ import {
 import Image from "next/image";
 
 import { getLenis } from "@/components/effects/smooth-scroll";
+import { claimPlayback } from "@/lib/solo-video";
 
 /**
  * One thing the viewer can show. Photos carry their own source; clips carry a
@@ -169,6 +170,7 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
 
     let cancelled = false;
     const start = async () => {
+      claimPlayback(video);
       video.muted = false;
       try {
         await video.play();

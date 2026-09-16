@@ -6,6 +6,7 @@ import { useGSAP } from "@gsap/react";
 import type { ShowreelClip } from "@/lib/reels";
 import { gsap } from "@/lib/gsap";
 import { useMediaViewer, type ViewerItem } from "@/components/effects/media-viewer";
+import { claimPlayback } from "@/lib/solo-video";
 
 /**
  * The spiral.
@@ -303,6 +304,7 @@ function ShowreelCard({
   const play = async () => {
     const el = video.current;
     if (!el) return;
+    claimPlayback(el);
     el.muted = soundRef ? !soundRef.current : false;
     try {
       await el.play();

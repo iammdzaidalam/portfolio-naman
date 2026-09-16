@@ -155,17 +155,6 @@ export const REELS: Partial<Record<ReelKey, Reel[]>> = {
 };
 
 /**
- * The city itself, for the Kolkata section rather than for any one piece of
- * work: a heritage tram on the Esplanade line and a yellow Ambassador on a
- * residential lane. Both arrived filed under other folders, which is where the
- * client happened to put them, not what they are.
- */
-export const KOLKATA_REELS: Reel[] = [
-  { src: "/video/reels/pgbrand-01.mp4", poster: "/video/posters/pgbrand-01.jpg", w: 720, h: 1280, alt: "Yellow Kolkata taxi rolling up a leafy lane as a woman with a suitcase flags it down from the kerb" },
-  { src: "/video/reels/intro-02.mp4", poster: "/video/posters/intro-02.jpg", w: 720, h: 1280, alt: "Man with a clip-on mic walks along tram tracks toward camera as a teal Kolkata tram waits behind him" },
-];
-
-/**
  * The showreel that turns in the home page hero.
  *
  * The client's own "home screen" folder: a spread of what they do rather than a

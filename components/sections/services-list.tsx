@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { SERVICES, SERVICES_INTRO, WORKS, workCover } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, WORKS, serviceId, workCover } from "@/lib/content";
 import SectionHead from "@/components/ui/section-head";
 import TransitionLink from "@/components/transition/transition-link";
 
@@ -29,7 +29,8 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
         {SERVICES.map((service, index) => (
           <TransitionLink
             key={service.no}
-            href="/services"
+            // Straight to that service's own section on /services.
+            href={`/services#${serviceId(service)}`}
             className="rule group relative grid grid-cols-[4em_1fr_10em] items-baseline gap-[1.5em] border-b py-[1.1em] transition-[padding] duration-500 hover:pl-[1em] max-tablet:grid-cols-[3em_1fr]"
             style={{ transitionTimingFunction: "var(--ease-brand)" }}
           >

@@ -3,9 +3,6 @@
 import Image from "next/image";
 
 import { CLIENTS } from "@/lib/content";
-import { REELS } from "@/lib/reels";
-import ReelStrip from "@/components/work/reel-strip";
-import type { ReelKey } from "@/lib/reels";
 import Reveal from "@/components/effects/reveal";
 import SectionHead from "@/components/ui/section-head";
 import TransitionLink from "@/components/transition/transition-link";
@@ -36,9 +33,6 @@ import TransitionLink from "@/components/transition/transition-link";
  * name who we did it for and send them somewhere, not to spend another screen
  * and a half proving it a second time.
  */
-/** A brand's clips, or nothing at all if that folder yielded none. */
-const reelsFor = (key?: ReelKey) => (key ? (REELS[key] ?? []) : []);
-
 /**
  * A claim as written: one string, or lines the client's copy breaks in a set
  * place, each held whole so no width can split a figure from its unit.
@@ -209,17 +203,6 @@ export default function Clients({
               </div>
             </div>
 
-            {reelsFor(study.reels).length ? (
-              // The strip pads itself by the gutter, so the section's is
-              // cancelled here or the strip steps in 20px from every rule
-              // around it.
-              <div className="col-span-2 -mx-[var(--gutter)] max-tablet:col-span-1">
-                <ReelStrip
-                  reels={reelsFor(study.reels)}
-                  title={`${study.name}: the reels`}
-                />
-              </div>
-            ) : null}
           </article>
         ))}
       </div>

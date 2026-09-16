@@ -55,6 +55,29 @@ const FALLBACK_S = 0.9;
 /** How long to wait on the taxi's smoke before leaving regardless. */
 const EXIT_WAIT_MS = 1700;
 
+/**
+ * Scroll to the element a hash names, with its top sat just under the fixed
+ * nav so a sticky section header lands exactly where it sticks. Returns false
+ * if there is no such element, so the caller can fall back to the top.
+ */
+function scrollToHash(hash: string, immediate: boolean): boolean {
+  if (!hash || hash.length < 2) return false;
+  const el = document.getElementById(decodeURIComponent(hash.slice(1)));
+  if (!el) return false;
+  // `--nav-height` is a calc(), so it has to be resolved by an element rather
+  // than parsed off the string.
+  const probe = document.createElement("div");
+  probe.style.cssText = "position:absolute;visibility:hidden;pointer-events:none;height:var(--nav-height)";
+  document.body.appendChild(probe);
+  const nav = probe.offsetHeight;
+  probe.remove();
+  const top = el.getBoundingClientRect().top + window.scrollY - nav;
+  const lenis = getLenis();
+  if (lenis) lenis.scrollTo(top, { immediate, force: true, duration: immediate ? 0 : 1.1 });
+  else window.scrollTo({ top, behavior: immediate ? "auto" : "smooth" });
+  return true;
+}
+
 export default function TransitionProvider({
   children,
   chrome,
@@ -345,9 +368,15 @@ export default function TransitionProvider({
 
       // A hash or query on the current path does not change `pathname`, so the
       // reveal effect would never fire and the band would sit there forever.
-      // Those navigations go straight through.
+      // Those navigations go straight through: a hash on this page is a
+      // smooth scroll to its section, and the address follows.
       const target = href.split("#")[0].split("?")[0];
       if (target === pathname) {
+        const hash = href.includes("#") ? href.slice(href.indexOf("#")) : "";
+        if (hash && scrollToHash(hash, false)) {
+          window.history.pushState(null, "", href);
+          return;
+        }
         router.push(href);
         return;
       }
@@ -408,8 +437,12 @@ export default function TransitionProvider({
 
     pendingRef.current = null;
     // Lenis may still be easing towards the old page's target; reset it too.
-    getLenis()?.scrollTo(0, { immediate: true, force: true });
-    window.scrollTo(0, 0);
+    // A hash on the new address lands the page on that section instead, done
+    // under the cover so the panel lifts on the section already in place.
+    if (!scrollToHash(window.location.hash, true)) {
+      getLenis()?.scrollTo(0, { immediate: true, force: true });
+      window.scrollTo(0, 0);
+    }
     ScrollTrigger.refresh();
 
     const { tl, stop } = reveal();

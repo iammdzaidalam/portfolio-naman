@@ -27,17 +27,20 @@ export function StickyTabGroup({
 }
 
 export function StickyTab({
+  id,
   header,
   children,
   className,
 }: {
+  /** An anchor, so a link elsewhere can open the page at this tab. */
+  id?: string;
   /** Stays pinned under the nav while `children` scrolls past it. */
   header: ReactNode;
   children: ReactNode;
   className?: string;
 }) {
   return (
-    <section className={`sticky-tab${className ? ` ${className}` : ""}`}>
+    <section id={id} className={`sticky-tab${className ? ` ${className}` : ""}`}>
       <div className="sticky-tab__sticky">{header}</div>
       <div className="sticky-tab__content">{children}</div>
     </section>

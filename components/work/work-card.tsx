@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import type { Photo } from "@/lib/content";
 import type { Reel } from "@/lib/reels";
+import { claimPlayback } from "@/lib/solo-video";
 
 /**
  * A category's cover on the work wall.
@@ -36,6 +37,7 @@ export default function WorkCard({
 
   const onEnter = useCallback(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    if (ref.current) claimPlayback(ref.current);
     void ref.current?.play().catch(() => {
       /* nothing decoded: the still is already showing and stays. */
     });
