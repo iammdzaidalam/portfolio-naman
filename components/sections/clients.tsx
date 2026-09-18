@@ -89,6 +89,7 @@ export default function Clients({
                     fill
                     sizes="(max-width: 992px) 100vw, 44vw"
                     className="object-cover"
+                    style={{ objectPosition: study.focus }}
                   />
                 </div>
 
@@ -146,6 +147,7 @@ export default function Clients({
                   fill
                   sizes="(max-width: 992px) 100vw, 34vw"
                   className="object-cover"
+                  style={{ objectPosition: study.focus }}
                 />
               </div>
             </div>

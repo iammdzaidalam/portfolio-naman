@@ -11,10 +11,23 @@ import TransitionLink from "@/components/transition/transition-link";
 
 /**
  * The site's chrome: the mark top-left, MENU top-right, and the primary
- * navigation as a mono
- * column pinned to the left edge at mid-height, with a small square marking
- * the active route. All of it is fixed and takes the surface-aware chrome
- * colour, so one set of furniture reads over both paper and ink.
+ * navigation as a mono column pinned to the left edge at mid-height, with a
+ * small square marking the active route.
+ *
+ * All of it is fixed, painted white and composited with
+ * `mix-blend-mode: difference` (the `.chrome` rule), so one set of furniture
+ * reads as ink over paper, paper over ink, a negative over photographs, and
+ * inverts wherever it crosses type of its own colour instead of vanishing
+ * into it. A blend only sees the page when the element sits directly in the
+ * root stacking context: a fixed, z-indexed header box would be a stacking
+ * context of its own, and a blend inside it would composite against nothing
+ * but the header's transparent backdrop. So the header is `display: contents`
+ * and each piece is its own fixed element.
+ *
+ * The map pin is the one thing that must not invert (difference turns the
+ * yellow blue over paper), so the mark is drawn twice in the same box: the
+ * blended copy carries the road and the letters, and a plain copy stacked
+ * over it carries the pin.
  *
  * MENU opens an overlay of the same routes set very large, right-aligned,
  * with a rolling hover on each link.
@@ -25,41 +38,6 @@ export default function SiteHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const overlay = useRef<HTMLDivElement>(null);
-
-  /*
-   * The chrome is ink over paper and paper over ink. Every ink section
-   * carries `data-surface="ink"`; on each scroll the header checks whether
-   * one of them sits under the 56px line the mark and MENU occupy, and flips
-   * the root attribute. The open menu is an ink surface too. Plain geometry
-   * rather than ScrollTrigger: two rect reads a frame is nothing, and it has
-   * no refresh or pin interactions to fall out of step with.
-   */
-  useEffect(() => {
-    const sections = Array.from(
-      document.querySelectorAll<HTMLElement>('[data-surface="ink"]'),
-    );
-    // The mark spans 44–85px; flipping on its midline keeps it one colour.
-    const LINE = 66;
-    const apply = () => {
-      const under =
-        open ||
-        sections.some((el) => {
-          const r = el.getBoundingClientRect();
-          return r.top <= LINE && r.bottom >= LINE;
-        });
-      if (under) document.documentElement.setAttribute("data-chrome", "light");
-      else document.documentElement.removeAttribute("data-chrome");
-    };
-    apply();
-    window.addEventListener("scroll", apply, { passive: true });
-    window.addEventListener("resize", apply);
-    document.fonts.ready.then(apply);
-    return () => {
-      window.removeEventListener("scroll", apply);
-      window.removeEventListener("resize", apply);
-      document.documentElement.removeAttribute("data-chrome");
-    };
-  }, [pathname, open]);
 
   // The root carries the open state so the scroll (Lenis) can pause on it.
   useEffect(() => {
@@ -102,20 +80,41 @@ export default function SiteHeader() {
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+  // The mark's box, shared by both copies so they register exactly.
+  const markBox = "fixed top-[var(--corner)] left-[var(--corner)] block w-[112px]";
+
   return (
     <>
       {/* Corner furniture. */}
-      {/* Above the transition covers (z-300), below the loader (z-400). */}
-      <header className="chrome pointer-events-none fixed inset-0 z-[350]">
+      {/*
+        No box of its own, for the blend (see above). Each piece sits above
+        the transition covers (z-300) and below the loader (z-400).
+      */}
+      <header className="contents">
         <TransitionLink
           href="/"
           aria-label={`${SITE.name}, home`}
-          className="pointer-events-auto absolute top-[var(--corner)] left-[var(--corner)] block w-[112px]"
+          className={`chrome z-[350] ${markBox}`}
         >
           <span data-header-logo className="block w-full">
-            <SocialYatriLogo className="w-full" fg="currentColor" bg="var(--chrome-bg)" accent="var(--accent)" />
+            {/*
+              The lane markings are cut out of the road, so under the blend
+              they paint nothing and read as holes over anything.
+            */}
+            <SocialYatriLogo className="w-full" layer="mark" fg="currentColor" />
           </span>
         </TransitionLink>
+
+        {/*
+          The pin, unblended, over the blended mark. It carries
+          `data-header-logo` so the loader reveals it with the other copy, and
+          it comes second in the DOM so the loader's Flip still lands on the
+          blended copy. Its ink sits on the yellow, so it is plain ink. It
+          never takes the pointer: the link beneath does.
+        */}
+        <span aria-hidden data-header-logo className={`pointer-events-none z-[351] ${markBox}`}>
+          <SocialYatriLogo className="w-full" layer="pin" fg="var(--ink)" accent="var(--accent)" />
+        </span>
 
         <button
           type="button"
@@ -126,7 +125,7 @@ export default function SiteHeader() {
           // Not the accent on hover: the cursor dot is that same yellow and
           // sits directly over this word, which makes it hard to read at the
           // exact moment it is being pointed at.
-          className="label pointer-events-auto absolute top-[calc(var(--corner)-16px)] right-[calc(var(--corner)-12px)] min-w-[44px] p-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
+          className="chrome label fixed top-[calc(var(--corner)-16px)] right-[calc(var(--corner)-12px)] z-[350] min-w-[44px] p-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           {open ? "Close" : "Menu ::"}
         </button>
@@ -140,16 +139,20 @@ export default function SiteHeader() {
         */}
         <nav
           aria-label="Primary"
-          className="side-nav pointer-events-auto absolute top-1/2 left-[var(--corner)] -translate-y-1/2 max-tablet:hidden"
+          className="chrome side-nav fixed top-1/2 left-[var(--corner)] z-[350] -translate-y-1/2 max-tablet:hidden"
         >
           <ul className="flex flex-col">
             {NAV.map((item) => {
               const active = isActive(item.href);
               return (
                 <li key={item.href} className="relative">
+                  {/*
+                    The square takes the column's own colour, not the accent:
+                    it lives in the blended layer, where yellow would invert.
+                  */}
                   <span
                     aria-hidden
-                    className={`bg-accent absolute top-1/2 -left-[2px] h-[6px] w-[6px] -translate-y-1/2 transition-opacity duration-300 ${
+                    className={`bg-current absolute top-1/2 -left-[2px] h-[6px] w-[6px] -translate-y-1/2 transition-opacity duration-300 ${
                       active ? "opacity-100" : "opacity-0"
                     }`}
                   />

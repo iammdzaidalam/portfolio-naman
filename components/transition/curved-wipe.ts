@@ -30,99 +30,48 @@
 export const WIPE_RADIUS_RATIO = 0.77;
 
 /**
- * The two clips the wipe carries, taken in turn on successive navigations.
+ * The clip the wipe carries.
  *
- * The client's own animations, drawn for this. Both run on pure white and both
- * travel left to right, which is why the panel is white and why the wipe goes
- * the way it does: the vehicle and the panel are moving together, not past each
- * other.
+ * The client's own animation, drawn for this: a Kolkata taxi drives at the
+ * camera on pure white until its headlamp fills the frame and washes it out.
+ * It runs on white, which is why the panel is white. The car and the panel
+ * are one surface, and the only edge on screen is the arc.
  *
- * Every number here is measured off the file, not chosen by eye. A page
- * transition can afford about a second and a half; these clips run 2.4 and
- * 3.8, so each is scrubbed to `start` and run at `rate` so the part that
- * matters lands inside the window.
+ * Every number here is measured off the file (1280x720, 24 fps, 34 frames,
+ * 1.417s), not chosen by eye.
  *
- *   taxi  Mean luminance sampled every eighth of a second: the exhaust blacks
- *         the frame out at 1.88s (grey 5 of 255) and it is clear white again by
- *         2.25. That blackout is the swap the client drew. Started at 0.95 and
- *         run at 1.15x, the smoke is already building as the panel arrives,
- *         the frame goes black behind it, and the panel leaves the moment the
- *         smoke has cleared: `exitAt` is that clearing.
- *   tram  Never covers at all; its darkest frame is still 60% grey. The panel
- *         does the covering and the tram rides it. What the tram has instead
- *         is a coupling hook on its rear, and the rear's position was measured
- *         frame by frame: it enters the left edge at 2.15s and crosses at a
- *         constant 0.632 frame-widths per second (every sample within 0.4% of
- *         that line). The reveal is driven off that: the panel's trailing edge
- *         is pinned to the tram's rear, so the page is pulled in by the hook.
- *         `start` puts the rear at the left edge just as the cover completes.
+ *   entry  The first three frames are blank. The taxi enters at the bottom
+ *          edge at 0.125s (x 0.26 to 0.58, in the bottom tenth of the frame),
+ *          spans the width by 0.667s and the whole frame by 0.833s. Its
+ *          midpoint stays between x 0.42 and 0.52 the whole way in.
+ *   wash   Mean luminance bottoms out at 169 of 255 at 0.958s, on the bonnet
+ *          and the grille, and climbs as the headlamp takes over: 202 at
+ *          1.167, 240 at 1.292, 253.5 at 1.333 with fewer than 2% of pixels
+ *          below 235, and a flat 255 on the last frame at 1.375. `exitAt` is
+ *          1.333, the first frame of that plateau, so the panel leaves as the
+ *          wash completes rather than after it. The frames the exit then runs
+ *          over are the plateau and, once the clip ends, its held last frame:
+ *          white, the same as the panel.
  *
- * `crop` says whether there is anything in the frame worth losing, measured
- * by where the ink falls: the taxi runs from 39% to 100% of the frame, so the
- * top two fifths are sky and can go, and its subject is the exhaust rather
- * than the car, so on a phone the sides can go too and the smoke fills the
- * screen; the tram runs 0% to 100%, pole to wheels, and is contained at every
- * size.
+ * `start` is 0 and `rate` is 1. The clip is short enough to run whole: 0.5s
+ * of cover, 0.83s of taxi under it and 0.45s of exit come to 1.78s, inside
+ * the two seconds a transition can afford, so nothing is scrubbed. Started on
+ * the cover's first frame, the band (on the brand ease) is 13% of its travel
+ * in when the taxi appears and 84% in by 0.25s, so the car is on screen before
+ * the arc has crossed the middle of it.
+ *
+ * The crop is cover, anchored to the bottom centre, at every size: the ink
+ * runs to the bottom edge from the first frame, the top of the frame is empty
+ * until 0.833s, and the car is centred, so a phone's window on the middle of
+ * the frame keeps it. See `.wipe__video` in `globals.css`.
  */
-export const WIPE_CLIPS = [
-  {
-    src: "/video/taxi.mp4",
-    label: "taxi",
-    start: 0.95,
-    rate: 1.15,
-    crop: "headroom",
-    /** Clip time at which the exhaust has cleared and the panel may leave. */
-    exitAt: 2.22,
-  },
-  {
-    src: "/video/tram.mp4",
-    label: "tram",
-    start: 1.48,
-    rate: 1.35,
-    crop: "none",
-    /** Clip time at which the tram's rear edge reaches the left of the frame. */
-    rearEntersAt: 2.15,
-    /** Frame widths per second the rear edge then travels at. */
-    rearSpeed: 0.632,
-  },
-] as const;
-
-export type WipeClip = (typeof WIPE_CLIPS)[number];
-
-/** Where the tram's rear edge is, as a fraction of the frame width. */
-export function tramRear(clip: WipeClip, time: number): number {
-  if (!("rearEntersAt" in clip)) return 1;
-  return (time - clip.rearEntersAt) * clip.rearSpeed;
-}
-
-/**
- * The clip's rendered box inside a viewport, under the same rules the CSS
- * applies: cover anchored to the bottom for the clip with headroom, contained
- * for the other. Needed so a position measured as a fraction of the frame can
- * be put on screen in pixels.
- */
-export function clipBox(
-  clip: WipeClip,
-  width: number,
-  height: number,
-): { left: number; top: number; width: number; height: number } {
-  const ratio = 16 / 9;
-  const wide = width / height > ratio;
-  if (clip.crop === "headroom") {
-    if (wide) {
-      const h = width / ratio;
-      return { left: 0, top: height - h, width, height: h };
-    }
-    const w = height * ratio;
-    return { left: width - w, top: 0, width: w, height };
-  }
-  if (wide) {
-    const w = height * ratio;
-    return { left: (width - w) / 2, top: 0, width: w, height };
-  }
-  const h = width / ratio;
-  return { left: 0, top: (height - h) / 2, width, height: h };
-}
+export const WIPE_CLIP = {
+  src: "/video/taxi.mp4",
+  start: 0,
+  rate: 1,
+  /** Clip time at which the wash reaches its plateau and the panel may leave. */
+  exitAt: 1.333,
+} as const;
 
 export type BandMetrics = {
   /** Band width: a screenful plus the over-travel, and never less than the dome. */

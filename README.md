@@ -29,13 +29,14 @@ Every value below is measured rather than eyeballed.
   ring over anything clickable), keyboard focus and text selection, the bubble of the
   primary button, pills and links on hover, the active filter, the one headline number
   on the growth section, and the drawn line beside the process.
-- **Chrome.** The fixed mark and MENU are ink over paper and paper over ink. Ink
-  sections carry `data-surface="ink"`; on each scroll the header checks whether one
-  sits under the mark's midline and flips `html[data-chrome="light"]`. The open menu
-  and a page transition flip it too. A blend mode would do the swap for free but
-  inverts anything coloured too, which is what killed the yellow in the mark. The
-  static mark cuts its lane markings out of the road with the even-odd rule, so a
-  photograph behind it shows through the gaps.
+- **Chrome.** The fixed mark, MENU and side column are painted white with
+  `mix-blend-mode: difference`, so they read ink over paper, paper over ink, and
+  invert wherever they cross type of their own colour or a photograph. The header
+  is `display: contents` so each piece sits in the root stacking context, which the
+  blend needs. The yellow pin would turn blue under the blend, so it is drawn a
+  second time in a plain layer above the blended mark. The static mark cuts its
+  lane markings out of the road with the even-odd rule, so whatever is behind it
+  shows through the gaps.
 - **Grid.** A fixed 20px page gutter and a 44px corner inset for the fixed
   furniture. Both are `px` on purpose: corners that scale with the viewport stop
   feeling pinned.
@@ -56,11 +57,11 @@ Every value below is measured rather than eyeballed.
   image; the studio note with its marker, small still and paragraph; and the "View all
   ↳ (09) © 2026" closing row. Every page head is the same two-column grid (marker at
   42%, headline opposite) and the bodies beneath sit on that axis: the services tab
-  copy, the route steps, the contact form, the work wall.
+  copy, the route steps on the home page, the contact form, the work wall.
 - **Colour on every page.** Each services tab carries the still of a ride that came
-  out of that stop; `/studio` opens on two frames; the contact page's direct column
-  sits under a still; case studies end with the next two stops; the testimonials carry
-  a still per thread; the home services index surfaces one on hover.
+  out of that stop; the contact page's direct column sits under a still; the
+  testimonials carry a still per thread; the home services index surfaces one on
+  hover.
 - **Footer.** One viewport tall: the closing line and two outlined pills
   top-left, the social column at four-fifths, a mono row along the bottom edge, and the
   wordmark fitted to the page width by measurement and bled off the bottom.

@@ -26,6 +26,13 @@ type Props = {
    * off for the static header and footer marks.
    */
   drawable?: boolean;
+  /**
+   * Which part of the artwork to draw. The header paints the mark twice in
+   * the same box, one copy under a difference blend and one plain, because
+   * the blend would turn the yellow blue: `mark` is the road and the letters,
+   * `pin` the map pin. Leave it off for the whole artwork.
+   */
+  layer?: "mark" | "pin";
   title?: string;
 };
 
@@ -49,9 +56,12 @@ export default function SocialYatriLogo({
   bg = "var(--ink)",
   accent = "var(--accent)",
   drawable = false,
+  layer,
   title,
 }: Props) {
   const draw = drawable ? strokeProps : null;
+  const showMark = layer !== "pin";
+  const showPin = layer !== "mark";
 
   return (
     <svg
@@ -66,57 +76,62 @@ export default function SocialYatriLogo({
     >
       {title ? <title>{title}</title> : null}
 
-      {drawable ? (
-        <>
-          {/* The script "S" road and the swoosh above the word: one pen stroke. */}
-          <g data-logo-road fill={fg} fillRule="evenodd" color={fg} {...draw}>
-            {LOGO_ROAD.map((d, i) => (
-              <path key={i} d={d} />
-            ))}
-          </g>
+      {showMark &&
+        (drawable ? (
+          <>
+            {/* The script "S" road and the swoosh above the word: one pen stroke. */}
+            <g data-logo-road fill={fg} fillRule="evenodd" color={fg} {...draw}>
+              {LOGO_ROAD.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
 
-          {/* Lane markings, drawn separately so the loader can ink them in turn. */}
-          <g data-logo-dashes fill={bg} color={bg} {...draw}>
-            {LOGO_DASHES.map((d, i) => (
+            {/* Lane markings, drawn separately so the loader can ink them in turn. */}
+            <g data-logo-dashes fill={bg} color={bg} {...draw}>
+              {LOGO_DASHES.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
+          </>
+        ) : (
+          /*
+           * The static mark cuts the lane markings out of the road with the
+           * even-odd rule, so whatever sits behind it (a photograph, the
+           * grain) shows through the gaps instead of a painted surface colour.
+           */
+          <g data-logo-road fill={fg} fillRule="evenodd">
+            <path d={[...LOGO_ROAD, ...LOGO_DASHES].join(" ")} />
+          </g>
+        ))}
+
+      {/* The map pin standing in for the "o" of Social. */}
+      {showPin && (
+        <g data-logo-pin>
+          <g data-logo-pin-body fill={accent} fillRule="evenodd" color={accent} {...draw}>
+            {LOGO_PIN_BODY.map((d, i) => (
               <path key={i} d={d} />
             ))}
           </g>
-        </>
-      ) : (
-        /*
-         * The static mark cuts the lane markings out of the road with the
-         * even-odd rule, so whatever sits behind it (a photograph, the
-         * grain) shows through the gaps instead of a painted surface colour.
-         */
-        <g data-logo-road fill={fg} fillRule="evenodd">
-          <path d={[...LOGO_ROAD, ...LOGO_DASHES].join(" ")} />
+          <g data-logo-pin-ink fill={fg} fillRule="evenodd" color={fg} {...draw}>
+            {LOGO_PIN_INK.map((d, i) => (
+              <path key={i} d={d} />
+            ))}
+          </g>
         </g>
       )}
 
-      {/* The map pin standing in for the "o" of Social. */}
-      <g data-logo-pin>
-        <g data-logo-pin-body fill={accent} fillRule="evenodd" color={accent} {...draw}>
-          {LOGO_PIN_BODY.map((d, i) => (
-            <path key={i} d={d} />
-          ))}
-        </g>
-        <g data-logo-pin-ink fill={fg} fillRule="evenodd" color={fg} {...draw}>
-          {LOGO_PIN_INK.map((d, i) => (
-            <path key={i} d={d} />
-          ))}
-        </g>
-      </g>
-
       {/* "cial Yatri", one group per glyph so they can stagger left to right. */}
-      <g data-logo-word fill={fg} fillRule="evenodd" color={fg}>
-        {LOGO_LETTERS.map((letter) => (
-          <g key={letter.id} data-logo-letter {...draw}>
-            {letter.d.map((d, i) => (
-              <path key={i} d={d} />
-            ))}
-          </g>
-        ))}
-      </g>
+      {showMark && (
+        <g data-logo-word fill={fg} fillRule="evenodd" color={fg}>
+          {LOGO_LETTERS.map((letter) => (
+            <g key={letter.id} data-logo-letter {...draw}>
+              {letter.d.map((d, i) => (
+                <path key={i} d={d} />
+              ))}
+            </g>
+          ))}
+        </g>
+      )}
     </svg>
   );
 }

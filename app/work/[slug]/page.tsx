@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { SITE, WORKS, workCover } from "@/lib/content";
+import { SITE, WORKS } from "@/lib/content";
 import { GALLERY } from "@/lib/gallery";
 import { REELS } from "@/lib/reels";
-import WorkCard from "@/components/work/work-card";
 import ShootViewer from "@/components/work/shoot-viewer";
 import ReelStrip from "@/components/work/reel-strip";
 import Reveal from "@/components/effects/reveal";
@@ -41,7 +40,6 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
 
   const index = WORKS.indexOf(work);
   const next = WORKS[(index + 1) % WORKS.length];
-  const after = WORKS[(index + 2) % WORKS.length];
   const reels = work.reels ? (REELS[work.reels] ?? []) : [];
   const shoot = work.shoot ? GALLERY[work.shoot] : null;
 
@@ -64,7 +62,7 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
       {/*
         Then the photography, where this category has any: one frame held large
         with the whole set beneath it, and choosing from the strip replaces it.
-        Four of the ten categories have a shoot; the rest are video only and
+        Three of the ten categories have a shoot; the rest are video only and
         end above.
       */}
       {shoot ? (
@@ -73,7 +71,7 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
         </div>
       ) : null}
 
-      {/* The facts, then the next two categories. */}
+      {/* The facts, then the way on: all of the work, or the next category. */}
       <section className="px-[var(--gutter)] pt-[3em] pb-[7em]">
         <dl className="grid grid-cols-3 max-mobile:grid-cols-1">
           {[
@@ -92,26 +90,6 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
             </div>
           ))}
         </dl>
-
-        <div className="mt-[4em] grid grid-cols-2 gap-[4vw] max-mobile:grid-cols-1">
-          {[next, after].map((item) => (
-            <TransitionLink
-              key={item.slug}
-              href={`/work/${item.slug}`}
-              className="group block"
-            >
-              <div className="relative aspect-[4/3] overflow-hidden">
-                <WorkCard cover={workCover(item)} sizes="(max-width: 767px) 100vw, 48vw" />
-              </div>
-              <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
-                <span>{item.title}</span>
-                <span className="group-hover:text-accent transition-colors duration-300">
-                  View ↗
-                </span>
-              </p>
-            </TransitionLink>
-          ))}
-        </div>
 
         <div className="mt-[4em] flex flex-wrap items-center gap-[1.5em]">
           <BubbleButton href="/work" invert>

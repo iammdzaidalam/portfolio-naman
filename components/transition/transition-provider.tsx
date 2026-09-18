@@ -14,7 +14,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { getLenis } from "@/components/effects/smooth-scroll";
 import { useLoaded } from "@/components/loader";
-import { WIPE_CLIPS, bandMetrics, clipBox, tramRear } from "./curved-wipe";
+import { WIPE_CLIP, bandMetrics } from "./curved-wipe";
 
 type TransitionContextValue = {
   /** Cover the screen, navigate, then wipe away. Falls back to a plain push. */
@@ -34,26 +34,31 @@ export function useTransition() {
 
 /**
  * How long to wait for a phase before continuing without it. Longer than
- * either timeline (cover 0.9s, reveal 1.15s) with room for a slow route.
+ * either phase (the cover is 0.5s; the wait for the wash and the exit after it
+ * come to 1.3s) with room for a slow route.
  */
 const GUARD_MS = 3000;
 
 /*
  * Cover, then leave. A page transition is a cost the reader pays on every
- * click, and the whole thing is held to about a second and a half.
+ * click, and the whole thing is held under two seconds: 1.78s by the clip's
+ * numbers, of which only the cover is timed rather than read off the clip.
  *
- * The cover is a sweep. What happens after it is the clip's business: the taxi
- * leaves once its exhaust has cleared, and the tram's rear edge drags the panel
- * off itself. Both of those are read off the video's own clock, so the panel
- * and the picture cannot drift apart. `EXIT_S` is the only tween on the way
- * out and it is the taxi's; the tram has no tween at all.
+ * The cover is a sweep. After it the panel holds while the taxi drives at the
+ * camera, and leaves the moment the headlamp has washed the frame white. That
+ * moment is read off the video's own clock (`exitAt`), so the panel and the
+ * picture cannot drift apart. `EXIT_S` is the one tween on the way out.
  */
 const COVER_S = 0.5;
 const EXIT_S = 0.45;
-/** The tween used on the way out when a clip is not actually playing. */
+/** The tween used on the way out when the clip's clock cannot be trusted. */
 const FALLBACK_S = 0.9;
-/** How long to wait on the taxi's smoke before leaving regardless. */
-const EXIT_WAIT_MS = 1700;
+/**
+ * How long to wait on the wash before leaving regardless. It is due 0.83s
+ * after the cover completes; a clip that has not got there in 1.5s has
+ * stalled, and the reader gets the page anyway.
+ */
+const EXIT_WAIT_MS = 1500;
 
 /**
  * Scroll to the element a hash names, with its top sat just under the fixed
@@ -97,12 +102,8 @@ export default function TransitionProvider({
   const wrapRef = useRef<HTMLDivElement>(null);
   const bandRef = useRef<HTMLDivElement>(null);
   const mediaRef = useRef<HTMLDivElement>(null);
-  const videoRefs = useRef<Array<HTMLVideoElement | null>>([]);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
-  /** Which clip the next navigation takes. The two alternate, strictly. */
-  const clipRef = useRef(0);
-  /** Which one is on screen now, which the reveal needs and `clipRef` has already passed. */
-  const playingRef = useRef(0);
   /** Set while the screen is covered and we are waiting on the new route. */
   const pendingRef = useRef<string | null>(null);
   /**
@@ -126,19 +127,17 @@ export default function TransitionProvider({
   }, []);
 
   /*
-   * The clips are only wanted once someone can actually click a link, and they
-   * are several megabytes between them, so they stay unfetched until the intro
-   * has finished rather than competing with it for bandwidth. By the time a
-   * first navigation happens they are buffered, which is why the band never
-   * shows its ink backstop in practice.
+   * The clip is only wanted once someone can actually click a link, so it
+   * stays unfetched until the intro has finished rather than competing with it
+   * for bandwidth. It is 431 KB; by the time a first navigation happens it is
+   * buffered, which is why the band is never seen bare in practice.
    */
   useEffect(() => {
     if (!loaded) return;
-    for (const video of videoRefs.current) {
-      if (!video) continue;
-      video.preload = "auto";
-      video.load();
-    }
+    const video = videoRef.current;
+    if (!video) return;
+    video.preload = "auto";
+    video.load();
   }, [loaded]);
 
   /**
@@ -184,29 +183,21 @@ export default function TransitionProvider({
     return m;
   }, []);
 
-  /** Start whichever clip is next in the rotation, from its first frame. */
+  /** Start the clip from its first frame, at its rate. */
   const rollFilm = useCallback(() => {
-    const index = clipRef.current;
-    playingRef.current = index;
-    clipRef.current = (index + 1) % WIPE_CLIPS.length;
-
-    videoRefs.current.forEach((video, i) => {
-      if (!video) return;
-      gsap.set(video, { autoAlpha: i === index ? 1 : 0 });
-      if (i !== index) {
-        video.pause();
-        return;
-      }
-      video.playbackRate = WIPE_CLIPS[index].rate;
-      video.currentTime = WIPE_CLIPS[index].start;
-      // Muted and inline, and this is downstream of a click, so the play
-      // promise resolves, but a rejected one must not break the navigation.
-      void video.play().catch(() => {});
-    });
+    const video = videoRef.current;
+    if (!video) return;
+    video.playbackRate = WIPE_CLIP.rate;
+    // Seeded on every navigation, not only the first: after a run the clip is
+    // sat on its last frame with `ended` set, and the seek is what clears it.
+    video.currentTime = WIPE_CLIP.start;
+    // Muted and inline, and this is downstream of a click, so the play
+    // promise resolves, but a rejected one must not break the navigation.
+    void video.play().catch(() => {});
   }, []);
 
   const stopFilm = useCallback(() => {
-    for (const video of videoRefs.current) video?.pause();
+    videoRef.current?.pause();
   }, []);
 
   /* ---------------------------------------------------------------------
@@ -237,21 +228,13 @@ export default function TransitionProvider({
    * edge, so the wipe is one continuous travel interrupted by the route swap
    * rather than a cover that backs out the way it came.
    *
-   * How it goes depends on which clip is on it, and both are read off the
-   * video's own clock rather than timed to match it:
-   *
-   *   taxi  The panel waits for the exhaust to clear (the frame goes black
-   *         and comes back to white behind it, the swap the client drew),
-   *         then sweeps off.
-   *   tram  No sweep. The panel's trailing edge is pinned, every frame, to
-   *         where the tram's rear edge is in the picture, so the coupling hook
-   *         on the back of it is what drags the page in. The client asked for
-   *         exactly that, and with the position measured off the clip it can
-   *         be done literally rather than suggested.
+   * When it goes is read off the video's own clock rather than timed to match
+   * it: the panel holds until the headlamp has washed the frame white, then
+   * sweeps off, and the new page comes out of the wash.
    *
    * If the clip is not actually playing (not decoded, a tab throttled to a
-   * stop) neither of those can be trusted, and the panel leaves on a plain
-   * tween instead. The reader gets the page either way.
+   * stop) its clock cannot be trusted, and the panel leaves on a plain tween
+   * instead. The reader gets the page either way.
    * ------------------------------------------------------------------- */
   const reveal = useCallback((): { tl: gsap.core.Timeline; stop: () => void } => {
     const tl = gsap.timeline({ paused: true });
@@ -271,10 +254,10 @@ export default function TransitionProvider({
     // came back.
     if (wrap) gsap.set(wrap, { autoAlpha: 1 });
 
-    const clip = WIPE_CLIPS[playingRef.current];
-    const video = videoRefs.current[playingRef.current];
-    const live = !!video && video.readyState >= 2 && !video.paused && !video.ended;
-    const box = clipBox(clip, window.innerWidth, window.innerHeight);
+    const video = videoRef.current;
+    const decoded = !!video && video.readyState >= 2;
+    const live = decoded && !video.paused && !video.ended;
+    const held = decoded && video.ended;
 
     // The incoming page's h1 wipes in from the left as the panel goes, on the
     // same left-to-right gesture every reveal on the site runs: see
@@ -299,62 +282,34 @@ export default function TransitionProvider({
     };
     tl.call(() => {});
 
-    // The plain way out: a sweep.
+    // The way out: a sweep.
     const sweep = (duration: number) => {
       bringHeading(Math.max(0.8, duration));
       gsap.to(band, { x: m.after, duration, ease: "brand" });
       gsap.to(media, { x: -m.after, duration, ease: "brand", onComplete: finish });
     };
 
-    if (live && "rearEntersAt" in clip) {
+    if (live) {
       /*
-       * The tram. Each frame, put the panel's trailing edge where the tram's
-       * rear edge is. The clip is pinned to the viewport, so a fraction of the
-       * frame maps straight to pixels through the rendered box; the band's
-       * `x` *is* its trailing edge, and the media is counter-translated by the
-       * same amount as always so the picture holds still under the moving
-       * panel. Stalls are watched for: a clock that stops advancing for half
-       * a second hands over to the sweep rather than leaving the screen stuck.
-       */
-      bringHeading(1.0);
-      let last = -1;
-      let stalled = 0;
-      const tick = () => {
-        const t = video.currentTime;
-        if (t === last) {
-          stalled += 1;
-          if (stalled > 30) {
-            stop();
-            sweep(FALLBACK_S * 0.6);
-            return;
-          }
-        } else {
-          stalled = 0;
-          last = t;
-        }
-        const seam = box.left + tramRear(clip, t) * box.width;
-        const x = Math.max(m.covered, Math.min(m.after, seam));
-        gsap.set(band, { x });
-        gsap.set(media, { x: -x });
-        if (x >= m.after) finish();
-      };
-      gsap.ticker.add(tick);
-      stop = () => gsap.ticker.remove(tick);
-    } else if (live && "exitAt" in clip) {
-      /*
-       * The taxi. Hold the panel until the exhaust has cleared, then leave.
-       * The blackout happens on the way: that is the swap, and it is the one
-       * moment the client's own animation was built around.
+       * Hold the panel until the wash has reached its plateau, then leave.
+       * The frames the sweep runs over are the plateau and, once the clip
+       * ends at 1.417s, its held last frame: flat white, the same as the
+       * panel, so the picture cannot cut back to the car mid-sweep. The
+       * wait is capped in case the clock stops advancing.
        */
       const began = performance.now();
       const tick = () => {
-        if (video.currentTime >= clip.exitAt || performance.now() - began > EXIT_WAIT_MS) {
+        if (video.currentTime >= WIPE_CLIP.exitAt || performance.now() - began > EXIT_WAIT_MS) {
           stop();
           sweep(EXIT_S);
         }
       };
       gsap.ticker.add(tick);
       stop = () => gsap.ticker.remove(tick);
+    } else if (held) {
+      // A slow route: the clip ran out under the cover. What it is holding is
+      // the wash, so there is nothing left to wait for.
+      sweep(EXIT_S);
     } else {
       sweep(FALLBACK_S);
     }
@@ -398,13 +353,13 @@ export default function TransitionProvider({
       setIsBusy(true);
       document.documentElement.setAttribute("data-transitioning", "");
 
-      // Prefetching during the cover is free time (by the time the band has
-      // finished climbing the route is usually already in the client cache.
+      // Prefetching during the cover is free time: by the time the band has
+      // finished crossing, the route is usually already in the client cache.
       router.prefetch(href);
 
       const tl = cover();
 
-      // The push happens when the cover finishes) or when the guard fires,
+      // The push happens when the cover finishes, or when the guard fires,
       // whichever comes first. Without the guard a timeline that never
       // completes (a tab backgrounded mid-transition suspends rAF, so GSAP
       // stops advancing) would leave `pendingRef` set forever and every later
@@ -499,29 +454,23 @@ export default function TransitionProvider({
           The band. Sized and positioned entirely by GSAP: the arc's radius is
           a function of viewport width, so leaving it to CSS would mean
           repeating the same constant in two places and letting them drift.
-          Ink underneath the footage, so a clip that fails to load still covers.
+          White underneath the footage, so a clip that fails to load still
+          covers in the clip's own colour.
         */}
         <div ref={bandRef} className="wipe__band">
           <div ref={mediaRef} className="wipe__media">
-            {WIPE_CLIPS.map((clip, i) => (
-              <video
-                key={clip.src}
-                ref={(el) => {
-                  videoRefs.current[i] = el;
-                }}
-                className="wipe__video"
-                data-crop={clip.crop}
-                src={clip.src}
-                muted
-                playsInline
-                preload="none"
-                aria-hidden
-                tabIndex={-1}
-              />
-            ))}
+            <video
+              ref={videoRef}
+              className="wipe__video"
+              src={WIPE_CLIP.src}
+              muted
+              playsInline
+              preload="none"
+              aria-hidden
+              tabIndex={-1}
+            />
           </div>
         </div>
-
       </div>
     </TransitionContext.Provider>
   );

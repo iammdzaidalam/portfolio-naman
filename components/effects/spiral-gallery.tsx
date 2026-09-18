@@ -1,6 +1,7 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useSyncExternalStore, type RefObject } from "react";
+import { useCallback, useEffect, useRef, useState, useSyncExternalStore, type RefObject } from "react";
+import Image from "next/image";
 import { useGSAP } from "@gsap/react";
 
 import type { ShowreelClip } from "@/lib/reels";
@@ -280,6 +281,13 @@ function ShowreelCard({
   onWatch: (watching: boolean) => void;
 }) {
   const video = useRef<HTMLVideoElement>(null);
+  /*
+   * Whether footage is actually on screen, which is what the cover keys off.
+   * Set from the video's own events rather than from the hover, so the cover
+   * lifts only once a frame is painting under it and comes back whenever the
+   * clip stops, whoever stopped it.
+   */
+  const [playing, setPlaying] = useState(false);
 
   const reduced = useSyncExternalStore(
     useCallback((notify: () => void) => {
@@ -308,12 +316,17 @@ function ShowreelCard({
     el.muted = soundRef ? !soundRef.current : false;
     try {
       await el.play();
-    } catch {
+    } catch (err) {
+      // Only the autoplay refusal earns a muted retry. Any other rejection,
+      // chiefly the pointer leaving before the file had a frame, which aborts
+      // the pending play, is left alone: retrying it would start the clip on a
+      // card nobody is over.
+      if (!(err instanceof DOMException && err.name === "NotAllowedError")) return;
       el.muted = true;
       try {
         await el.play();
       } catch {
-        /* leave the poster showing */
+        /* leave the cover showing */
       }
     }
   };
@@ -343,7 +356,7 @@ function ShowreelCard({
       onMouseLeave={stop}
       onFocus={start}
       onBlur={stop}
-      aria-label={`Open full screen: ${clip.alt}`}
+      aria-label={`${clip.title}. Open full screen: ${clip.alt}`}
       /*
        * 9:16, the shape the footage was cut in, so nothing is cropped off a
        * frame built for a phone. The width is three quarters of what the old
@@ -352,55 +365,58 @@ function ShowreelCard({
       className="group bg-ink absolute top-0 left-0 block aspect-[9/16] w-[min(19.5vw,300px)] cursor-pointer overflow-hidden will-change-transform select-none max-tablet:w-[29vw] max-mobile:w-[40vw]"
       style={{ backfaceVisibility: "hidden" }}
     >
-      <video
-        ref={video}
-        poster={clip.poster}
-        muted
-        loop
-        playsInline
-        preload="none"
-        tabIndex={-1}
-        aria-hidden
-        className="h-full w-full object-cover transition-transform duration-[900ms] group-hover:scale-[1.04]"
+      {/*
+       * One child for the whole picture. The hero's intro fades the card's
+       * children in with a tween on their opacity, so the cover's own opacity
+       * transition has to live a level below it or the two fight over the same
+       * property. The hover scale sits here too, so cover and footage grow as
+       * one.
+       */}
+      <span
+        className="absolute inset-0 block transition-transform duration-[900ms] group-hover:scale-[1.04]"
         style={{ transitionTimingFunction: "var(--ease-brand)" }}
       >
-        <source src={clip.src} type="video/mp4" />
-      </video>
+        <video
+          ref={video}
+          poster={clip.poster}
+          muted
+          loop
+          playsInline
+          preload="none"
+          tabIndex={-1}
+          aria-hidden
+          onPlaying={() => setPlaying(true)}
+          onPause={() => setPlaying(false)}
+          className="h-full w-full object-cover"
+        >
+          <source src={clip.src} type="video/mp4" />
+        </video>
 
-      {/*
-        The furniture is white and the footage is not reliably dark behind it, so
-        this scrim darkens only the two bands the text occupies and leaves the
-        middle of the frame alone.
-      */}
-      <div
-        aria-hidden
-        className="from-ink/60 to-ink/70 pointer-events-none absolute inset-0 bg-gradient-to-b via-transparent via-35%"
-      />
+        {/*
+         * The client's designed cover, laid over the footage rather than left
+         * to the video's poster slot alone. A poster is gone for good once a
+         * frame has played, so a card that had been hovered would otherwise
+         * drift round the helix showing whichever frame it stopped on, beside
+         * eight designed covers. This one fades once the footage is painting
+         * and returns when the clip pauses. Served as the file it is: the
+         * optimizer would re-encode artwork with type and yellow gradients
+         * baked in, and 720px already covers a 300px card at 2x.
+         */}
+        <Image
+          src={clip.poster}
+          alt=""
+          width={clip.w}
+          height={clip.h}
+          unoptimized
+          loading="eager"
+          draggable={false}
+          aria-hidden
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${playing ? "opacity-0" : "opacity-100"}`}
+        />
+      </span>
 
-      <div className="text-paper pointer-events-none absolute inset-0 flex flex-col justify-between p-[1em] max-mobile:p-[0.75em]">
-        <div className="label-xs flex justify-end max-mobile:text-[clamp(11px,0.75vw,13px)]">
-          <span>
-            {String(index + 1).padStart(2, "0")} / {String(total).padStart(2, "0")}
-          </span>
-        </div>
-
-        <div>
-          <div className="display text-[clamp(15px,2.45vw,38px)] uppercase">
-            {clip.title}
-          </div>
-          {/*
-            A still frame with no affordance reads as an image, not a clip, so
-            the card says it can be watched. It clears on hover, because by
-            then the motion says it for itself.
-          */}
-          <span className="label-xs mt-[0.75em] flex items-center gap-[0.5em] opacity-80 transition-opacity duration-300 group-hover:opacity-0">
-            <span className="border-paper/70 flex h-[18px] w-[18px] items-center justify-center rounded-full border text-[8px] leading-none">
-              ▶
-            </span>
-            Watch
-          </span>
-        </div>
-      </div>
+      {/* No furniture on the card: the footage is the card. The name and the
+          position stay in the accessible name and the sr-only count below. */}
       <span className="sr-only">{`${index + 1} of ${total}`}</span>
     </button>
   );

@@ -164,6 +164,13 @@ export const REELS: Partial<Record<ReelKey, Reel[]>> = {
  *
  * Seven of the nine titles are also work items in the brief; "Raw takes" and
  * "Gen-Z fashion" are not, and are the client's own additions.
+ *
+ * The posters here are not frames of the footage. The client designed a cover
+ * for each card, with the title set into the artwork, so `poster` points at
+ * those (`/img/covers`, 720x1280 from their 1080x1920 originals) and `alt`
+ * describes the cover rather than the clip's first second. The frame-cut
+ * posters stay in `/video/posters`, where the personal-branding reel above
+ * still uses the one for home-03.
  */
 export type ShowreelClip = Reel & {
   /** The client's name for the piece, along the foot of the card. */
@@ -173,74 +180,74 @@ export type ShowreelClip = Reel & {
 export const SHOWREEL: ShowreelClip[] = [
   {
     src: "/video/reels/home-04.mp4",
-    poster: "/video/posters/home-04.jpg",
+    poster: "/img/covers/home-04.jpg",
     w: 720,
     h: 1280,
     title: "Beyond the feed",
-    alt: "Man in a rust shirt walks along tram tracks beside a vintage blue Kolkata tram, captioned Kolkata.",
+    alt: "Man in a rust shirt with a lapel mic holds up a palm under a big STOP graphic on yellow, cartoon faces crowding behind him.",
   },
   {
     src: "/video/reels/home-06.mp4",
-    poster: "/video/posters/home-06.jpg",
+    poster: "/img/covers/home-06.jpg",
     w: 720,
     h: 1280,
-    title: "Talking head",
-    alt: "Man stands in a sage-green kitchen showroom behind an island laid with material samples.",
+    title: "Product talking head",
+    alt: "Man in a teal patterned shirt carries a wooden plank over his shoulder against a yellow backdrop, wood samples and a plant beside him.",
   },
   {
     src: "/video/reels/home-08.mp4",
-    poster: "/video/posters/home-08.jpg",
+    poster: "/img/covers/home-08.jpg",
     w: 720,
     h: 1280,
     title: "Raw takes",
-    alt: "Aerial view of a cricket stadium at golden hour with a huge IPL logo sheet spread across the outfield.",
+    alt: "Aerial view of a cricket stadium at golden hour, a red cricket ball bursting through cracked glass over the IPL logo on the outfield.",
   },
   {
     src: "/video/reels/home-09.mp4",
-    poster: "/video/posters/home-09.jpg",
+    poster: "/img/covers/home-09.jpg",
     w: 720,
     h: 1280,
     title: "Viral branding",
-    alt: "Man walks toward camera on a leafy college footpath, with a yellow caption reading St. Xaviers College.",
+    alt: "Man in a maroon shirt strides down a sunlit corridor of yellow doors and potted plants, arms spread wide.",
   },
   {
     src: "/video/reels/home-05.mp4",
-    poster: "/video/posters/home-05.jpg",
+    poster: "/img/covers/home-05.jpg",
     w: 720,
     h: 1280,
     title: "Gen-Z fashion",
-    alt: "Two women pose in a warmly lit room with pampas grass and an arched mirror, in crop tops and wide trousers.",
+    alt: "Two women in black embroidered kurtas pose against a cream backdrop as a yellow drape sweeps behind them.",
   },
   {
     src: "/video/reels/home-07.mp4",
-    poster: "/video/posters/home-07.jpg",
+    poster: "/img/covers/home-07.jpg",
     w: 720,
     h: 1280,
     title: "Personal branding",
-    alt: "Bearded man in glasses and a check blazer speaks to camera at an office desk below framed certificates.",
+    alt: "Bearded man in green glasses and a check blazer sits at an executive desk, a globe and brass scales of justice on the shelves behind.",
   },
   {
     src: "/video/reels/home-02.mp4",
-    poster: "/video/posters/home-02.jpg",
+    poster: "/img/covers/home-02.jpg",
     w: 720,
     h: 1280,
     title: "Product spotlight",
-    alt: "Model in a beige coat and jeans sits on an olive hardshell suitcase in a white studio, captioned Strong.",
+    alt: "Model in a beige coat and jeans sits on an olive hardshell suitcase on a yellow backdrop, a smaller case in front.",
   },
   {
     src: "/video/reels/home-01.mp4",
-    poster: "/video/posters/home-01.jpg",
+    poster: "/img/covers/home-01.jpg",
     w: 720,
     h: 1280,
     title: "Store stories",
-    alt: "Woman in a pale pink anarkali raises her arms on a sunlit pavement outside a Fashor clothing store.",
+    alt: "Woman in a pale pink kurta lies across a spread of green Fashor Luxe shopping bags.",
   },
   {
     src: "/video/reels/home-03.mp4",
-    poster: "/video/posters/home-03.jpg",
+    poster: "/img/covers/home-03.jpg",
     w: 720,
     h: 1280,
     title: "Founder story",
-    alt: "Man in a white shirt speaks to camera at a desk against warm wood panelling, captioned Har Brand.",
+    alt: "Man in a white shirt stands with arms crossed on a factory floor, a yellow mark behind him.",
   },
 ];

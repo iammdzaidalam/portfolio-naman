@@ -129,7 +129,7 @@ export default function Hero() {
          */
         className="pointer-events-none absolute bottom-[var(--corner)] left-[var(--corner)] z-[41] max-w-[min(500px,calc(100vw_-_2*var(--corner)))] max-mobile:bottom-[calc(var(--corner)+52px)] max-mobile:[text-shadow:0_0_16px_var(--paper)]"
       >
-        <span className="label-xs mb-[1.6em] block">{HERO.eyebrow}</span>
+        <span className="label mb-[1.4em] block text-[clamp(14px,1.05vw,19px)]">{HERO.eyebrow}</span>
 
         <span className="statement block text-[clamp(32px,3.8vw,56px)]">
           {HERO.lede[0]}
@@ -137,7 +137,7 @@ export default function Hero() {
           {HERO.lede[1]}
         </span>
 
-        <span className="label mt-[1.55em] block opacity-65" lang="hi-Latn">
+        <span className="label mt-[1.3em] block text-[clamp(15px,1.15vw,21px)] opacity-70" lang="hi-Latn">
           {SITE.tagline}
         </span>
       </h1>
@@ -168,7 +168,7 @@ export default function Hero() {
           type="button"
           onClick={toggleSound}
           aria-pressed={sound}
-          className="label-xs flex items-center gap-[0.6em] opacity-90 underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
+          className="label flex items-center gap-[0.6em] text-[clamp(14px,1.05vw,19px)] opacity-90 underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           <span
             aria-hidden

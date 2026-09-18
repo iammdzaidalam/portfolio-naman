@@ -23,7 +23,7 @@ export const SITE = {
    * reason it works. Carried with `lang="hi-Latn"` wherever it is shown, so a
    * screen reader does not read it as mangled English.
    */
-  tagline: "Joh dikhta hai wahi toh bikta hai",
+  tagline: "Kyunki, Joh dikhta hai wahi toh bikta hai",
   description:
     "We combine strategy, creativity, content, branding, technology, and performance marketing to help businesses build a strong digital presence and grow online.",
   city: "Kolkata, West Bengal, India",
@@ -409,7 +409,12 @@ export const WORKS: Work[] = [
   { slug: "co-living-space", title: "Co-Living Space", reels: "co-living-space" },
   { slug: "product-spotlight", title: "Product Spotlight", reels: "product-spotlight" },
   { slug: "store-video", title: "Store Video", reels: "store-video" },
-  { slug: "wedding-content", title: "Wedding Content", reels: "wedding-content", shoot: "wedding" },
+  /*
+   * Video only, at the user's request: the forty wedding photographs are on
+   * /photoshoot, where the client asked for the photography to live, and no
+   * longer repeat under the films here.
+   */
+  { slug: "wedding-content", title: "Wedding Content", reels: "wedding-content" },
   { slug: "interior", title: "Interior", reels: "interior", shoot: "interior" },
   /*
    * Given a cover clip by the client but left out of the list of ten they
@@ -543,6 +548,12 @@ export type CaseStudy = {
   result: string[];
   frame: string;
   alt: string;
+  /**
+   * `object-position` for the frame. The case-study frames are shown at 3:2
+   * on the home page and 4:5 on /studio, and a tall poster needs to say where
+   * its subject is if both crops are to keep the face.
+   */
+  focus?: string;
   /** The client's clips for this brand, keyed into `lib/reels.ts`. */
   reels?: ReelKey;
 };
@@ -551,10 +562,15 @@ export const CLIENTS = {
   sign: "Clients",
   question: "People who rode with us.",
   sub: "We don’t just create content. We create growth.",
+  /*
+   * Two of the client's three paragraphs. The third ("From premium co-living
+   * and PG brands in Kolkata to fashion and lifestyle businesses...") only
+   * previewed the two case studies that follow it, and the user asked for
+   * this section's copy cut down.
+   */
   body: [
     "Good marketing should be more than likes, views, and followers.",
     "At Social Yatri we focus on creating content and digital strategies that help brands build visibility, grow their audience, and become more relevant in the digital space.",
-    "From premium co-living and PG brands in Kolkata to fashion and lifestyle businesses, we work with brands to turn social media into a powerful growth channel.",
   ],
   cases: [
     {
@@ -629,8 +645,14 @@ export const CLIENTS = {
         "The growth wasn’t about chasing numbers alone. It was about creating content people wanted to watch, share, follow, and remember.",
       ],
       reels: "clothing",
-      frame: "/img/wedding-lehenga.jpg",
-      alt: "Bride turning in a flared red and gold lehenga in a carved haveli room",
+      /*
+       * A frame of EnvyMe's own reels. It replaces a bridal photograph from a
+       * wedding shoot in Rajasthan, which was another client's work standing
+       * in for this one.
+       */
+      frame: "/video/posters/clothing-03.jpg",
+      alt: "Woman in a white floral anarkali stands barefoot before carved wooden screens hung with marigold strings",
+      focus: "50% 35%",
     },
   ] satisfies CaseStudy[],
   closing: {
@@ -661,10 +683,7 @@ export const CLIENTS = {
  * `WORKS[6]` silently changes meaning the moment the work list is reordered.
  * ------------------------------------------------------------------------- */
 
-export const PHOTOS: Record<
-  "showreel" | "studioNote" | "studioPortrait" | "studioLandscape",
-  Photo
-> = {
+export const PHOTOS: Record<"showreel" | "studioNote", Photo> = {
   /**
    * The studio section's large frame, the one that grows to the viewport and
    * lands beside the closing claim.
@@ -686,21 +705,19 @@ export const PHOTOS: Record<
     alt: "Two of the crew direct a model seated on a suitcase on the Zensu set, one of them showing her a laptop",
     focus: "50% 45%",
   },
-  /** Square, beside the studio note on the home page. */
+  /**
+   * Square, beside the studio note on the home page.
+   *
+   * One of the crew bent over the camera on its tripod, the warehouse studio
+   * and the suitcases behind him: another frame from the same Zensu
+   * behind-the-scenes clip as the large frame above, 3.4 seconds later and a
+   * different shot. It replaces a wedding photograph of a couple, which was
+   * client work where the studio itself should be.
+   */
   studioNote: {
-    src: "/img/wedding-carry.jpg",
-    alt: "Woman kissing a laughing man on the cheek as he carries her under a frescoed ceiling",
-    focus: "50% 40%",
-  },
-  /** Portrait, on the Studio page: the craft. */
-  studioPortrait: {
-    src: "/img/wedding-foreheads-bw.jpg",
-    alt: "Black and white close-up of a bride and groom touching foreheads, her mehendi hand on his face",
-  },
-  /** Landscape, on the Studio page: the road and the weather. */
-  studioLandscape: {
-    src: "/img/wedding-rain-terrace.jpg",
-    alt: "Couple in white embracing in the rain on a carved terrace below a hilltop fort",
+    src: "/img/studio-crew-camera.jpg",
+    alt: "One of the crew bends over a camera on a tripod in the warehouse studio, suitcases lined up behind him",
+    focus: "50% 50%",
   },
 };
 

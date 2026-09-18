@@ -53,16 +53,6 @@
   --ash: #7a7a7a;
   --accent: #ffc72c;
 
-  /*
-   * The fixed chrome (mark, MENU, side column) is ink over paper and paper
-   * over ink. Ink sections flag themselves with `data-surface="ink"`, the
-   * header watches them, and these two flip. A blend mode would do the swap
-   * for free but inverts anything coloured too, which is what killed the
-   * yellow in the mark.
-   */
-  --chrome-fg: var(--ink);
-  --chrome-bg: var(--paper);
-
   /* The house ease, as a CSS timing function. */
   --ease-brand: cubic-bezier(0.625, 0.05, 0, 1);
 
@@ -103,13 +93,6 @@
     --size-container-min: 320px;
     --size-container-max: 479px;
   }
-}
-
-html[data-chrome="light"],
-html[data-transitioning],
-html[data-menu-open] {
-  --chrome-fg: var(--paper);
-  --chrome-bg: var(--ink);
 }
 
 @layer base {
@@ -264,10 +247,19 @@ html:not([data-spiral-active]) .side-nav {
   pointer-events: none;
 }
 
-/* Fixed chrome takes the surface-aware colour with a short transition. */
+/*
+ * The fixed chrome (mark, MENU, side column) is white under a difference
+ * blend: ink over paper, paper over ink, a negative over photographs, and
+ * where it crosses type of its own colour the overlap inverts instead of
+ * vanishing. A blend composites against its parent stacking context, so each
+ * piece is its own fixed element straight under <body>, with no positioned,
+ * transformed, filtered or isolated ancestor in between; the header itself is
+ * `display: contents`. The yellow pin stays out of this layer, because
+ * difference turns it blue over paper (see the header).
+ */
 .chrome {
-  color: var(--chrome-fg);
-  transition: color 0.35s var(--ease-brand);
+  color: #fff;
+  mix-blend-mode: difference;
 }
 
 /* ---------------------------------------------------------------------------
@@ -664,39 +656,23 @@ html.has-cursor textarea {
   will-change: transform;
 }
 
+/*
+ * Cover, anchored to the bottom centre, at every size. The taxi comes in over
+ * the bottom edge and stays centred (its midpoint is measured at x 0.42 to
+ * 0.52 of the frame from entry to the wash), so on a screen wider than 16:9
+ * it is the empty top of the frame that goes, and on a phone, where the
+ * window is the middle quarter of the frame (x 0.37 to 0.63 at 390x844), the
+ * sides go and the car is still the thing in view: the grille as it arrives,
+ * then the headlamp, then the wash. Contain would put the same car in a strip
+ * a quarter of the screen tall with the panel's own white above and below it.
+ */
 .wipe__video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  opacity: 0;
-  visibility: hidden;
-}
-
-/*
- * The one clip with room to spare, and the one whose subject is the smoke
- * rather than the car. Cover, anchored to the bottom, at every size.
- *
- * On a screen wider than the clip's 16:9 that crops the taxi's empty sky and
- * brings the car up to size. On a phone it crops the sides instead, and that
- * is wanted too: the taxi is already right of centre when the panel arrives
- * (measured: x 0.52 to 0.90 of the frame at the start, off the right edge by
- * 1.65s) so what a phone sees is its tail driving off and the exhaust filling
- * the whole screen, which beats a black band across the middle of a
- * letterboxed strip. The tram is not in here: its pole touches the top edge
- * and its wheels the bottom, and it has to be seen whole to be read at all.
- */
-.wipe__video[data-crop="headroom"] {
   object-fit: cover;
-  /*
-   * Right, not centre: on a phone the window is the right quarter of the
-   * frame, which is where the taxi is (x 0.52 to 0.90 at the start), so the
-   * car is seen driving off before the smoke takes the screen. On a wide
-   * screen the crop is vertical only and the horizontal anchor changes
-   * nothing.
-   */
-  object-position: right bottom;
+  object-position: center bottom;
 }
 
 /* ---------------------------------------------------------------------------

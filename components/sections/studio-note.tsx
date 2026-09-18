@@ -40,11 +40,11 @@ export default function StudioNote() {
 
   return (
     <FlipScrollScene>
-      <section className="text-ink relative z-[2] px-[var(--gutter)] pt-[14vh] pb-[6vh]">
+      <section className="text-ink relative z-[2] px-[var(--gutter)] pt-[8vh] pb-[4vh]">
         <div className="grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1">
           <div>
             <Marker>{ABOUT.sign}</Marker>
-            <div className="mt-[10vh] max-w-[212px] max-tablet:mt-[2em]">
+            <div className="mt-[2em] max-w-[212px]">
               <div className="relative aspect-[1/1] overflow-hidden">
                 <Image
                   src={still.src}
@@ -67,7 +67,7 @@ export default function StudioNote() {
           </Reveal>
         </div>
 
-        <div className="mt-[10vh] grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1">
+        <div className="mt-[4vh] grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1">
           <Waypoint className="col-start-2 aspect-[16/10] w-full max-tablet:col-start-1">
             <div
               data-flip-element="target"
@@ -88,7 +88,7 @@ export default function StudioNote() {
         <Waypoint className="h-[calc(100dvh-2*var(--gutter))] w-full max-mobile:h-[calc(60vh-2*var(--gutter))]" />
       </section>
 
-      <section className="text-ink relative px-[var(--gutter)] pt-[6vh] pb-[14vh]">
+      <section className="text-ink relative px-[var(--gutter)] pt-[4vh] pb-[10vh]">
         <div className="grid grid-cols-[42%_1fr] items-end gap-[4vw] max-tablet:grid-cols-1">
           <Waypoint className="aspect-[16/10] w-full" />
           <div>
