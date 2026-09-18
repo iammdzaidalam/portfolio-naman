@@ -83,21 +83,24 @@ export default function Clients({
                 </p>
 
                 {/*
-                  The logo where the client sent one, small on a field of its
-                  own colour so the card keeps the frame's shape; the frame
-                  itself otherwise.
+                  The logo where the client sent one: a small 3:2 field of the
+                  brand's own colour, under half the column, with the mark set
+                  modestly inside it. A photograph frame otherwise.
                 */}
                 {study.logo ? (
                   <div
-                    className="relative mt-[1.25em] aspect-[3/2] overflow-hidden"
+                    className="relative mt-[1.25em] aspect-[3/2] w-[46%] max-w-[300px] overflow-hidden max-mobile:w-[58%]"
                     style={{ backgroundColor: study.logo.bg }}
                   >
                     <Image
                       src={study.logo.src}
                       alt={study.logo.alt}
                       fill
-                      sizes="(max-width: 992px) 60vw, 26vw"
-                      className="object-contain p-[12%]"
+                      sizes="(max-width: 767px) 60vw, 300px"
+                      // Padding percentages resolve against the width, so the
+                      // vertical pair is chosen to leave a matching share of
+                      // the box's height for the mark.
+                      className="object-contain px-[20%] py-[10%]"
                     />
                   </div>
                 ) : (

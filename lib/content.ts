@@ -748,7 +748,7 @@ export const CLIENTS = {
   cases: [
     {
       name: "Koliving",
-      logo: { src: "/img/clients/koliving.jpg", alt: "Koliving logo", bg: "#ffb901" },
+      logo: { src: "/img/clients/koliving-mark.jpg", alt: "Koliving logo", bg: "#ffb901" },
       claim: "From 300 followers to 5,000+, and 15M+ views.",
       intro: [
         "Koliving is a premium PG and co-living brand in Kolkata, offering modern living spaces for students and young professionals.",
@@ -791,7 +791,7 @@ export const CLIENTS = {
        * the Store Video work; the case study copy names EnvyMe Fashion. Used
        * as sent, and flagged to the client to confirm which brand this is.
        */
-      logo: { src: "/img/clients/fashor.jpg", alt: "Fashor logo", bg: "#ffffff" },
+      logo: { src: "/img/clients/fashor-mark.jpg", alt: "Fashor logo", bg: "#ffffff" },
       /*
        * Two authored lines. As one string the browser broke it between the
        * figure and its unit ("From 12K to 4.1" / "lakh+ followers.") on every
