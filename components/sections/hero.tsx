@@ -32,8 +32,9 @@ export default function Hero() {
    * label. Applied to the cards directly as well, so a clip already running
    * changes at once instead of at its next play.
    */
-  const soundRef = useRef(true);
-  const [sound, setSound] = useState(true);
+  // Off until asked for: nothing on the page makes a sound of its own.
+  const soundRef = useRef(false);
+  const [sound, setSound] = useState(false);
   const toggleSound = useCallback(() => {
     const on = !soundRef.current;
     soundRef.current = on;

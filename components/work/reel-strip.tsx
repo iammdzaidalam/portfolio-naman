@@ -39,8 +39,9 @@ export default function ReelStrip({
    * starts playing, and the state is only there to re-render the label: a card
    * re-rendered mid-clip can drop its playback position.
    */
-  const soundRef = useRef(true);
-  const [sound, setSound] = useState(true);
+  // Off until asked for: nothing on the page makes a sound of its own.
+  const soundRef = useRef(false);
+  const [sound, setSound] = useState(false);
 
   /*
    * Applied straight to the elements as well as to the ref, so a clip that is
@@ -68,6 +69,7 @@ export default function ReelStrip({
         })),
         index,
         title,
+        soundRef.current,
       ),
     [reels, title, viewer],
   );

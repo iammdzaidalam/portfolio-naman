@@ -48,7 +48,7 @@ export const SITE = {
    * is held back rather than guessed: a wrong handle sends people to somebody
    * else's page, which is worse than an absent row.
    */
-  instagram: "Socialyaatri",
+  instagram: "social.yatri",
   linkedin: "",
   madeIn: "Born in Kolkata. Built for the internet.",
   copyright: "© 2026 Social Yatri",
@@ -125,12 +125,18 @@ export type Service = {
   detail: string[];
   /** The client only wrote a goal line for the first service. */
   goal?: string;
+  /**
+   * The client's designed cover for the stop, 16:10 with the line set into
+   * the artwork. Shown on /services and surfaced on hover in the home index.
+   */
+  cover: Photo;
 };
 
 export const SERVICES: Service[] = [
   {
     no: "01",
     name: "Social Media Management",
+    cover: { src: "/img/services/social-media-management.jpg", alt: "Man in sunglasses and a pinstripe suit points at the camera from behind a laptop, social media icons around him, captioned Your social media, handled strategically" },
     desc: "Your social media, handled strategically.",
     tag: "Ongoing",
     body: [
@@ -152,6 +158,7 @@ export const SERVICES: Service[] = [
   {
     no: "02",
     name: "Social Media Marketing",
+    cover: { src: "/img/services/social-media-marketing.jpg", alt: "Curly-haired man in a red check shirt smiles at a laptop beside a yellow mug, captioned Your social media, handled strategically" },
     desc: "Get seen by the right people.",
     tag: "Growth",
     body: [
@@ -166,6 +173,7 @@ export const SERVICES: Service[] = [
   {
     no: "03",
     name: "Content Creation",
+    cover: { src: "/img/services/content-creation.jpg", alt: "Black and white figure at a ship's wheel in smoke, captioned Create content" },
     desc: "Scroll-stopping content. Built for your brand.",
     tag: "Production",
     body: [
@@ -187,6 +195,7 @@ export const SERVICES: Service[] = [
   {
     no: "04",
     name: "Content Strategy",
+    cover: { src: "/img/services/content-strategy.jpg", alt: "Man pulling a baffled face at a laptop, captioned Scroll-stopping content, built for your brand" },
     desc: "Don’t just create content. Create content with a reason.",
     tag: "Foundation",
     body: [
@@ -201,6 +210,7 @@ export const SERVICES: Service[] = [
   {
     no: "05",
     name: "UGC Videos",
+    cover: { src: "/img/services/ugc-video.jpg", alt: "Woman in white being filmed on a phone rig, captioned Make your brand feel real" },
     desc: "Make your brand feel real.",
     tag: "Production",
     body: [
@@ -215,6 +225,7 @@ export const SERVICES: Service[] = [
   {
     no: "06",
     name: "Branding",
+    cover: { src: "/img/services/branding.jpg", alt: "Man painted red with garlands beside a coffee cup labelled Brand, captioned Build a brand people recognize" },
     desc: "Build a brand people recognize.",
     tag: "Design",
     body: [
@@ -236,6 +247,7 @@ export const SERVICES: Service[] = [
   {
     no: "07",
     name: "Personal Branding",
+    cover: { src: "/img/services/personal-branding.jpg", alt: "White-bearded man in a black waistcoat points at the camera from a desk, captioned Turn your expertise into influence" },
     desc: "Turn your expertise into influence.",
     tag: "1:1",
     body: [
@@ -250,6 +262,7 @@ export const SERVICES: Service[] = [
   {
     no: "08",
     name: "Ad Films & Product Shoots",
+    cover: { src: "/img/services/ad-product-shoots.jpg", alt: "Man in a suit holding a monkey beside a penguin, a camera on him, captioned Make your product impossible to ignore" },
     desc: "Make your product impossible to ignore.",
     tag: "Production",
     body: [
@@ -264,6 +277,7 @@ export const SERVICES: Service[] = [
   {
     no: "09",
     name: "Website Development",
+    cover: { src: "/img/services/website-development.jpg", alt: "Man in a black suit at a laptop, captioned Your website should work as hard as your brand" },
     desc: "Your website should work as hard as your brand.",
     tag: "Build",
     body: [
@@ -284,6 +298,7 @@ export const SERVICES: Service[] = [
   {
     no: "10",
     name: "Performance Marketing",
+    cover: { src: "/img/services/performance-marketing.jpg", alt: "Two men at a laptop with a rising bar chart, captioned Spend smarter, grow faster" },
     desc: "Spend smarter. Grow faster.",
     tag: "Paid",
     body: [

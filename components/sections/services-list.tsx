@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 
-import { SERVICES, SERVICES_INTRO, WORKS, serviceId, workCover } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, serviceId } from "@/lib/content";
 import SectionHead from "@/components/ui/section-head";
 import TransitionLink from "@/components/transition/transition-link";
 
@@ -26,7 +26,7 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
       ) : null}
 
       <div className="rule border-t">
-        {SERVICES.map((service, index) => (
+        {SERVICES.map((service) => (
           <TransitionLink
             key={service.no}
             // Straight to that service's own section on /services.
@@ -44,19 +44,12 @@ export default function ServicesList({ withHead = true }: { withHead?: boolean }
               {service.tag}
             </span>
 
-            {/* A still surfaces on hover. */}
+            {/* The stop's cover surfaces on hover. */}
             <span
               aria-hidden
-              className="pointer-events-none absolute top-1/2 right-[11em] aspect-[4/3] w-[12vw] -translate-y-1/2 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-tablet:hidden"
+              className="pointer-events-none absolute top-1/2 right-[11em] aspect-[16/10] w-[13vw] -translate-y-1/2 overflow-hidden opacity-0 transition-opacity duration-500 group-hover:opacity-100 max-tablet:hidden"
             >
-              <Image
-                src={workCover(WORKS[(index * 2) % WORKS.length]).src}
-                alt=""
-                fill
-                sizes="12vw"
-                className="object-cover"
-                style={{ objectPosition: workCover(WORKS[(index * 2) % WORKS.length]).focus }}
-              />
+              <Image src={service.cover.src} alt="" fill sizes="13vw" className="object-cover" />
             </span>
           </TransitionLink>
         ))}

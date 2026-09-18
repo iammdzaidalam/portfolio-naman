@@ -241,7 +241,7 @@ export default function SpiralGallery({
               index={i}
               total={clips.length}
               soundRef={soundRef}
-              onOpen={() => viewer.open(items, i, "Showreel")}
+              onOpen={() => viewer.open(items, i, "Showreel", soundRef?.current ?? false)}
               onWatch={(watching) => {
                 if (watching) loopRef.current?.pause();
                 else loopRef.current?.play();

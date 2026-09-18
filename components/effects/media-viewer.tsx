@@ -31,9 +31,11 @@ type ViewerContextValue = {
   /**
    * Open the viewer on `items`, starting at `index`. `label` names the set it
    * came from, which is the only caption shown: the frame is on screen, so
-   * the reader does not need it described to them.
+   * the reader does not need it described to them. `sound` is whether the
+   * strip's switch was on: nothing plays with sound unless the reader has
+   * asked for it, and the viewer's own controls can turn it on from there.
    */
-  open: (items: ViewerItem[], index: number, label?: string) => void;
+  open: (items: ViewerItem[], index: number, label?: string, sound?: boolean) => void;
 };
 
 const ViewerContext = createContext<ViewerContextValue | null>(null);
@@ -47,7 +49,7 @@ export function useMediaViewer(): ViewerContextValue {
   return useContext(ViewerContext) ?? { open: () => {} };
 }
 
-type State = { items: ViewerItem[]; index: number; label?: string } | null;
+type State = { items: ViewerItem[]; index: number; label?: string; sound: boolean } | null;
 
 /**
  * The full-screen viewer: one frame at a time, at its own proportions, over a
@@ -75,10 +77,10 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
   const returnTo = useRef<HTMLElement | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  const open = useCallback((items: ViewerItem[], index: number, label?: string) => {
+  const open = useCallback((items: ViewerItem[], index: number, label?: string, sound = false) => {
     if (!items.length) return;
     returnTo.current = document.activeElement as HTMLElement | null;
-    setState({ items, index: Math.min(Math.max(index, 0), items.length - 1), label });
+    setState({ items, index: Math.min(Math.max(index, 0), items.length - 1), label, sound });
   }, []);
 
   const close = useCallback(() => {
@@ -150,18 +152,20 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
   }, [state, close, step]);
 
   /*
-   * Start the clip, with sound, and settle for silence rather than nothing.
+   * Start the clip, silent unless the switch it came from was on, and settle
+   * for silence rather than nothing.
    *
    * A browser only allows unmuted playback off a trusted gesture. Opening the
-   * viewer is one, so this usually succeeds; but the same viewer is reachable
-   * from a keyboard press and from a restored session, where it is not, and an
-   * outright rejection would leave a still frame and a play button under a
-   * reader who has already said they want to watch it. So: ask for sound, and
-   * on refusal play it muted, which the controls let them undo.
+   * viewer is one, so a requested sound usually succeeds; but the same viewer
+   * is reachable from a keyboard press and from a restored session, where it
+   * is not, and an outright rejection would leave a still frame and a play
+   * button under a reader who has already said they want to watch it. So: on
+   * refusal play it muted, which the controls let them undo.
    */
   const videoRef = useRef<HTMLVideoElement>(null);
   const shownSrc = state ? state.items[state.index]?.src : null;
   const shownKind = state ? state.items[state.index]?.kind : null;
+  const shownSound = state ? state.sound : false;
 
   useEffect(() => {
     if (shownKind !== "video") return;
@@ -171,7 +175,7 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
     let cancelled = false;
     const start = async () => {
       claimPlayback(video);
-      video.muted = false;
+      video.muted = !shownSound;
       try {
         await video.play();
       } catch {
@@ -188,7 +192,7 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
     return () => {
       cancelled = true;
     };
-  }, [shownSrc, shownKind]);
+  }, [shownSrc, shownKind, shownSound]);
 
   /*
    * Swipe. Only a decisive, mostly-horizontal gesture counts: a vertical drag

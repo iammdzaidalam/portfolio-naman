@@ -1,12 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 
-import { SERVICES, SERVICES_INTRO, WHY, WORKS, serviceId, workCover } from "@/lib/content";
+import { SERVICES, SERVICES_INTRO, WHY, serviceId } from "@/lib/content";
 import { StickyTab, StickyTabGroup } from "@/components/effects/sticky-tabs";
 import SectionHead from "@/components/ui/section-head";
 import Reveal from "@/components/effects/reveal";
 import MarqueeStrip from "@/components/sections/marquee-strip";
-import TransitionLink from "@/components/transition/transition-link";
 
 export const metadata: Metadata = {
   title: "Services",
@@ -41,15 +40,12 @@ export default function ServicesPage() {
         Sticky section tabs. Each stop's header pins under the site
         header and the next arrives on top of it, so the list reads as a stack
         of tabs. The header row shares its grid with the services index on the
-        home page (index, name, tag) and each body puts a still in the marker
-        column and the copy on the headline's axis, so the page keeps one grid.
+        home page (index, name, tag) and each body puts the client's cover in
+        the marker column and the copy on the headline's axis, so the page
+        keeps one grid.
       */}
       <StickyTabGroup>
-        {SERVICES.map((service, index) => {
-          // Ten stops, nine rides: each stop takes the next still in the reel.
-          const work = WORKS[index % WORKS.length];
-          const cover = workCover(work);
-
+        {SERVICES.map((service) => {
           return (
             <StickyTab
               key={service.no}
@@ -66,28 +62,16 @@ export default function ServicesPage() {
               }
             >
               <div className="grid grid-cols-[42%_1fr] gap-[4vw] px-[var(--gutter)] pt-[2.5em] pb-[5em] max-tablet:grid-cols-1 max-tablet:gap-[2.5em]">
-                {/* A ride that came out of this stop, in colour. */}
-                <TransitionLink href={`/work/${work.slug}`} className="group block">
-                  <div className="relative aspect-[16/10] overflow-hidden">
-                    <Image
-                      src={cover.src}
-                      alt={cover.alt}
-                      fill
-                      sizes="(max-width: 992px) 100vw, 42vw"
-                      className="object-cover transition-transform duration-[1100ms] group-hover:scale-[1.03]"
-                      style={{
-                        transitionTimingFunction: "var(--ease-brand)",
-                        objectPosition: cover.focus,
-                      }}
-                    />
-                  </div>
-                  <p className="label-xs mt-[14px] flex justify-between gap-[1em] opacity-60 transition-opacity duration-300 group-hover:opacity-100">
-                    <span>{work.title}</span>
-                    <span className="group-hover:text-accent transition-colors duration-300">
-                      View ↗
-                    </span>
-                  </p>
-                </TransitionLink>
+                {/* The client's cover for this stop. */}
+                <div className="relative aspect-[16/10] overflow-hidden">
+                  <Image
+                    src={service.cover.src}
+                    alt={service.cover.alt}
+                    fill
+                    sizes="(max-width: 992px) 100vw, 42vw"
+                    className="object-cover"
+                  />
+                </div>
 
                 <div>
                   <p className="statement max-w-[14em] text-[clamp(20px,2.4vw,34px)] opacity-70">

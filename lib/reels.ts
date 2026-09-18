@@ -103,6 +103,8 @@ export const REELS: Partial<Record<ReelKey, Reel[]>> = {
     { src: "/video/reels/wed-emotional-03.mp4", poster: "/video/posters/wed-emotional-03.jpg", w: 720, h: 1280, alt: "Man in a printed sherwani throws his arms wide on a confetti-covered stage under red lights" },
     { src: "/video/reels/wed-funcousins-02.mp4", poster: "/video/posters/wed-funcousins-02.jpg", w: 720, h: 1280, alt: "Groom-to-be in cream dances while six relatives tug him back towards a flower-framed neon sign" },
     { src: "/video/reels/wed-storytelling-02.mp4", poster: "/video/posters/wed-storytelling-02.jpg", w: 720, h: 1280, alt: "Woman in a magenta lehenga makes a heart with her mehendi hands on a terrace above the sea" },
+    // The third storytelling clip (IMG_2326), asked for by name. The first twelve seconds of an 85 second edit.
+    { src: "/video/reels/wed-storytelling-03.mp4", poster: "/video/posters/wed-storytelling-03.jpg", w: 720, h: 1280, alt: "Couple in yellow and green embrace beside a pool under white umbrellas, captioned POV: this is what winning at love looks like" },
     { src: "/video/reels/wed-emotional-01.mp4", poster: "/video/posters/wed-emotional-01.jpg", w: 720, h: 1280, alt: "Man in a mustard kurta and sunglasses speaks to camera beside sunflowers, titled One Person Many Emotions" },
     { src: "/video/reels/wed-couple-02.mp4", poster: "/video/posters/wed-couple-02.jpg", w: 720, h: 1280, alt: "Engaged couple hold out their palms beside a wall of magenta roses as nicknames appear above their hands" },
     { src: "/video/reels/wed-funcousins-03.mp4", poster: "/video/posters/wed-funcousins-03.jpg", w: 720, h: 1280, alt: "Friends kneel in a ring around a seated man, hands outstretched, in a wood-panelled hotel room" },
