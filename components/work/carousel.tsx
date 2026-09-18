@@ -30,6 +30,7 @@ export default function Carousel({
   eager = 0,
   onSelect,
   activeIndex,
+  compact = false,
 }: {
   photos: GalleryPhoto[];
   /** Names the set for assistive tech: "Wedding photography, 40 frames". */
@@ -50,6 +51,8 @@ export default function Carousel({
    * critical path for a section nobody has scrolled to yet.
    */
   eager?: number;
+  /** Thumbnail height below the tablet breakpoint, for a strip under a display. */
+  compact?: boolean;
 }) {
   const viewer = useMediaViewer();
   const trackRef = useRef<HTMLDivElement>(null);
@@ -221,7 +224,7 @@ export default function Carousel({
 
   return (
     <section
-      className="relative"
+      className={compact ? "carousel--compact relative" : "relative"}
       aria-roledescription="carousel"
       aria-label={`${label}, ${photos.length} frames`}
     >

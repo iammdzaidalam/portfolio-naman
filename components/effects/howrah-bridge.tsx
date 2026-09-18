@@ -221,22 +221,42 @@ export default function HowrahBridge({ className }: { className?: string }) {
         return;
       }
 
-      render(0);
-      const trigger = ScrollTrigger.create({
-        trigger: scene,
-        start: "clamp(top center)",
-        end: "clamp(bottom center)",
-        invalidateOnRefresh: true,
-        onUpdate: (self) => render(self.progress),
-      });
+      /*
+       * On a phone the drawing is not beside the list but static above it
+       * (`max-mobile:static` in the section), so pacing it by the list drew
+       * it almost entirely off screen: a tenth of the flight with the bridge
+       * centred, and barely half by the time it had scrolled out of the top.
+       * There it is paced by its own passage up the screen instead, from its
+       * top entering low down to its top nearing the top edge, so the plane
+       * lands while the whole bridge is still in view and the fade takes it
+       * out as it leaves.
+       */
+      const phoneQuery = window.matchMedia("(max-width: 767px)");
+      let trigger: ScrollTrigger | null = null;
+      const build = () => {
+        trigger?.kill();
+        const phone = phoneQuery.matches;
+        render(0);
+        trigger = ScrollTrigger.create({
+          trigger: phone ? svg : scene,
+          start: phone ? "clamp(top 90%)" : "clamp(top center)",
+          end: phone ? "clamp(top 10%)" : "clamp(bottom center)",
+          invalidateOnRefresh: true,
+          onUpdate: (self) => render(self.progress),
+        });
+      };
+      build();
 
       // The framing is measured in viewBox units, so a resize needs no rebuild
-      //, but the trigger's range does.
+      //, but the trigger's range does, and crossing the phone breakpoint
+      // changes what the trigger is measured against.
       const onResize = () => ScrollTrigger.refresh();
       window.addEventListener("resize", onResize);
+      phoneQuery.addEventListener("change", build);
       return () => {
         window.removeEventListener("resize", onResize);
-        trigger.kill();
+        phoneQuery.removeEventListener("change", build);
+        trigger?.kill();
       };
     },
     { scope: root },

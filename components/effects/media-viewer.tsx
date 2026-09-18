@@ -122,12 +122,28 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
       } else if (event.key === "ArrowLeft") {
         event.preventDefault();
         step(-1);
+      } else if (event.key === " " || event.key.toLowerCase() === "m") {
+        // The clip's own controls are pointer-only (see the video below), so
+        // the keyboard gets play and mute here. A focused button keeps Space
+        // for itself.
+        const video = dialogRef.current?.querySelector<HTMLVideoElement>("video");
+        const onButton = document.activeElement instanceof HTMLButtonElement;
+        if (!video || onButton) return;
+        event.preventDefault();
+        if (event.key === " ") {
+          if (video.paused) void video.play().catch(() => {});
+          else video.pause();
+        } else {
+          video.muted = !video.muted;
+        }
       } else if (event.key === "Tab") {
         // A small, explicit trap. The dialog holds four controls at most, so
         // cycling them by hand is simpler and steadier than a generic
         // focusable-node sweep over arbitrary content.
+        // The scrim is a button for pointer users only (tabindex -1), so it
+        // must not become a dead stop in the cycle.
         const focusable = dialogRef.current?.querySelectorAll<HTMLElement>(
-          "button:not([disabled])",
+          'button:not([disabled]):not([tabindex="-1"])',
         );
         if (!focusable?.length) return;
         const first = focusable[0];
@@ -144,7 +160,6 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
 
     window.addEventListener("keydown", onKey);
     return () => {
-      window.removeEventListener("keydown", onKey);
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = overflow;
       lenis?.start();
@@ -276,6 +291,11 @@ export default function MediaViewerProvider({ children }: { children: ReactNode 
                 src={shown.src}
                 poster={shown.poster}
                 controls
+                // Not a tab stop: once focus is inside Chrome's native media
+                // controls no key event reaches the page, so Escape and the
+                // arrows would die there. The controls stay for the pointer;
+                // the keyboard gets Space and M from the handler above.
+                tabIndex={-1}
                 loop
                 playsInline
                 aria-label={shown.alt}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 
 import { NAV, SITE } from "@/lib/content";
@@ -10,11 +9,11 @@ import SocialYatriLogo from "@/components/logo/social-yatri-logo";
 import TransitionLink from "@/components/transition/transition-link";
 
 /**
- * The site's chrome: the mark top-left, MENU top-right, and the primary
- * navigation as a mono column pinned to the left edge at mid-height, with a
- * small square marking the active route.
+ * The site's chrome: the mark top-left and MENU top-right. MENU carries the
+ * navigation everywhere; the route column that used to sit on the left edge
+ * of the home screen is gone at the client's request.
  *
- * All of it is fixed, painted white and composited with
+ * Both are fixed, painted white and composited with
  * `mix-blend-mode: difference` (the `.chrome` rule), so one set of furniture
  * reads as ink over paper, paper over ink, a negative over photographs, and
  * inverts wherever it crosses type of its own colour instead of vanishing
@@ -35,7 +34,6 @@ import TransitionLink from "@/components/transition/transition-link";
  * The mark is hidden until the loader hands it over with `Flip.fit`.
  */
 export default function SiteHeader() {
-  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const overlay = useRef<HTMLDivElement>(null);
 
@@ -77,11 +75,11 @@ export default function SiteHeader() {
     { dependencies: [open] },
   );
 
-  const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
-
-  // The mark's box, shared by both copies so they register exactly.
-  const markBox = "fixed top-[var(--corner)] left-[var(--corner)] block w-[112px]";
+  // The mark's box, shared by both copies so they register exactly. Its
+  // height follows from the width and the artwork's viewBox (1000 by 369),
+  // and MENU is centred on that height, so both are declared once on the
+  // header and inherited: custom properties pass through `display: contents`.
+  const markBox = "fixed top-[var(--corner)] left-[var(--corner)] block w-[var(--mark-w)]";
 
   return (
     <>
@@ -90,11 +88,16 @@ export default function SiteHeader() {
         No box of its own, for the blend (see above). Each piece sits above
         the transition covers (z-300) and below the loader (z-400).
       */}
-      <header className="contents">
+      <header className="contents [--mark-h:calc(var(--mark-w)*369/1000)] [--mark-w:112px]">
+        {/*
+          A 44px tap box, like MENU: the link's top is pulled up by half the
+          difference and the mark is centred in it, so the artwork and the pin
+          copy below still register on the same pixels.
+        */}
         <TransitionLink
           href="/"
           aria-label={`${SITE.name}, home`}
-          className={`chrome z-[350] ${markBox}`}
+          className={`chrome z-[350] ${markBox} -mt-[calc((44px-var(--mark-h))/2)] flex min-h-[44px] items-center`}
         >
           <span data-header-logo className="block w-full">
             {/*
@@ -121,54 +124,18 @@ export default function SiteHeader() {
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}
           aria-controls="site-menu"
-          // Padded out to a 44px target without moving the text off the corner.
+          // A 44px box centred on the mark's height, so the word sits level
+          // with the mark's middle at every corner size (it used to hang from
+          // the mark's top edge, which read as floating on phones), padded out
+          // sideways without moving the text off the corner.
           // Not the accent on hover: the cursor dot is that same yellow and
           // sits directly over this word, which makes it hard to read at the
           // exact moment it is being pointed at.
-          className="chrome label fixed top-[calc(var(--corner)-16px)] right-[calc(var(--corner)-12px)] z-[350] min-w-[44px] p-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
+          className="chrome label fixed top-[calc(var(--corner)+(var(--mark-h)-44px)/2)] right-[calc(var(--corner)-12px)] z-[350] flex h-[44px] min-w-[44px] items-center justify-end px-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           {open ? "Close" : "Menu ::"}
         </button>
 
-        {/* The left column: the routes, mid-height, one square. */}
-        {/*
-          The side column. It only exists while the home spiral is
-          pinned on screen: `html[data-spiral-active]`, set by the spiral:
-          because every other section is editorial and uses the left edge.
-          MENU carries the navigation everywhere else.
-        */}
-        <nav
-          aria-label="Primary"
-          className="chrome side-nav fixed top-1/2 left-[var(--corner)] z-[350] -translate-y-1/2 max-tablet:hidden"
-        >
-          <ul className="flex flex-col">
-            {NAV.map((item) => {
-              const active = isActive(item.href);
-              return (
-                <li key={item.href} className="relative">
-                  {/*
-                    The square takes the column's own colour, not the accent:
-                    it lives in the blended layer, where yellow would invert.
-                  */}
-                  <span
-                    aria-hidden
-                    className={`bg-current absolute top-1/2 -left-[2px] h-[6px] w-[6px] -translate-y-1/2 transition-opacity duration-300 ${
-                      active ? "opacity-100" : "opacity-0"
-                    }`}
-                  />
-                  <TransitionLink
-                    href={item.href}
-                    className={`label block pl-[16px] transition-opacity duration-300 hover:opacity-100 ${
-                      active ? "opacity-100" : "opacity-60"
-                    }`}
-                  >
-                    {item.label}
-                  </TransitionLink>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
       </header>
 
       {/* The menu. */}
@@ -187,7 +154,7 @@ export default function SiteHeader() {
                 data-menu-link
                 onClick={() => setOpen(false)}
                 // Sized by height as well, so five lines fit a laptop screen.
-                className="group display block py-[0.04em] text-[clamp(40px,min(7.5vw,10.5vh),112px)] uppercase"
+                className="group display block min-h-[44px] py-[0.04em] text-[clamp(40px,min(7.5vw,10.5vh),112px)] uppercase"
               >
                 {/* Two copies, so the label rolls on hover. */}
                 <span className="relative block overflow-hidden">
@@ -209,7 +176,7 @@ export default function SiteHeader() {
         <div className="label flex flex-wrap justify-between gap-[1em]">
           <a
             href={`mailto:${SITE.email}`}
-            className="hover:text-accent opacity-65 transition-[opacity,color] duration-300 hover:opacity-100"
+            className="hover:text-accent py-[11px] opacity-65 transition-[opacity,color] duration-300 hover:opacity-100"
           >
             {SITE.email}
           </a>

@@ -14,10 +14,10 @@ import { usePathname, useRouter } from "next/navigation";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
 import { getLenis } from "@/components/effects/smooth-scroll";
 import { useLoaded } from "@/components/loader";
-import { WIPE_CLIP, bandMetrics } from "./curved-wipe";
+import { TAXI_CLIP } from "./taxi-clip";
 
 type TransitionContextValue = {
-  /** Cover the screen, navigate, then wipe away. Falls back to a plain push. */
+  /** Cover the screen with the clip, navigate, then fade it away. Falls back to a plain push. */
   navigate: (href: string) => void;
   isBusy: boolean;
 };
@@ -34,28 +34,49 @@ export function useTransition() {
 
 /**
  * How long to wait for a phase before continuing without it. Longer than
- * either phase (the cover is 0.5s; the wait for the wash and the exit after it
- * come to 1.3s) with room for a slow route.
+ * either phase (the sheet is up in 0.15s; the wait for the wash and the fade
+ * after it come to 1.4s) with room for a slow route.
  */
 const GUARD_MS = 3000;
 
 /*
- * Cover, then leave. A page transition is a cost the reader pays on every
- * click, and the whole thing is held under two seconds: 1.78s by the clip's
- * numbers, of which only the cover is timed rather than read off the clip.
+ * The transition is the clip. Nothing slides. A white sheet carrying the taxi
+ * comes up over the page, the taxi drives at the camera, the headlamp washes
+ * the frame white, and the new page comes out of the wash. The whole thing is
+ * held under two seconds, 1.68s by the clip's numbers, and only the two fades
+ * are timed rather than read off the clip.
  *
- * The cover is a sweep. After it the panel holds while the taxi drives at the
- * camera, and leaves the moment the headlamp has washed the frame white. That
- * moment is read off the video's own clock (`exitAt`), so the panel and the
- * picture cannot drift apart. `EXIT_S` is the one tween on the way out.
+ * The sheet fades up rather than cutting in because a hard cut from paper to
+ * white pops. The clip's first three frames are blank, 0.125s of white, so a
+ * fade of that length is over before the taxi appears and never blends the
+ * car with the page.
+ *
+ * When the sheet goes is read off the video's own clock (`exitAt`), so the
+ * sheet and the picture cannot drift apart. `EXIT_S` is the one tween on the
+ * way out.
  */
-const COVER_S = 0.5;
-const EXIT_S = 0.45;
-/** The tween used on the way out when the clip's clock cannot be trusted. */
-const FALLBACK_S = 0.9;
+const COVER_S = 0.15;
+const EXIT_S = 0.35;
 /**
- * How long to wait on the wash before leaving regardless. It is due 0.83s
- * after the cover completes; a clip that has not got there in 1.5s has
+ * When the route is pushed, on the cover's clock. The sheet is opaque from
+ * 0.15s and the swap under it cannot be seen after that; the rest is a head
+ * start for the prefetch, and it keeps the render of the new page off the
+ * frames where the taxi is coming over the bottom edge.
+ */
+const PUSH_AT_S = 0.3;
+/*
+ * The way out when the clip's clock cannot be trusted (not decoded, a tab
+ * throttled to a stop). The sheet comes up a touch slower, since there is no
+ * picture for the fade to hand over to, holds long enough to read as a page
+ * turning rather than a flicker, and fades out at the same rate as the real
+ * thing. The hold is measured from the sheet becoming opaque, not from the
+ * route committing, so a quick route does not shorten it.
+ */
+const FALLBACK_COVER_S = 0.2;
+const FALLBACK_HOLD_S = 0.5;
+/**
+ * How long to wait on the wash before leaving regardless. It is due within
+ * 1.1s of the route committing; a clip that has not got there in 1.5s has
  * stalled, and the reader gets the page anyway.
  */
 const EXIT_WAIT_MS = 1500;
@@ -90,8 +111,8 @@ export default function TransitionProvider({
   children: ReactNode;
   /**
    * Fixed furniture: the header, the progress rail. Rendered outside the
-   * animated wrapper, because a transformed ancestor turns `position: fixed`
-   * into scroll-following and the header would slide away mid-transition.
+   * page wrapper, so the header is never inside anything the transition
+   * hides or shows, and never below the sheet.
    */
   chrome?: ReactNode;
 }) {
@@ -100,18 +121,23 @@ export default function TransitionProvider({
   const loaded = useLoaded();
 
   const wrapRef = useRef<HTMLDivElement>(null);
-  const bandRef = useRef<HTMLDivElement>(null);
-  const mediaRef = useRef<HTMLDivElement>(null);
+  /** The sheet: a white, full-viewport panel with the clip inside it. */
+  const panelRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   /** Set while the screen is covered and we are waiting on the new route. */
   const pendingRef = useRef<string | null>(null);
   /**
+   * When the sheet is due to be fully opaque, on `performance.now()`'s clock.
+   * The fallback's hold is measured from here, so a route that commits early
+   * does not shorten it and one that commits late does not lengthen it.
+   */
+  const opaqueAtRef = useRef(0);
+  /**
    * The reveal currently playing, and the function that finishes it. A second
    * navigation started mid-reveal has to stop the first one before it runs its
-   * own cover: otherwise two timelines drive the same band, and the stale one's
-   * terminal `set` parks it off-screen halfway through the new cover, showing
-   * the reader the page swap.
+   * own cover: otherwise the stale fade's terminal `set` would hide the sheet
+   * halfway through the new cover and show the reader the page swap.
    */
   const revealRef = useRef<gsap.core.Timeline | null>(null);
   /** Stops whatever is driving the current reveal off the video's clock. */
@@ -130,7 +156,7 @@ export default function TransitionProvider({
    * The clip is only wanted once someone can actually click a link, so it
    * stays unfetched until the intro has finished rather than competing with it
    * for bandwidth. It is 431 KB; by the time a first navigation happens it is
-   * buffered, which is why the band is never seen bare in practice.
+   * buffered, which is why the sheet is never seen bare in practice.
    */
   useEffect(() => {
     if (!loaded) return;
@@ -140,57 +166,14 @@ export default function TransitionProvider({
     video.load();
   }, [loaded]);
 
-  /**
-   * Lay the band out for the current viewport and put it wherever the phase
-   * about to run needs it to start.
-   *
-   * The media inside is counter-translated by exactly the band's own `x`, at
-   * matching duration and ease, which pins the footage to the viewport while
-   * the band slides over it. So the curve reads as a shutter opening onto a
-   * shot that was already running, not as a video sliding up the screen: the
-   * difference between the two is most of the effect.
-   */
-  const layout = useCallback(() => {
-    const band = bandRef.current;
-    const media = mediaRef.current;
-    if (!band || !media) return null;
-
-    const m = bandMetrics(window.innerWidth, window.innerHeight);
-    gsap.set(band, { width: m.width, height: m.height, yPercent: -50 });
-
-    /*
-     * Dome on the leading edge only: the right-hand one, since the band
-     * travels left to right. The trailing edge stays square, so the reveal
-     * runs the full width of the screen with no dead travel.
-     *
-     * The vertical radius is 50%, which with a band exactly two radii tall
-     * makes the edge a true semicircle of `m.radius` rather than an ellipse.
-     *
-     * Assigned to the element rather than through `gsap.set`, which is not
-     * optional: GSAP's CSS parser drops the `/ vertical` half of a two-axis
-     * border-radius shorthand. That still renders a dome (the missing axis
-     * silently falls back) so nothing looks broken, it is just the wrong arc.
-     * Setting it here keeps both axes.
-     */
-    band.style.borderRadius = `0 ${m.radius}px ${m.radius}px 0 / 0 50% 50% 0`;
-    // `yPercent` rather than a CSS translate, so GSAP owns the whole transform
-    // and the `x` tweens below cannot blow the centring away.
-    gsap.set(media, {
-      width: window.innerWidth,
-      height: window.innerHeight,
-      yPercent: -50,
-    });
-    return m;
-  }, []);
-
   /** Start the clip from its first frame, at its rate. */
   const rollFilm = useCallback(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.playbackRate = WIPE_CLIP.rate;
+    video.playbackRate = TAXI_CLIP.rate;
     // Seeded on every navigation, not only the first: after a run the clip is
     // sat on its last frame with `ended` set, and the seek is what clears it.
-    video.currentTime = WIPE_CLIP.start;
+    video.currentTime = TAXI_CLIP.start;
     // Muted and inline, and this is downstream of a click, so the play
     // promise resolves, but a rejected one must not break the navigation.
     void video.play().catch(() => {});
@@ -201,52 +184,58 @@ export default function TransitionProvider({
   }, []);
 
   /* ---------------------------------------------------------------------
-   * Cover. The band starts a full screen off to the left and crosses until its
-   * apex sits one sagitta past the right edge: the extra being what it takes
-   * for the corners, which the dome reaches last, to go under.
+   * Cover. The clip starts and the sheet fades up over it. The clip's blank
+   * opening frames and the sheet are the same white, so what the reader sees
+   * is the page going to white and the taxi arriving on it.
+   *
+   * `from` is where the sheet's opacity already is: a navigation that cuts
+   * into a fade out picks the sheet up from there instead of dropping it to
+   * nothing for a frame and showing the page in full.
    * ------------------------------------------------------------------- */
-  const cover = useCallback(() => {
-    const tl = gsap.timeline();
-    const m = layout();
-    const band = bandRef.current;
-    const media = mediaRef.current;
-    if (!m || !band || !media) return tl;
+  const cover = useCallback(
+    (from: number) => {
+      const tl = gsap.timeline();
+      const panel = panelRef.current;
+      if (!panel) return tl;
 
-    rollFilm();
+      // Nothing decoded means nothing will play under the fade, so it gets
+      // the fallback's slightly longer rise. Read before the clip is seeded:
+      // the seek to frame 0 drops `readyState` to metadata until it lands,
+      // and a buffered clip would otherwise be taken for a bare one.
+      const video = videoRef.current;
+      const bare = !video || video.readyState < 2;
+      const rise = bare ? FALLBACK_COVER_S : COVER_S;
 
-    tl.set(band, { autoAlpha: 1, x: m.before });
-    tl.set(media, { x: -m.before });
+      rollFilm();
+      const duration = rise * (1 - from);
+      opaqueAtRef.current = performance.now() + duration * 1000;
 
-    tl.to(band, { x: m.covered, duration: COVER_S, ease: "brand" }, 0);
-    tl.to(media, { x: -m.covered, duration: COVER_S, ease: "brand" }, 0);
+      // A fade out still running from an interrupted reveal would, when it
+      // completed, park the sheet hidden in the middle of this cover.
+      gsap.killTweensOf(panel);
+      tl.fromTo(panel, { autoAlpha: from }, { autoAlpha: 1, duration, ease: "none" }, 0);
 
-    return tl;
-  }, [layout, rollFilm]);
+      return tl;
+    },
+    [rollFilm],
+  );
 
   /* ---------------------------------------------------------------------
-   * Leave. The band carries on in the same direction and goes by the right
-   * edge, so the wipe is one continuous travel interrupted by the route swap
-   * rather than a cover that backs out the way it came.
+   * Leave. The sheet holds while the taxi drives at the camera and fades out
+   * the moment the headlamp has washed the frame white, so the new page comes
+   * out of the wash rather than out from behind anything.
    *
    * When it goes is read off the video's own clock rather than timed to match
-   * it: the panel holds until the headlamp has washed the frame white, then
-   * sweeps off, and the new page comes out of the wash.
-   *
-   * If the clip is not actually playing (not decoded, a tab throttled to a
-   * stop) its clock cannot be trusted, and the panel leaves on a plain tween
-   * instead. The reader gets the page either way.
+   * it. If the clip is not actually playing (not decoded, a tab throttled to
+   * a stop) its clock cannot be trusted, and the sheet leaves after a plain
+   * hold instead. The reader gets the page either way.
    * ------------------------------------------------------------------- */
   const reveal = useCallback((): { tl: gsap.core.Timeline; stop: () => void } => {
     const tl = gsap.timeline({ paused: true });
     let stop = () => {};
-    // Re-measure rather than reuse the cover's numbers: the screen is fully
-    // covered at this point, so a window resized mid-transition can be taken
-    // account of here without anything showing.
-    const m = layout();
-    const band = bandRef.current;
-    const media = mediaRef.current;
+    const panel = panelRef.current;
     const wrap = wrapRef.current;
-    if (!m || !band || !media) return { tl, stop };
+    if (!panel) return { tl, stop };
 
     // Reveal the incoming page. Done synchronously rather than as a timeline
     // step: if the ticker is asleep (a backgrounded tab throttles rAF to
@@ -259,7 +248,7 @@ export default function TransitionProvider({
     const live = decoded && !video.paused && !video.ended;
     const held = decoded && video.ended;
 
-    // The incoming page's h1 wipes in from the left as the panel goes, on the
+    // The incoming page's h1 wipes in from the left as the sheet goes, on the
     // same left-to-right gesture every reveal on the site runs: see
     // `components/effects/reveal.tsx`. The vertical inset keeps ascenders and
     // descenders outside the clip.
@@ -276,53 +265,56 @@ export default function TransitionProvider({
     // The last steps, shared by every way out.
     const finish = () => {
       stop();
-      gsap.set(band, { autoAlpha: 0 });
+      gsap.set(panel, { autoAlpha: 0 });
       stopFilm();
       tl.play();
     };
     tl.call(() => {});
 
-    // The way out: a sweep.
-    const sweep = (duration: number) => {
-      bringHeading(Math.max(0.8, duration));
-      gsap.to(band, { x: m.after, duration, ease: "brand" });
-      gsap.to(media, { x: -m.after, duration, ease: "brand", onComplete: finish });
+    // The way out: the sheet fades and the heading wipes in under it. The
+    // frames the fade runs over are the wash plateau and, once the clip ends
+    // at 1.417s, its held last frame: flat white, the same as the sheet, so
+    // the picture cannot cut back to the car mid-fade.
+    const fade = () => {
+      bringHeading(Math.max(0.8, EXIT_S));
+      gsap.to(panel, { autoAlpha: 0, duration: EXIT_S, ease: "power2.inOut", onComplete: finish });
     };
 
     if (live) {
-      /*
-       * Hold the panel until the wash has reached its plateau, then leave.
-       * The frames the sweep runs over are the plateau and, once the clip
-       * ends at 1.417s, its held last frame: flat white, the same as the
-       * panel, so the picture cannot cut back to the car mid-sweep. The
-       * wait is capped in case the clock stops advancing.
-       */
+      // Hold until the wash has reached its plateau, then go. The wait is
+      // capped in case the clock stops advancing.
       const began = performance.now();
       const tick = () => {
-        if (video.currentTime >= WIPE_CLIP.exitAt || performance.now() - began > EXIT_WAIT_MS) {
+        if (video.currentTime >= TAXI_CLIP.exitAt || performance.now() - began > EXIT_WAIT_MS) {
           stop();
-          sweep(EXIT_S);
+          fade();
         }
       };
       gsap.ticker.add(tick);
       stop = () => gsap.ticker.remove(tick);
     } else if (held) {
-      // A slow route: the clip ran out under the cover. What it is holding is
+      // A slow route: the clip ran out under the sheet. What it is holding is
       // the wash, so there is nothing left to wait for.
-      sweep(EXIT_S);
+      fade();
     } else {
-      sweep(FALLBACK_S);
+      // No picture. Hold the white for as long as the fallback allows from
+      // the moment the sheet was opaque, then go.
+      const elapsed = (performance.now() - opaqueAtRef.current) / 1000;
+      const call = gsap.delayedCall(Math.max(0, FALLBACK_HOLD_S - elapsed), fade);
+      stop = () => {
+        call.kill();
+      };
     }
 
     return { tl, stop };
-  }, [layout, stopFilm]);
+  }, [stopFilm]);
 
   const navigate = useCallback(
     (href: string) => {
       if (pendingRef.current) return;
 
       // A hash or query on the current path does not change `pathname`, so the
-      // reveal effect would never fire and the band would sit there forever.
+      // reveal effect would never fire and the sheet would sit there forever.
       // Those navigations go straight through: a hash on this page is a
       // smooth scroll to its section, and the address follows.
       const target = href.split("#")[0].split("?")[0];
@@ -341,6 +333,11 @@ export default function TransitionProvider({
         return;
       }
 
+      // Where the sheet is before the interrupted reveal below is settled,
+      // which hides it; the new cover carries on from here.
+      const panel = panelRef.current;
+      const from = panel ? Number(gsap.getProperty(panel, "opacity")) : 0;
+
       // Interrupting a reveal is allowed; leaving it running is not.
       revealStopRef.current?.();
       revealStopRef.current = null;
@@ -353,17 +350,17 @@ export default function TransitionProvider({
       setIsBusy(true);
       document.documentElement.setAttribute("data-transitioning", "");
 
-      // Prefetching during the cover is free time: by the time the band has
-      // finished crossing, the route is usually already in the client cache.
+      // Prefetching under the sheet is free time: by the time the route is
+      // pushed it is usually already in the client cache.
       router.prefetch(href);
 
-      const tl = cover();
+      const tl = cover(Number.isFinite(from) ? from : 0);
 
-      // The push happens when the cover finishes, or when the guard fires,
-      // whichever comes first. Without the guard a timeline that never
-      // completes (a tab backgrounded mid-transition suspends rAF, so GSAP
-      // stops advancing) would leave `pendingRef` set forever and every later
-      // link click would be swallowed.
+      // The push happens at `PUSH_AT_S`, or when the guard fires, whichever
+      // comes first. Without the guard a timeline that never gets there (a
+      // tab backgrounded mid-transition suspends rAF, so GSAP stops
+      // advancing) would leave `pendingRef` set forever and every later link
+      // click would be swallowed.
       let committed = false;
       const commit = () => {
         if (committed) return;
@@ -371,21 +368,22 @@ export default function TransitionProvider({
         window.clearTimeout(guard);
         tl.kill();
 
-        // Hidden until the reveal shows it, so the new route cannot be glimpsed
-        // past the band's shoulders before its own intro runs.
+        // Hidden until the reveal shows it, so the new route cannot be
+        // glimpsed through a sheet that has not reached full opacity before
+        // its own intro runs.
         if (wrapRef.current) gsap.set(wrapRef.current, { autoAlpha: 0 });
         router.push(href);
       };
 
       const guard = window.setTimeout(commit, GUARD_MS);
-      tl.eventCallback("onComplete", commit);
+      tl.call(commit, [], PUSH_AT_S);
     },
     [cover, pathname, router],
   );
 
-  // The new route has committed. Reset the scroll position under the band,
-  // then wipe it away. `pathname` only changes once React has rendered the new
-  // page, so there is nothing half-painted underneath when this runs.
+  // The new route has committed. Reset the scroll position under the sheet,
+  // then fade it away. `pathname` only changes once React has rendered the
+  // new page, so there is nothing half-painted underneath when this runs.
   useEffect(() => {
     const pending = pendingRef.current;
     if (!pending || pending.split("#")[0] !== pathname) return;
@@ -393,7 +391,7 @@ export default function TransitionProvider({
     pendingRef.current = null;
     // Lenis may still be easing towards the old page's target; reset it too.
     // A hash on the new address lands the page on that section instead, done
-    // under the cover so the panel lifts on the section already in place.
+    // under the sheet so it lifts on the section already in place.
     if (!scrollToHash(window.location.hash, true)) {
       getLenis()?.scrollTo(0, { immediate: true, force: true });
       window.scrollTo(0, 0);
@@ -416,12 +414,12 @@ export default function TransitionProvider({
       setIsBusy(false);
       document.documentElement.removeAttribute("data-transitioning");
       stopFilm();
-      // Belt and braces: the page must be visible and the band gone whether the
-      // reveal ran to completion or was cut short.
+      // Belt and braces: the page must be visible and the sheet gone whether
+      // the reveal ran to completion or was cut short.
       if (wrapRef.current) {
         gsap.set(wrapRef.current, { autoAlpha: 1, clearProps: "transform" });
       }
-      if (bandRef.current) gsap.set(bandRef.current, { autoAlpha: 0 });
+      if (panelRef.current) gsap.set(panelRef.current, { autoAlpha: 0 });
       ScrollTrigger.refresh();
     };
 
@@ -442,35 +440,29 @@ export default function TransitionProvider({
 
       {/*
         One stacking context for the whole page, so nothing inside it (however
-        high its own z-index) can paint over the menu or the band. Isolation
+        high its own z-index) can paint over the menu or the sheet. Isolation
         does not affect fixed positioning, so ScrollTrigger's pins are unmoved.
       */}
       <div ref={wrapRef} data-page-wrap id="main" className="relative z-[1] isolate">
         {children}
       </div>
 
-      <div className="transition-overlay" aria-hidden>
-        {/*
-          The band. Sized and positioned entirely by GSAP: the arc's radius is
-          a function of viewport width, so leaving it to CSS would mean
-          repeating the same constant in two places and letting them drift.
-          White underneath the footage, so a clip that fails to load still
-          covers in the clip's own colour.
-        */}
-        <div ref={bandRef} className="wipe__band">
-          <div ref={mediaRef} className="wipe__media">
-            <video
-              ref={videoRef}
-              className="wipe__video"
-              src={WIPE_CLIP.src}
-              muted
-              playsInline
-              preload="none"
-              aria-hidden
-              tabIndex={-1}
-            />
-          </div>
-        </div>
+      {/*
+        The sheet. White underneath the footage, so a clip that fails to load
+        still covers in the clip's own colour; faded up and down by GSAP and
+        never moved.
+      */}
+      <div ref={panelRef} className="transition-overlay" aria-hidden>
+        <video
+          ref={videoRef}
+          className="wipe__video"
+          src={TAXI_CLIP.src}
+          muted
+          playsInline
+          preload="none"
+          aria-hidden
+          tabIndex={-1}
+        />
       </div>
     </TransitionContext.Provider>
   );

@@ -181,6 +181,7 @@ export default function ShootViewer({
           label={shoot.label}
           activeIndex={active}
           onSelect={setActive}
+          compact
         />
       </div>
     </section>

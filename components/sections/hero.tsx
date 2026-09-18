@@ -127,10 +127,20 @@ export default function Hero() {
          * On a phone the block is lifted clear of the fixed corner control,
          * which sits in this same corner and was covering the first letters of
          * the tagline. On wider screens the two clear each other already.
+         *
+         * Ten pixels under the corner line at every width, at the client's
+         * request: the block sat a touch high. The switch opposite moves with
+         * it, so the two still share one bottom edge.
          */
-        className="pointer-events-none absolute bottom-[var(--corner)] left-[var(--corner)] z-[41] max-w-[min(500px,calc(100vw_-_2*var(--corner)))] max-mobile:bottom-[calc(var(--corner)+52px)] max-mobile:[text-shadow:0_0_16px_var(--paper)]"
+        className="pointer-events-none absolute bottom-[calc(var(--corner)-10px)] left-[var(--corner)] z-[41] max-w-[min(500px,calc(100vw_-_2*var(--corner)))] max-mobile:bottom-[calc(var(--corner)+42px)] max-mobile:[text-shadow:0_0_16px_var(--paper)]"
       >
-        <span className="label mb-[1.4em] block text-[clamp(14px,1.05vw,19px)]">{HERO.eyebrow}</span>
+        {/*
+          One line each on a phone. At the 14px floor the eyebrow sets 343px
+          wide and the block is 335px at 375, so it wrapped, and the tagline
+          (351px at 15px) wrapped at 390 too; two extra lines put the top of
+          the block into the front card of the helix on a 667px screen.
+        */}
+        <span className="label mb-[1.4em] block text-[clamp(14px,1.05vw,19px)] max-mobile:text-[13px]">{HERO.eyebrow}</span>
 
         <span className="statement block text-[clamp(32px,3.8vw,56px)]">
           {HERO.lede[0]}
@@ -138,7 +148,7 @@ export default function Hero() {
           {HERO.lede[1]}
         </span>
 
-        <span className="label mt-[1.3em] block text-[clamp(15px,1.15vw,21px)] opacity-70" lang="hi-Latn">
+        <span className="label mt-[1.3em] block text-[clamp(15px,1.15vw,21px)] opacity-70 max-mobile:text-[14px]" lang="hi-Latn">
           {SITE.tagline}
         </span>
       </h1>
@@ -156,7 +166,7 @@ export default function Hero() {
          * runs nearly the full width of the bottom edge, so the switch moves up
          * under the MENU control, where the page's other control already is.
          */
-        className="absolute right-[var(--corner)] bottom-[var(--corner)] z-[41] max-mobile:top-[calc(var(--nav-height)+0.75em)] max-mobile:bottom-auto max-mobile:[text-shadow:0_0_16px_var(--paper)]"
+        className="absolute right-[var(--corner)] bottom-[calc(var(--corner)-10px)] z-[41] max-mobile:top-[calc(var(--nav-height)+0.75em)] max-mobile:bottom-auto max-mobile:[text-shadow:0_0_16px_var(--paper)]"
       >
         {/*
           No opacity transition on this button. The hero's intro fades it in
@@ -169,7 +179,9 @@ export default function Hero() {
           type="button"
           onClick={toggleSound}
           aria-pressed={sound}
-          className="label flex items-center gap-[0.6em] text-[clamp(14px,1.05vw,19px)] opacity-90 underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
+          // Padded to a 44px tap target and pulled back by the same amount, so
+          // the label sits exactly where it did.
+          className="label flex items-center gap-[0.6em] py-[11px] -my-[11px] text-[clamp(14px,1.05vw,19px)] opacity-90 underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           <span
             aria-hidden

@@ -235,20 +235,8 @@
   }
 }
 
-/* ---------------------------------------------------------------------------
- * The side column is shown only while the home spiral is pinned.
- * ------------------------------------------------------------------------- */
-.side-nav {
-  transition: opacity 0.4s var(--ease-brand);
-}
-
-html:not([data-spiral-active]) .side-nav {
-  opacity: 0;
-  pointer-events: none;
-}
-
 /*
- * The fixed chrome (mark, MENU, side column) is white under a difference
+ * The fixed chrome (mark, MENU) is white under a difference
  * blend: ink over paper, paper over ink, a negative over photographs, and
  * where it crosses type of its own colour the overlap inverts instead of
  * vanishing. A blend composites against its parent stacking context, so each
@@ -358,6 +346,12 @@ html:not([data-spiral-active]) .side-nav {
 .sticky-tab {
   position: relative;
   overflow: clip;
+  /*
+   * A cold load or reload of /services#branding is the browser's own jump,
+   * not the transition's, so the section has to say where its top may land:
+   * under the fixed nav, where its own header sticks.
+   */
+  scroll-margin-top: var(--nav-height);
 }
 
 .sticky-tab__sticky {
@@ -596,64 +590,37 @@ html.has-cursor textarea {
 }
 
 /* ---------------------------------------------------------------------------
- * The curved wipe page transition.
+ * The page transition: the client's taxi clip, and nothing else.
  *
- * The overlay sits above everything and never takes pointer events; only the
- * band inside it does the covering. `overflow: clip` matters: the band is
- * wider than the screen by design, and without it the page would gain a
- * horizontal scrollbar every time one ran.
+ * A white sheet the clip plays on, over the whole viewport, faded up and down
+ * by the provider (`components/transition/transition-provider.tsx`) and never
+ * moved. It never takes pointer events: while it is up the provider is busy
+ * and links wait on it.
  * ------------------------------------------------------------------------- */
 .transition-overlay {
   /*
    * Above the menu (345), below the header chrome (350). A menu link starts
-   * a navigation and closes the menu on a 0.3s fade; with the wipe below the
-   * menu, that fade ghosted the link text through the arriving panel for its
-   * first frames. Above it, the panel simply covers the menu and the fade
+   * a navigation and closes the menu on a 0.3s fade; with the sheet below the
+   * menu, that fade ghosted the link text through the arriving white for its
+   * first frames. Above it, the sheet simply covers the menu and the fade
    * finishes unseen. The logo and the MENU control stay on top throughout.
    */
   z-index: 348;
   pointer-events: none;
   position: fixed;
   inset: 0;
-  overflow: clip;
-}
-
-/*
- * The band that sweeps the screen from the left. Width, height, dome radius
- * and travel are all functions of the viewport and are set by the provider:
- * see `curved-wipe.ts` for where the arc comes from. Only the parts that never
- * vary live here.
- *
- * Ink underneath the footage so a clip that has not buffered, or has failed
- * outright, still covers the page swap.
- */
-.wipe__band {
-  position: absolute;
-  top: 50%;
-  left: 0;
   /*
    * White, because the client's animations are drawn on white and this is the
    * sheet they are drawn on. It used to be ink, from before the clips were
    * theirs, which put a hard black edge around a white cartoon and showed as a
-   * black flash on any frame the video had not decoded yet. The panel and the
-   * artwork are one surface now, and the only edge on screen is the arc.
+   * black flash on any frame the video had not decoded yet. The sheet and the
+   * artwork are one surface, so a clip that has not buffered, or has failed
+   * outright, still covers the page swap in the clip's own colour.
    */
   background-color: #fff;
-  overflow: hidden;
   opacity: 0;
   visibility: hidden;
-  will-change: transform;
-}
-
-/*
- * The footage, held at viewport size and counter-translated against the band's
- * own travel, so it stays put on screen while the curve crosses it.
- */
-.wipe__media {
-  position: absolute;
-  top: 50%;
-  left: 0;
-  will-change: transform;
+  will-change: opacity;
 }
 
 /*
@@ -664,7 +631,7 @@ html.has-cursor textarea {
  * window is the middle quarter of the frame (x 0.37 to 0.63 at 390x844), the
  * sides go and the car is still the thing in view: the grille as it arrives,
  * then the headlamp, then the wash. Contain would put the same car in a strip
- * a quarter of the screen tall with the panel's own white above and below it.
+ * a quarter of the screen tall with the sheet's own white above and below it.
  */
 .wipe__video {
   position: absolute;
@@ -874,6 +841,19 @@ html.has-cursor textarea {
    */
   height: min(clamp(260px, 52vh, 620px), calc((100vw - 2 * var(--gutter)) * 2 / 3));
   max-width: calc(100vw - 2 * var(--gutter));
+  /* The track's snap type and padding need a snap point on each slide. */
+  scroll-snap-align: start;
+}
+
+/*
+ * A strip under a display frame is a row of thumbnails, not a second copy of
+ * the frame: below the tablet breakpoint the two hit the same column cap and
+ * the opening photograph appeared twice, stacked, at the same size.
+ */
+@media (max-width: 991px) {
+  .carousel--compact .carousel-slide {
+    height: min(clamp(120px, 22vh, 260px), calc((100vw - 2 * var(--gutter)) * 2 / 3));
+  }
 }
 
 .carousel-slide img,

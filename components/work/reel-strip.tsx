@@ -91,7 +91,9 @@ export default function ReelStrip({
               type="button"
               onClick={toggle}
               aria-pressed={sound}
-              className="underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color,opacity] duration-300 hover:decoration-current hover:opacity-100"
+              // A 44px tap target without moving the label: the padding is
+              // pulled back by the same margin.
+              className="py-[11px] -my-[11px] underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color,opacity] duration-300 hover:decoration-current hover:opacity-100"
             >
               Sound {sound ? "on" : "off"}
             </button>

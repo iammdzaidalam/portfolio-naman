@@ -1,6 +1,6 @@
 import Hero from "@/components/sections/hero";
 import Works from "@/components/sections/works";
-import StudioNote from "@/components/sections/studio-note";
+// import StudioNote from "@/components/sections/studio-note";
 import RouteSteps from "@/components/sections/route-steps";
 import ServicesList from "@/components/sections/services-list";
 import Growth from "@/components/sections/growth";
@@ -23,7 +23,11 @@ export default function HomePage() {
       <Works />
       {/* The eight stages, drawn over the Howrah Bridge, straight after the work they produce. */}
       <RouteSteps />
-      <StudioNote />
+      {/*
+        The studio section is held back for now at the user's request
+        (2026-09-18); it stays wired so it can return with one line.
+      */}
+      {/* <StudioNote /> */}
       <Growth />
       <Clients variant="brief" />
     </main>

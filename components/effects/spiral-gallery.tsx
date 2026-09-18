@@ -195,11 +195,10 @@ export default function SpiralGallery({
           end: () => `+=${(count * SCROLL_PER_CARD_VH * window.innerHeight) / 100}`,
           scrub: 0.6,
           invalidateOnRefresh: true,
-          // The side navigation only exists while the spiral is on screen, and
-          // so does the loop: a helix turning in a section nobody is looking at
-          // is a rAF callback and nine style writes a frame, for nothing.
+          // The loop only runs while the spiral is on screen: a helix turning
+          // in a section nobody is looking at is a rAF callback and nine style
+          // writes a frame, for nothing.
           onToggle: (self) => {
-            document.documentElement.toggleAttribute("data-spiral-active", self.isActive);
             if (self.isActive) loop.play();
             else loop.pause();
           },
@@ -217,7 +216,6 @@ export default function SpiralGallery({
         window.clearTimeout(timer);
         window.removeEventListener("resize", onResize);
         loop.kill();
-        document.documentElement.removeAttribute("data-spiral-active");
       };
     },
     { scope: root },

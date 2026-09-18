@@ -5,6 +5,8 @@ import { useGSAP } from "@gsap/react";
 
 import { WORKS, workCover } from "@/lib/content";
 import { gsap } from "@/lib/gsap";
+import { useLoaded } from "@/components/loader";
+import { useTransition } from "@/components/transition/transition-provider";
 import TransitionLink from "@/components/transition/transition-link";
 import WorkCard from "./work-card";
 
@@ -18,10 +20,15 @@ import WorkCard from "./work-card";
  */
 export default function WorkGrid() {
   const grid = useRef<HTMLDivElement>(null);
+  const loaded = useLoaded();
+  const { isBusy } = useTransition();
 
   useGSAP(
     () => {
       if (!grid.current) return;
+      // Nothing reveals under a cover: wait for the intro and the page turn,
+      // otherwise the whole entrance plays behind the loader and is never seen.
+      if (!loaded || isBusy) return;
       if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
       // Left to right, like every other reveal on the site.
@@ -33,14 +40,12 @@ export default function WorkGrid() {
         stagger: { amount: 0.35 },
       });
     },
-    { scope: grid },
+    { scope: grid, dependencies: [loaded, isBusy] },
   );
 
   return (
     <div
       ref={grid}
-      // An odd last card takes the whole row as a wide frame instead of
-      // leaving an empty cell beside it.
       className="grid grid-cols-3 gap-x-[1.5em] gap-y-[3.5em] max-tablet:grid-cols-2 max-mobile:grid-cols-1"
     >
       {WORKS.map((work, index) => {
@@ -51,8 +56,14 @@ export default function WorkGrid() {
             href={`/work/${work.slug}`}
             className="group block"
           >
-            <div className="relative aspect-[3/4] overflow-hidden">
-              <WorkCard cover={cover} sizes="(max-width: 768px) 100vw, 30vw" />
+            {/*
+              4:5, the shape seven of the nine designed covers were made in.
+              One box for the whole grid so the captions line up across a
+              row; the two 3:4 covers give up three percent top and bottom,
+              which both have clear, and the one poster keeps its middle.
+            */}
+            <div className="relative aspect-[4/5] overflow-hidden">
+              <WorkCard cover={cover} sizes="(max-width: 767px) 100vw, (max-width: 991px) 50vw, 30vw" />
             </div>
 
             <div className="rule mt-[0.9em] flex items-baseline justify-between border-t pt-[0.7em]">

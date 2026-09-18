@@ -97,7 +97,9 @@ export default async function WorkPage({ params }: { params: Promise<Params> }) 
           </BubbleButton>
           <TransitionLink
             href={`/work/${next.slug}`}
-            className="label opacity-65 transition-opacity duration-300 hover:opacity-100"
+            // Vertical padding on an inline link grows the tap area to 44px
+            // without touching the line it sits on.
+            className="label py-[11px] opacity-65 transition-opacity duration-300 hover:opacity-100"
           >
             {next.title} ↗
           </TransitionLink>

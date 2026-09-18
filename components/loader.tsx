@@ -33,19 +33,23 @@ const FILM_FPS = 24;
 const FILM_BLACK_FRAME = 130;
 
 /**
- * What the letterbox should be as the film goes black, keyed on the film's
- * own clock. The frame's edges stay white far longer than its mean does: the
- * arch's black reaches the top edge at frame 124 but the bottom edge and the
- * corners only at frame 129, so until then a white surround matches most of
- * the seam and anything darker would make the frame's last white slivers
- * read as a border. Once the edges go, the top and bottom edge rows average
- * 27 on frame 129 and 0 on frame 130. The surround takes the 27 one frame
- * early, on frame 128. A style written from the frame callback reaches the
- * screen with its frame when the main thread is free and a composite or two
- * later when it is busy, and frame 128's thin white slivers on a near-black
- * surround for one frame are a far smaller mismatch than frame 129, all but
- * black, sitting on white for two composites. Held per frame rather than
- * interpolated, because the frame itself holds for 1/24s.
+ * What the surround should be as the film goes black, keyed on the film's
+ * own clock. The film covers the panel on every viewport (see the markup),
+ * so while it plays the surround is never seen and cannot fight it; this is
+ * kept so that a bar, should a browser ever leave one, follows the frame
+ * rather than sitting on it as a border. The frame's edges stay white far
+ * longer than its mean does: the arch's black reaches the top edge at frame
+ * 124 but the bottom edge and the corners only at frame 129, so until then a
+ * white surround matches most of the seam and anything darker would make the
+ * frame's last white slivers read as a border. Once the edges go, the top
+ * and bottom edge rows average 27 on frame 129 and 0 on frame 130. The
+ * surround takes the 27 one frame early, on frame 128. A style written from
+ * the frame callback reaches the screen with its frame when the main thread
+ * is free and a composite or two later when it is busy, and frame 128's thin
+ * white slivers on a near-black surround for one frame are a far smaller
+ * mismatch than frame 129, all but black, sitting on white for two
+ * composites. Held per frame rather than interpolated, because the frame
+ * itself holds for 1/24s.
  */
 const FILM_LETTERBOX: ReadonlyArray<readonly [frame: number, grey: number]> = [
   [128, 27],
@@ -94,10 +98,9 @@ export function LoadingProvider({ children }: { children: ReactNode }) {
 /**
  * The intro, in three movements.
  *
- * First the film: the client's opening animation plays across the full width
- * of a white panel, letterboxed above and below in that same white so it has
- * no visible edge, and the panel darkens with the frame as the film ends on
- * black.
+ * First the film: the client's opening animation fills a white panel edge to
+ * edge, cropped around its centre to whatever shape the viewport is, and the
+ * panel darkens with the frame as the film ends on black.
  *
  * Then the trace, on that black. The wordmark is drawn rather than faded in:
  * every shape in the logo is a closed outline, so DrawSVGPlugin can stroke
@@ -530,24 +533,31 @@ function Loader({ onDone }: { onDone: () => void }) {
       {/*
         The surface: the film's white, then the black the film ends on, then
         paper once the mark has developed. The film sits inside it so the wipe
-        takes both. No grain during the film: the letterbox has to be the same
-        flat white as the frame, with nothing to mark where one ends.
+        takes both. No grain during the film: the surround has to be the same
+        flat white as the frame, so that until the first frame decodes there
+        is nothing to mark where the film will be.
 
-        The film always spans the full viewport width, its height following
-        16:9 and centred: a viewport taller than 16:9 gets bands above and
-        below only, which the surround tracks, and a wider one crops the frame
-        top and bottom rather than showing bands at the sides. Flex centring
-        rather than auto margins, because it centres an overflowing item too.
+        The film covers the panel, centred, whatever shape the viewport is: a
+        screen wider than 16:9 loses rows off the top and bottom of the frame
+        (2560x1080 loses an eighth of each, the crown of the memorial's dome
+        and the nearest stretch of road), a taller one loses columns off the
+        sides (a phone keeps the middle quarter to a third: the road, the
+        bridge deck, the tram until it passes the camera, and the arch, whose
+        interior is the black the frame ends on). The frame is composed on
+        its centre line, so either crop keeps the picture, and no viewport
+        ever shows a bar on any edge. One rule rather than a breakpoint,
+        because on a wide screen cover is exactly the old full-width rule,
+        and a breakpoint would only add an edge to get wrong.
       */}
       <div
         data-loader-panel
-        className="absolute inset-0 flex items-center overflow-hidden"
+        className="absolute inset-0 overflow-hidden"
         style={{ clipPath: "inset(0% 0% 0% 0%)", backgroundColor: WHITE }}
       >
         <video
           ref={videoRef}
           src={FILM_SRC}
-          className="aspect-video w-full shrink-0"
+          className="absolute inset-0 h-full w-full object-cover"
           muted
           playsInline
           autoPlay

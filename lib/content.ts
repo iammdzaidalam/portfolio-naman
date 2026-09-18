@@ -259,65 +259,65 @@ export const SERVICES: Service[] = [
       "Your expertise is valuable. We help the internet see it.",
     ],
   },
-  {
-    no: "08",
-    name: "Ad Films & Product Shoots",
-    cover: { src: "/img/services/ad-product-shoots.jpg", alt: "Man in a suit holding a monkey beside a penguin, a camera on him, captioned Make your product impossible to ignore" },
-    desc: "Make your product impossible to ignore.",
-    tag: "Production",
-    body: [
-      "Your product deserves more than a basic photograph.",
-      "We create professional product shoots, advertising films, promotional videos, and campaign content designed to showcase your product through strong visuals and storytelling.",
-    ],
-    detail: [
-      "From concept development and scripting to production and post-production, we create visual content that can be used across your website, social media, advertisements, and marketing campaigns.",
-      "Shoot it. Tell the story. Make people want it.",
-    ],
-  },
-  {
-    no: "09",
-    name: "Website Development",
-    cover: { src: "/img/services/website-development.jpg", alt: "Man in a black suit at a laptop, captioned Your website should work as hard as your brand" },
-    desc: "Your website should work as hard as your brand.",
-    tag: "Build",
-    body: [
-      "Your website is more than an online brochure. It should communicate your value, build trust, create a great user experience, and turn visitors into customers.",
-      "We develop modern, responsive, user-friendly websites that combine design, functionality, content, SEO fundamentals, and conversion-focused thinking.",
-    ],
-    detail: [
-      "Business websites",
-      "Landing pages",
-      "Portfolio websites",
-      "Responsive design",
-      "UI/UX",
-      "SEO-friendly structure",
-      "Conversion-focused layouts",
-      "Website content integration",
-    ],
-  },
-  {
-    no: "10",
-    name: "Performance Marketing",
-    cover: { src: "/img/services/performance-marketing.jpg", alt: "Two men at a laptop with a rising bar chart, captioned Spend smarter, grow faster" },
-    desc: "Spend smarter. Grow faster.",
-    tag: "Paid",
-    body: [
-      "Great creative gets attention. Great performance marketing turns that attention into measurable results.",
-      "Our performance marketing services use paid advertising, audience targeting, creative testing, campaign optimisation, and data analysis to help businesses generate leads, sales, enquiries, and conversions.",
-      "We continuously analyse campaign performance and optimise what matters, helping you make better use of your advertising budget.",
-    ],
-    detail: [
-      "Meta Ads",
-      "Google Ads",
-      "Lead generation campaigns",
-      "Conversion campaigns",
-      "Retargeting",
-      "Audience targeting",
-      "Creative testing",
-      "Campaign optimisation",
-      "Performance reporting",
-    ],
-  },
+  // {
+  //   no: "08",
+  //   name: "Ad Films & Product Shoots",
+  //   cover: { src: "/img/services/ad-product-shoots.jpg", alt: "Man in a suit holding a monkey beside a penguin, a camera on him, captioned Make your product impossible to ignore" },
+  //   desc: "Make your product impossible to ignore.",
+  //   tag: "Production",
+  //   body: [
+  //     "Your product deserves more than a basic photograph.",
+  //     "We create professional product shoots, advertising films, promotional videos, and campaign content designed to showcase your product through strong visuals and storytelling.",
+  //   ],
+  //   detail: [
+  //     "From concept development and scripting to production and post-production, we create visual content that can be used across your website, social media, advertisements, and marketing campaigns.",
+  //     "Shoot it. Tell the story. Make people want it.",
+  //   ],
+  // },
+  // {
+  //   no: "09",
+  //   name: "Website Development",
+  //   cover: { src: "/img/services/website-development.jpg", alt: "Man in a black suit at a laptop, captioned Your website should work as hard as your brand" },
+  //   desc: "Your website should work as hard as your brand.",
+  //   tag: "Build",
+  //   body: [
+  //     "Your website is more than an online brochure. It should communicate your value, build trust, create a great user experience, and turn visitors into customers.",
+  //     "We develop modern, responsive, user-friendly websites that combine design, functionality, content, SEO fundamentals, and conversion-focused thinking.",
+  //   ],
+  //   detail: [
+  //     "Business websites",
+  //     "Landing pages",
+  //     "Portfolio websites",
+  //     "Responsive design",
+  //     "UI/UX",
+  //     "SEO-friendly structure",
+  //     "Conversion-focused layouts",
+  //     "Website content integration",
+  //   ],
+  // },
+  // {
+  //   no: "10",
+  //   name: "Performance Marketing",
+  //   cover: { src: "/img/services/performance-marketing.jpg", alt: "Two men at a laptop with a rising bar chart, captioned Spend smarter, grow faster" },
+  //   desc: "Spend smarter. Grow faster.",
+  //   tag: "Paid",
+  //   body: [
+  //     "Great creative gets attention. Great performance marketing turns that attention into measurable results.",
+  //     "Our performance marketing services use paid advertising, audience targeting, creative testing, campaign optimisation, and data analysis to help businesses generate leads, sales, enquiries, and conversions.",
+  //     "We continuously analyse campaign performance and optimise what matters, helping you make better use of your advertising budget.",
+  //   ],
+  //   detail: [
+  //     "Meta Ads",
+  //     "Google Ads",
+  //     "Lead generation campaigns",
+  //     "Conversion campaigns",
+  //     "Retargeting",
+  //     "Audience targeting",
+  //     "Creative testing",
+  //     "Campaign optimisation",
+  //     "Performance reporting",
+  //   ],
+  // },
 ];
 
 /**
@@ -387,23 +387,39 @@ type WorkBase = {
  * that exists only on this site is a piece nobody can be shown.
  *
  * The two halves of the type are exclusive on purpose. A category is either
- * video-led, in which case the cover is the head of its reel list and the wall
- * shows that clip's own poster, or it is photography, in which case it names a
- * still. There is no third case, and nothing here can end up with neither.
+ * video-led, in which case its clip is the head of its reel list, or it is
+ * photography, in which case it names a still. There is no third case, and
+ * nothing here can end up with neither. The designed cover sits across both:
+ * it is what the wall shows when there is one, and the clip's poster or the
+ * still is what the wall falls back to when there is not.
  */
-export type Work = WorkBase &
-  ({ reels: ReelKey; frame?: Photo } | { reels?: undefined; frame: Photo });
+export type Work = WorkBase & {
+  /**
+   * The client's designed cover for the wall, where they sent one. Nine of
+   * the ten have one, 4:5 or 3:4 as they arrived, and it carries its own size
+   * so a card can take the cover's shape instead of cropping it to a preset
+   * one. Cafe has none and shows the poster of its cover clip.
+   */
+  cover?: Photo & { w: number; h: number };
+} & ({ reels: ReelKey; frame?: Photo } | { reels?: undefined; frame: Photo });
 
 /**
  * What the wall shows for a piece: the cover still, plus the clip behind it
  * where there is one, so a card can play on hover.
  *
- * Derived rather than stored. The cover is the head of the category's reel
- * list, so naming a different cover clip means reordering that list and
- * nothing else.
+ * Derived rather than stored. The still is the client's designed cover when
+ * they sent one and otherwise the poster of the head of the category's reel
+ * list; either way that head clip rides along for the hover, so naming a
+ * different clip means reordering the list and nothing else.
+ *
+ * `w` and `h` come back only with a designed cover, and they mean the still
+ * has a shape of its own for the card to take. A poster is a frame of a 9:16
+ * clip and carries none, so the card keeps the wall's default shape and crops
+ * the frame to it.
  */
-export function workCover(work: Work): Photo & { reel?: Reel } {
+export function workCover(work: Work): Photo & { reel?: Reel; w?: number; h?: number } {
   const reel = work.reels ? REELS[work.reels]?.[0] : undefined;
+  if (work.cover) return { ...work.cover, reel };
   if (reel) return { src: reel.poster, alt: reel.alt, reel };
   if (work.frame) return work.frame;
   /*
@@ -416,28 +432,164 @@ export function workCover(work: Work): Photo & { reel?: Reel } {
   throw new Error(`Work "${work.slug}" names reels "${work.reels}", which has no clips.`);
 }
 
+/*
+ * The covers are the client's: nine stills from one drive folder, named "2",
+ * "2 2" and so on, with nothing to say which category each belongs to. Each
+ * is placed by what it shows, which is the same person, set, product or room
+ * as the category's own clips and photographs; the note on each entry says
+ * what matched. Cafe is the one they sent no cover for, so it keeps its
+ * clip's poster. `w` and `h` are the size of the file under /img/work-covers,
+ * where the two 3:4 covers arrived at 707 by 942 and are not upscaled.
+ */
 export const WORKS: Work[] = [
-  { slug: "clothing", title: "Clothing", reels: "clothing" },
+  {
+    slug: "clothing",
+    title: "Clothing",
+    reels: "clothing",
+    // The woman, the orange kurta, the gramophone and the carved screen are
+    // the cover clip's.
+    cover: {
+      src: "/img/work-covers/clothing.jpg",
+      w: 707,
+      h: 942,
+      alt: "Woman in an orange kurta set with gold embroidery walks towards the camera through a black and white room, a gramophone on a table to her left and a carved wooden screen and white blossoms behind her",
+    },
+  },
   { slug: "cafe", title: "Cafe", reels: "cafe" },
-  { slug: "fitness", title: "Fitness", reels: "fitness", shoot: "fitness" },
-  { slug: "hotel-and-resort", title: "Hotel & Resort", reels: "hotel-and-resort", shoot: "hotel" },
-  { slug: "co-living-space", title: "Co-Living Space", reels: "co-living-space" },
-  { slug: "product-spotlight", title: "Product Spotlight", reels: "product-spotlight" },
-  { slug: "store-video", title: "Store Video", reels: "store-video" },
+  {
+    slug: "fitness",
+    title: "Fitness",
+    reels: "fitness",
+    shoot: "fitness",
+    // The athlete from the fitness clip, in the same magenta top, black
+    // shorts and pink trainers.
+    cover: {
+      src: "/img/work-covers/fitness.jpg",
+      w: 707,
+      h: 942,
+      alt: "Athlete in a magenta crop top and black shorts grimaces as she whips a pair of battle ropes across the green turf of a gym",
+    },
+  },
+  {
+    slug: "hotel-and-resort",
+    title: "Hotel & Resort",
+    reels: "hotel-and-resort",
+    shoot: "hotel",
+    // The peaked safari tent of the cover clip's drone shot, seen from the
+    // ground.
+    cover: {
+      src: "/img/work-covers/hotel-and-resort.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Peaked canvas safari tent on a paved platform, seen through a frame of sunlit green leaves under a blue sky",
+    },
+  },
+  {
+    slug: "co-living-space",
+    title: "Co-Living Space",
+    reels: "co-living-space",
+    // The man from the Koliving clips, in the same maroon shirt, inside one
+    // of the rooms this time.
+    cover: {
+      src: "/img/work-covers/co-living-space.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Man in a maroon shirt throws his arms wide in a bright twin room with two beds, two desks, a magenta steel wardrobe and plants on the shelves",
+    },
+  },
+  {
+    slug: "product-spotlight",
+    title: "Product Spotlight",
+    reels: "product-spotlight",
+    // The same model, coat and pair of olive ribbed suitcases as the cover
+    // clip, drawn rather than photographed.
+    cover: {
+      src: "/img/work-covers/product-spotlight.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Illustration of a woman in a yellow coat, white crop top and jeans sitting on an olive ribbed suitcase, a smaller matching case in front, against a blue gradient",
+    },
+  },
+  {
+    slug: "store-video",
+    title: "Store Video",
+    reels: "store-video",
+    // The Fashor storefront and the woman in pink with a green dupatta from
+    // the cover clip, drawn rather than photographed.
+    cover: {
+      src: "/img/work-covers/store-video.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Illustration of a smiling woman in a pale pink dress and teal dupatta with open palms outside the Fashor store, its gold sign above her and a second sign in Tamil to her left",
+    },
+  },
   /*
    * Video only, at the user's request: the forty wedding photographs are on
    * /photoshoot, where the client asked for the photography to live, and no
    * longer repeat under the films here.
    */
-  { slug: "wedding-content", title: "Wedding Content", reels: "wedding-content" },
-  { slug: "interior", title: "Interior", reels: "interior", shoot: "interior" },
+  {
+    slug: "wedding-content",
+    title: "Wedding Content",
+    reels: "wedding-content",
+    // The one wedding still among the nine. Whether this couple appears in
+    // the wedding clips is not confirmed.
+    cover: {
+      src: "/img/work-covers/wedding-content.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Laughing bride in a blush floral lehenga and groom in a cream sherwani and turban raise their joined hands as gold confetti falls, smoke at their feet and white lotus props either side",
+    },
+  },
+  {
+    slug: "interior",
+    title: "Interior",
+    reels: "interior",
+    shoot: "interior",
+    // The living room of the interior shoot: the same curved sofa, boucle
+    // armchairs and oval marble table as interior-living-room.jpg.
+    cover: {
+      src: "/img/work-covers/interior.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Cream living room with a curved beige sofa, two boucle armchairs and an oval marble coffee table holding a laptop and white flowers, wall panels edged in gold behind",
+    },
+  },
   /*
    * Given a cover clip by the client but left out of the list of ten they
    * wrote above it. Kept, because dropping it would drop two files they asked
    * for by name; flagged, because the list and the covers disagree.
    */
-  { slug: "personal-branding", title: "Personal Branding", reels: "personal-branding" },
+  {
+    slug: "personal-branding",
+    title: "Personal Branding",
+    reels: "personal-branding",
+    // The man from the cover clip, same beard, checked blazer and flag pin,
+    // on a courtroom set.
+    cover: {
+      src: "/img/work-covers/personal-branding.jpg",
+      w: 1024,
+      h: 1280,
+      alt: "Bearded man in a checked blazer and black-framed glasses sits at a desk with a gavel and law books, brass scales of justice behind him",
+    },
+  },
 ];
+
+/**
+ * The home page's six featured cards wear covers of their own, sent by the
+ * client cut to the exact shapes those cards have always had: 4:3, 3:4, 1:1,
+ * 4:3, 3:4, 4:3 in the order the cards run. They are for the home page only;
+ * /work keeps the covers on `WORKS` above. Keyed by slug so a reorder of
+ * `WORKS` cannot put a cover on the wrong piece.
+ */
+export const HOME_COVERS: Partial<Record<Work["slug"], Photo & { w: number; h: number }>> = {
+  clothing: { src: "/img/home-covers/clothing.jpg", w: 1200, h: 900, alt: "Woman in an orange embroidered kurta set beside a gramophone and a carved screen" },
+  cafe: { src: "/img/home-covers/cafe.jpg", w: 900, h: 1200, alt: "White Greek-style building of The Beach Terrace with palms and bougainvillea at dusk" },
+  fitness: { src: "/img/home-covers/fitness.jpg", w: 1080, h: 1080, alt: "Athlete in a magenta top hauls blue battle ropes on turf in a gym" },
+  "hotel-and-resort": { src: "/img/home-covers/hotel-and-resort.jpg", w: 1200, h: 900, alt: "Peaked safari tent in sunlit grassland seen through leaves" },
+  "co-living-space": { src: "/img/home-covers/co-living-space.jpg", w: 900, h: 1200, alt: "Man with arms open in a PG twin room with a magenta wardrobe and a window" },
+  "product-spotlight": { src: "/img/home-covers/product-spotlight.jpg", w: 1200, h: 900, alt: "Woman in a beige coat and jeans sits on two olive hardshell suitcases against a blue sky" },
+};
 
 /**
  * The photography page.
@@ -569,6 +721,12 @@ export type CaseStudy = {
    * its subject is if both crops are to keep the face.
    */
   focus?: string;
+  /**
+   * The brand's logo, sent by the client for the home page, where it stands
+   * in for the frame: set small on a field of the logo's own background colour
+   * so the card keeps the frame's shape. /studio still shows the frame.
+   */
+  logo?: Photo & { bg: string };
   /** The client's clips for this brand, keyed into `lib/reels.ts`. */
   reels?: ReelKey;
 };
@@ -590,6 +748,7 @@ export const CLIENTS = {
   cases: [
     {
       name: "Koliving",
+      logo: { src: "/img/clients/koliving.jpg", alt: "Koliving logo", bg: "#ffb901" },
       claim: "From 300 followers to 5,000+, and 15M+ views.",
       intro: [
         "Koliving is a premium PG and co-living brand in Kolkata, offering modern living spaces for students and young professionals.",
@@ -627,6 +786,12 @@ export const CLIENTS = {
     },
     {
       name: "EnvyMe Fashion",
+      /*
+       * The client sent a Fashor logo for this card. Fashor is the store in
+       * the Store Video work; the case study copy names EnvyMe Fashion. Used
+       * as sent, and flagged to the client to confirm which brand this is.
+       */
+      logo: { src: "/img/clients/fashor.jpg", alt: "Fashor logo", bg: "#ffffff" },
       /*
        * Two authored lines. As one string the browser broke it between the
        * figure and its unit ("From 12K to 4.1" / "lakh+ followers.") on every

@@ -27,7 +27,8 @@ export default function ShootStrips() {
               </div>
             </div>
 
-            <Carousel photos={[...shoot.photos]} label={shoot.label} />
+            {/* The first strip is above the fold, so its opening frames are the page's largest paint. */}
+            <Carousel photos={[...shoot.photos]} label={shoot.label} eager={i === 0 ? 3 : 0} />
           </div>
         );
       })}

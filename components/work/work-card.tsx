@@ -10,9 +10,12 @@ import { claimPlayback } from "@/lib/solo-video";
 /**
  * A category's cover on the work wall.
  *
- * The still is the clip's own first second, so the card is never empty and
- * never jumps; pointing at it starts the clip over the top, and leaving stops
- * it and puts the still back.
+ * The still is the client's designed cover, or the clip's own first second
+ * where they sent none, so the card is never empty and never jumps; pointing
+ * at it starts the clip over the top, and leaving stops it and puts the still
+ * back. The clip is 9:16 and the card takes the cover's shape, so on hover the
+ * clip is cropped to the card: the still is the thing being framed, the clip
+ * is what moves behind it.
  *
  * It is a plain div and not a button the way `Reel` is. This card sits inside
  * the link to the category, and a button inside a link is neither one thing

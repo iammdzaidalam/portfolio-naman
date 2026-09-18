@@ -82,16 +82,36 @@ export default function Clients({
                   ({String(index + 1).padStart(2, "0")}) {study.name}
                 </p>
 
-                <div className="relative mt-[1.25em] aspect-[3/2] overflow-hidden">
-                  <Image
-                    src={study.frame}
-                    alt={study.alt}
-                    fill
-                    sizes="(max-width: 992px) 100vw, 44vw"
-                    className="object-cover"
-                    style={{ objectPosition: study.focus }}
-                  />
-                </div>
+                {/*
+                  The logo where the client sent one, small on a field of its
+                  own colour so the card keeps the frame's shape; the frame
+                  itself otherwise.
+                */}
+                {study.logo ? (
+                  <div
+                    className="relative mt-[1.25em] aspect-[3/2] overflow-hidden"
+                    style={{ backgroundColor: study.logo.bg }}
+                  >
+                    <Image
+                      src={study.logo.src}
+                      alt={study.logo.alt}
+                      fill
+                      sizes="(max-width: 992px) 60vw, 26vw"
+                      className="object-contain p-[12%]"
+                    />
+                  </div>
+                ) : (
+                  <div className="relative mt-[1.25em] aspect-[3/2] overflow-hidden">
+                    <Image
+                      src={study.frame}
+                      alt={study.alt}
+                      fill
+                      sizes="(max-width: 992px) 100vw, 44vw"
+                      className="object-cover"
+                      style={{ objectPosition: study.focus }}
+                    />
+                  </div>
+                )}
 
                 <Reveal
                   as="h3"
@@ -117,7 +137,10 @@ export default function Clients({
 
           <TransitionLink
             href="/studio"
-            className="statement group mt-[3em] inline-block text-[clamp(20px,2.2vw,32px)] opacity-60 transition-opacity duration-300 hover:opacity-100"
+            // Padded to a 44px tap target. The margin above gives back what
+            // the padding adds so the line does not move; the padding below
+            // stays, which also lifts it off the rule it was sitting on.
+            className="statement group mt-[2.4em] inline-block py-[0.6em] text-[clamp(20px,2.2vw,32px)] opacity-60 transition-opacity duration-300 hover:opacity-100"
           >
             Read the full stories{" "}
             <span

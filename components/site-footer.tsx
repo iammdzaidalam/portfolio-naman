@@ -15,6 +15,13 @@ import Reveal from "@/components/effects/reveal";
  * social links form a column at four-fifths of the width, a mono row runs along
  * the bottom edge, and the wordmark is set as wide as the page and bled off the
  * bottom so only its upper four-fifths show.
+ *
+ * On phones the wordmark is a line of type a few dozen pixels tall, and a box
+ * clipping it well above the bottom edge read as a mistake rather than a
+ * bleed. So there the wordmark and the mono row leave the absolute layer and
+ * join the column in flow, the row first and the wordmark last against the
+ * footer's bottom edge, which is where the clip then falls. In flow they can
+ * never be climbed into by the contact column on a short screen either.
  */
 export default function SiteFooter() {
   const mark = useRef<HTMLSpanElement>(null);
@@ -54,7 +61,7 @@ export default function SiteFooter() {
   });
 
   return (
-    <footer data-surface="ink" className="gradient-ink text-paper relative flex min-h-dvh flex-col overflow-hidden px-[var(--gutter)] pt-[calc(var(--corner)+96px)] pb-[calc(13vw+72px)]">
+    <footer data-surface="ink" className="gradient-ink text-paper relative flex min-h-dvh flex-col overflow-hidden px-[var(--gutter)] pt-[calc(var(--corner)+96px)] pb-[calc(13vw+72px)] max-mobile:pb-0">
       <div className="grid grid-cols-[1fr_auto] items-start gap-[3em] max-tablet:grid-cols-1">
         <div>
           <Reveal as="h2" className="display max-w-[6.5em] text-[clamp(44px,6.6vw,104px)]">
@@ -107,7 +114,8 @@ export default function SiteFooter() {
                 {...(entry.href?.startsWith("http")
                   ? { target: "_blank", rel: "noreferrer" }
                   : null)}
-                className="group block opacity-60 transition-opacity duration-300 hover:opacity-100"
+                // Padded to a 44px touch target without moving the type.
+                className="group block py-[6px] -my-[6px] opacity-60 transition-opacity duration-300 hover:opacity-100"
               >
                 <span className="statement group-hover:text-accent block text-[clamp(20px,1.9vw,28px)] transition-colors duration-300">
                   {entry.label}
@@ -127,19 +135,19 @@ export default function SiteFooter() {
         ground of the page rather than a line of type.
       */}
       <div
-        className="pointer-events-none absolute inset-x-[var(--gutter)] bottom-[56px] h-[13vw] overflow-hidden select-none max-mobile:bottom-[84px]"
+        className="pointer-events-none absolute inset-x-[var(--gutter)] bottom-[56px] h-[13vw] overflow-hidden select-none max-mobile:static max-mobile:order-1"
         aria-hidden
       >
         <span
           ref={mark}
-          className="display absolute top-0 left-0 block leading-[0.78] whitespace-nowrap uppercase"
+          className="display absolute top-0 left-0 block leading-[0.78] whitespace-nowrap uppercase max-mobile:static"
         >
           {SITE.name}
         </span>
       </div>
 
-      {/* The bottom row, over the wordmark. */}
-      <div className="label-xs absolute inset-x-[var(--gutter)] bottom-[var(--gutter)] z-10 flex items-center justify-between gap-[1em] mix-blend-difference max-mobile:flex-wrap">
+      {/* The bottom row, over the wordmark; above it on phones. */}
+      <div className="label-xs absolute inset-x-[var(--gutter)] bottom-[var(--gutter)] z-10 flex items-center justify-between gap-[1em] mix-blend-difference max-mobile:static max-mobile:mt-[56px] max-mobile:mb-[20px] max-mobile:flex-wrap">
         {/*
           The strapline is dropped on phones: with it the row wrapped to three
           lines and climbed into the wordmark, and the same words already run

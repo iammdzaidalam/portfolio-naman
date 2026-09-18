@@ -44,13 +44,11 @@ Every value below is measured rather than eyeballed.
   Only the Medium cut of PP Neue Montreal is in the repo, so the site runs at one
   weight and builds hierarchy from size, tracking and opacity. Never apply a bold
   utility to it.
-- **Home.** One viewport: the work on a scroll-driven 3D spiral, the studio
-  statement bottom-left in mixed-weight mono, the numbers as a column at mid-height
-  on the right, a play mark bottom-right, and the routes as a mono column on the left
-  with a square on the active one. That column exists only while the spiral is
-  pinned (`html[data-spiral-active]`, set by the spiral itself) because every other
-  section is editorial and uses the left edge. MENU opens an overlay of the same
-  routes set very large, right-aligned, with a rolling hover.
+- **Home.** One viewport: the work on a scroll-driven 3D spiral wearing the
+  client's designed covers, the statement bottom-left, the sound switch
+  bottom-right. There is no route column; MENU carries the navigation everywhere
+  and opens an overlay of the routes set very large, right-aligned, with a
+  rolling hover.
 - **Sections.** A section label that spreads its letters across the page
   on scroll and gathers in the right corner, below the chrome; a two-column works grid
   deliberately out of step, each item a mono caption, a sentence-case title, then the
