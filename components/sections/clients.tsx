@@ -63,7 +63,38 @@ export default function Clients({
       />
 
       <div className="grid grid-cols-[42%_1fr] gap-[4vw] max-tablet:grid-cols-1">
-        <div />
+        {/*
+          The brands' logos sit in the column beside the description, which
+          is otherwise empty on the home page: two small 3:2 fields in each
+          brand's own colour with the mark set modestly inside. On /studio the
+          column stays empty and the case studies carry their frames.
+        */}
+        {brief ? (
+          <div className="flex items-start gap-[1.25em] max-tablet:mb-[1em]">
+            {CLIENTS.cases.map((study) =>
+              study.logo ? (
+                <div
+                  key={study.name}
+                  className="relative aspect-[3/2] w-[46%] max-w-[200px] overflow-hidden"
+                  style={{ backgroundColor: study.logo.bg }}
+                >
+                  <Image
+                    src={study.logo.src}
+                    alt={study.logo.alt}
+                    fill
+                    sizes="200px"
+                    // Padding percentages resolve against the width, so the
+                    // vertical pair is chosen to leave a matching share of
+                    // the box's height for the mark.
+                    className="object-contain px-[20%] py-[10%]"
+                  />
+                </div>
+              ) : null,
+            )}
+          </div>
+        ) : (
+          <div />
+        )}
         <div className="max-w-[34em]">
           {CLIENTS.body.map((paragraph) => (
             <Reveal key={paragraph} as="p" className="mt-[1em] text-[1.0625em] opacity-70">
@@ -82,39 +113,7 @@ export default function Clients({
                   ({String(index + 1).padStart(2, "0")}) {study.name}
                 </p>
 
-                {/*
-                  The logo where the client sent one: a small 3:2 field of the
-                  brand's own colour, under half the column, with the mark set
-                  modestly inside it. A photograph frame otherwise.
-                */}
-                {study.logo ? (
-                  <div
-                    className="relative mt-[1.25em] aspect-[3/2] w-[46%] max-w-[300px] overflow-hidden max-mobile:w-[58%]"
-                    style={{ backgroundColor: study.logo.bg }}
-                  >
-                    <Image
-                      src={study.logo.src}
-                      alt={study.logo.alt}
-                      fill
-                      sizes="(max-width: 767px) 60vw, 300px"
-                      // Padding percentages resolve against the width, so the
-                      // vertical pair is chosen to leave a matching share of
-                      // the box's height for the mark.
-                      className="object-contain px-[20%] py-[10%]"
-                    />
-                  </div>
-                ) : (
-                  <div className="relative mt-[1.25em] aspect-[3/2] overflow-hidden">
-                    <Image
-                      src={study.frame}
-                      alt={study.alt}
-                      fill
-                      sizes="(max-width: 992px) 100vw, 44vw"
-                      className="object-cover"
-                      style={{ objectPosition: study.focus }}
-                    />
-                  </div>
-                )}
+                {/* No picture on the brief card: the logos sit beside the description above. */}
 
                 <Reveal
                   as="h3"
