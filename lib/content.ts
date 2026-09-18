@@ -455,7 +455,19 @@ export const WORKS: Work[] = [
       alt: "Woman in an orange kurta set with gold embroidery walks towards the camera through a black and white room, a gramophone on a table to her left and a carved wooden screen and white blossoms behind her",
     },
   },
-  { slug: "cafe", title: "Cafe", reels: "cafe" },
+  {
+    slug: "cafe",
+    title: "Cafe",
+    reels: "cafe",
+    // Sent later than the other nine, in the same 3:4 as the clothing and
+    // fitness covers: the beachfront terrace of the cafe reels from the air.
+    cover: {
+      src: "/img/work-covers/cafe.jpg",
+      w: 900,
+      h: 1200,
+      alt: "White and blue beachfront cafe with a rooftop terrace, palms and a sunset over the sea behind it, from the air",
+    },
+  },
   {
     slug: "fitness",
     title: "Fitness",
