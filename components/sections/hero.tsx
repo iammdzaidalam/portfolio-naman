@@ -140,7 +140,7 @@ export default function Hero() {
           (351px at 15px) wrapped at 390 too; two extra lines put the top of
           the block into the front card of the helix on a 667px screen.
         */}
-        <span className="label mb-[1.4em] block text-[clamp(14px,1.05vw,19px)] max-mobile:text-[13px]">{HERO.eyebrow}</span>
+        <span className="label mb-[0.75em] block text-[clamp(14px,1.05vw,19px)] max-mobile:text-[13px]">{HERO.eyebrow}</span>
 
         <span className="statement block text-[clamp(32px,3.8vw,56px)]">
           {HERO.lede[0]}
@@ -148,7 +148,7 @@ export default function Hero() {
           {HERO.lede[1]}
         </span>
 
-        <span className="label mt-[1.3em] block text-[clamp(15px,1.15vw,21px)] opacity-70 max-mobile:text-[14px]" lang="hi-Latn">
+        <span className="label mt-[0.7em] block text-[clamp(15px,1.15vw,21px)] opacity-70 max-mobile:text-[14px]" lang="hi-Latn">
           {SITE.tagline}
         </span>
       </h1>
