@@ -63,7 +63,7 @@ export default function ServicesPage() {
             >
               <div className="grid grid-cols-[42%_1fr] gap-[4vw] px-[var(--gutter)] pt-[2.5em] pb-[5em] max-tablet:grid-cols-1 max-tablet:gap-[2.5em]">
                 {/* The client's cover for this stop. */}
-                <div className="relative aspect-[16/10] overflow-hidden">
+                <div className="relative aspect-16/10 overflow-hidden">
                   <Image
                     src={service.cover.src}
                     alt={service.cover.alt}

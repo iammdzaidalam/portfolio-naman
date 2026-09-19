@@ -554,10 +554,19 @@ function Loader({ onDone }: { onDone: () => void }) {
         className="absolute inset-0 overflow-hidden"
         style={{ clipPath: "inset(0% 0% 0% 0%)", backgroundColor: WHITE }}
       >
+        {/*
+          The road is not on the frame's centre line: its dashed middle runs
+          at 55 percent of the width (measured at 682 to 712 px of 1280 across
+          the film), so a crop centred on the frame put the road a sixth of a
+          phone screen to the right. 57 percent lands the road on the middle
+          of every portrait window (390x844 wants 56.8, 375x667 57.3, an iPad
+          58.2) and on a landscape screen, which crops only a sliver from the
+          sides, it moves the picture by a few pixels.
+        */}
         <video
           ref={videoRef}
           src={FILM_SRC}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover [object-position:57%_50%]"
           muted
           playsInline
           autoPlay
