@@ -131,7 +131,7 @@ export default function SiteHeader() {
           // Not the accent on hover: the cursor dot is that same yellow and
           // sits directly over this word, which makes it hard to read at the
           // exact moment it is being pointed at.
-          className="chrome label fixed top-[calc(var(--corner)+(var(--mark-h)-44px)/2)] right-[calc(var(--corner)-12px)] z-[350] flex h-[44px] min-w-[44px] items-center justify-end px-[12px] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
+          className="chrome label fixed top-[calc(var(--corner)+(var(--mark-h)-44px)/2)] right-[calc(var(--corner)-12px)] z-[350] flex h-[44px] min-w-[44px] items-center justify-end px-[12px] text-[clamp(16px,1.1vw,20px)] text-right underline decoration-transparent decoration-1 underline-offset-[5px] transition-[text-decoration-color] duration-300 hover:decoration-current"
         >
           {open ? "Close" : "Menu ::"}
         </button>
